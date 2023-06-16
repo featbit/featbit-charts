@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ include "els.svc.name" . }}
+  labels:
+    {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+    app.kubernetes.io/component: els
+  annotations:
+    {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+    {{- with .Values.els.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.els.service.type }}
+  ports:
+    - targetPort: 5100
+      port: {{ include "els.svc.port" . }}
+      protocol: TCP
+      {{- if and (.Values.els.service.nodePort) (eq .Values.els.service.type "NodePort") }}
+      nodePort: {{ .Values.els.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "featbit.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: els

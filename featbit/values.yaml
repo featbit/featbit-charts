@@ -1,0 +1,432 @@
+# Default values for featbit.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: { }
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+apiExternalUrl: "http://192.168.64.32:30050"
+evaluationServerExternalUrl: "http://192.168.64.32:30100"
+demoExternalUrl: ""
+
+ui:
+  replicaCount: 1
+
+  image:
+    repository: featbit/featbit-ui
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "2.3.0"
+
+  imagePullSecrets: [ ]
+
+  podAnnotations: { }
+  podLabels: { }
+
+  podSecurityContext: { }
+  # fsGroup: 2000
+
+  securityContext: { }
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  service:
+    type: NodePort
+    port: 8081
+    nodePort: 30025
+    annotations: { }
+
+  ingress:
+    enabled: false
+    className: "nginx"
+    annotations: { }
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    hosts: [ ]
+    #      - host: eval.featbit.test
+    #        paths:
+    #          - path: /
+    #            pathType: ImplementationSpecific
+    tls: [ ]
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  rollout:
+    # The max surge in pods during a rollout
+    maxSurge: 25%
+    # The max unavailable during a rollout
+    maxUnavailable: 25%
+
+  resources:
+    requests:
+      cpu: 250m
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 60
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  affinity: { }
+
+  # -- Additional env variables to inject into the da server deployment.
+  env: { }
+
+api:
+  replicaCount: 1
+
+  image:
+    repository: featbit/featbit-api-server
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "2.3.0"
+
+  imagePullSecrets: [ ]
+
+  podAnnotations: { }
+  podLabels: { }
+
+  podSecurityContext: { }
+  # fsGroup: 2000
+
+  securityContext: { }
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  service:
+    type: NodePort
+    port: 5000
+    nodePort: 30050
+    annotations: { }
+
+  ingress:
+    enabled: false
+    className: "nginx"
+    annotations: { }
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    hosts: [ ]
+    #      - host: eval.featbit.test
+    #        paths:
+    #          - path: /
+    #            pathType: ImplementationSpecific
+    tls: [ ]
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  rollout:
+    # The max surge in pods during a rollout
+    maxSurge: 25%
+    # The max unavailable during a rollout
+    maxUnavailable: 25%
+
+  resources:
+    requests:
+      cpu: 250m
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 60
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  affinity: { }
+
+  # -- Additional env variables to inject into the da server deployment.
+  env: { }
+
+els:
+  replicaCount: 1
+
+  image:
+    repository: featbit/featbit-evaluation-server
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "2.3.0"
+
+  imagePullSecrets: [ ]
+
+  podAnnotations: { }
+  podLabels: { }
+
+  podSecurityContext: { }
+  # fsGroup: 2000
+
+  securityContext: { }
+    # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  service:
+    type: NodePort
+    port: 5100
+    nodePort: 30100
+    annotations: { }
+
+  ingress:
+    enabled: false
+    className: "nginx"
+    annotations: { }
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    hosts: [ ]
+    #      - host: eval.featbit.test
+    #        paths:
+    #          - path: /
+    #            pathType: ImplementationSpecific
+    tls: [ ]
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  rollout:
+    # The max surge in pods during a rollout
+    maxSurge: 25%
+    # The max unavailable during a rollout
+    maxUnavailable: 25%
+
+  resources:
+    requests:
+      cpu: 250m
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 60
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  affinity: { }
+
+  # -- Additional env variables to inject into the da server deployment.
+  env: { }
+
+
+das:
+  replicaCount: 1
+
+  image:
+    repository: featbit/featbit-data-analytics-server
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "2.3.0"
+
+  imagePullSecrets: [ ]
+
+  podAnnotations: { }
+  podLabels: { }
+
+  podSecurityContext: { }
+  # fsGroup: 2000
+
+  securityContext: { }
+    # capabilities:
+    #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  service:
+    type: NodePort
+    port: 8200
+    nodePort:
+    annotations: { }
+
+  rollout:
+    # The max surge in pods during a rollout
+    maxSurge: 25%
+    # The max unavailable during a rollout
+    maxUnavailable: 25%
+
+  resources:
+    requests:
+      cpu: 250m
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 60
+
+  nodeSelector: { }
+
+  tolerations: [ ]
+
+  affinity: { }
+
+  # -- Additional env variables to inject into the da server deployment.
+  env: { }
+
+
+###
+###
+### ---- REDIS ----
+###
+###
+redis:
+  # -- Whether to deploy a Redis server to satisfy the applications requirements. To use an external redis instance set this to `false` and configure the `externalRedis` parameters.
+  enabled: true
+
+  nameOverride: "featbit-redis"
+
+  fullnameOverride: ""
+
+  architecture: standalone
+
+  auth:
+    # -- Enable Redis password authentication.
+    enabled: false
+
+    # -- Redis password.
+    #    Defaults to a random 10-character alphanumeric string if not set.
+    #    NOTE: ignored unless `redis.auth.enabled` is `true` or if `redis.auth.existingSecret` is set.
+    #
+    password: ""
+
+    # -- The name of an existing secret containing the Redis credential to use.
+    #    NOTE: ignored unless `redis.auth.enabled` is `true`.
+    #          When it is set, the previous `redis.auth.password` parameter is ignored.
+    #
+    existingSecret: ""
+
+    # -- Password key to be retrieved from existing secret.
+    #    NOTE: ignored unless `redis.auth.existingSecret` parameter is set.
+    #
+    existingSecretPasswordKey: ""
+
+  master:
+    persistence:
+      # -- Enable data persistence using PVC.
+      enabled: true
+
+      # -- Persistent Volume size.
+      size: 5Gi
+
+externalRedis:
+  # -- External Redis host to use.
+  host: ""
+  # -- External Redis port to use.
+  port: 6379
+  # -- Password for the external Redis. Ignored if `externalRedis.existingSecret` is set.
+  password: ""
+  # -- Name of an existing Kubernetes secret object containing the Redis password.
+  existingSecret: ""
+  # -- Name of the key pointing to the password in your Kubernetes secret.
+  existingSecretPasswordKey: ""
+  ssl: false
+
+###
+###
+### ---- REDIS ----
+###
+###
+
+mongodb:
+  enabled: true
+
+  nameOverride: "featbit-mongodb"
+  fullnameOverride: ""
+
+  architecture: standalone
+  useStatefulSet: true
+
+  initdbScriptsConfigMap: featbit-mongodb-init-scripts-configmap
+
+  auth:
+    # -- Enable Mongodb password authentication.
+    enabled: true
+
+    # -- Mongodb root user.
+    rootUser: "admin"
+
+    # -- Mongodb root password.
+    #    NOTE: ignored unless `mongodb.auth.enabled` is `true` or if `mongodb.auth.existingSecret` is set.
+    #
+    rootPassword: "password"
+
+  persistence:
+    enabled: true
+    size: 8Gi
+
+externalMongodb:
+  fullConnectionString: ""
+
+
+busybox:
+  image: busybox:1.34
+  pullPolicy: IfNotPresent
+  pullSecrets: [ ]

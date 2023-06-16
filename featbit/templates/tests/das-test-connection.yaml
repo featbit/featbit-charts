@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "featbit.fullname" . }}-test-connection"
+  labels:
+    {{- include "featbit.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: {{ .Values.busybox.image }}
+      imagePullPolicy: {{ .Values.busybox.pullPolicy }}
+      command: ['wget']
+      args: ['{{ include "featbit.fullname" . }}-das/api:{{ .Values.das.service.port }}']
+  restartPolicy: Never
