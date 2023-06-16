@@ -14,8 +14,8 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-apiExternalUrl: "http://192.168.64.32:30050"
-evaluationServerExternalUrl: "http://192.168.64.32:30100"
+apiExternalUrl: ""
+evaluationServerExternalUrl: ""
 demoExternalUrl: ""
 
 ui:
@@ -44,7 +44,7 @@ ui:
   # runAsUser: 1000
 
   service:
-    type: NodePort
+    type: ClusterIP
     port: 8081
     nodePort: 30025
     annotations: { }
@@ -126,7 +126,7 @@ api:
   # runAsUser: 1000
 
   service:
-    type: NodePort
+    type: ClusterIP
     port: 5000
     nodePort: 30050
     annotations: { }
@@ -208,7 +208,7 @@ els:
   # runAsUser: 1000
 
   service:
-    type: NodePort
+    type: ClusterIP
     port: 5100
     nodePort: 30100
     annotations: { }
@@ -291,7 +291,7 @@ das:
   # runAsUser: 1000
 
   service:
-    type: NodePort
+    type: ClusterIP
     port: 8200
     nodePort:
     annotations: { }

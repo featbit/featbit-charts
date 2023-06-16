@@ -14,10 +14,10 @@
      NOTE: It may take a few minutes for the LoadBalancer IP to be available.
            You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "featbit.fullname" . }}'
   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $svc }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  echo http://$SERVICE_IP:{{ .Values.els.service.port }}
+  echo http://$SERVICE_IP:{{ include "ui.svc.port" . }}
 {{- else if contains "ClusterIP" .Values.els.service.type }}
-  echo "Visit http://127.0.0.1:{{ .Values.els.service.port }} to use your application"
-  kubectl --namespace {{ .Release.Namespace }} port-forward service {{ $svc }}  {{ .Values.els.service.port }}:{{ .Values.els.service.port }}
+  echo "Visit http://127.0.0.1:{{ include "ui.svc.port" . }} to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward service {{ $svc }} {{ include "ui.svc.port" . }}:{{ include "ui.svc.port" .}}
 {{- end }}
 2. Get the api URL by running these commands:
 {{ $svc = printf "%s-%s" (include "featbit.fullname" .) "api" }}
@@ -35,10 +35,10 @@
      NOTE: It may take a few minutes for the LoadBalancer IP to be available.
            You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "featbit.fullname" . }}'
   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $svc }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  echo http://$SERVICE_IP:{{ .Values.els.service.port }}
+  echo http://$SERVICE_IP:{{ include "api.svc.port" . }}
 {{- else if contains "ClusterIP" .Values.els.service.type }}
-  echo "Visit http://127.0.0.1:{{ .Values.els.service.port }} to use your application"
-  kubectl --namespace {{ .Release.Namespace }} port-forward service {{ $svc }}  {{ .Values.els.service.port }}:{{ .Values.els.service.port }}
+  echo "Visit http://127.0.0.1:{{ include "api.svc.port" . }} to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward service {{ $svc }} {{ include "api.svc.port" . }}:{{ include "api.svc.port" . }}
 {{- end }}
 3. Get the evaluation server URL by running these commands:
 {{ $svc = printf "%s-%s" (include "featbit.fullname" .) "els" }}
@@ -56,8 +56,8 @@
      NOTE: It may take a few minutes for the LoadBalancer IP to be available.
            You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "featbit.fullname" . }}'
   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $svc }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  echo http://$SERVICE_IP:{{ .Values.els.service.port }}
+  echo http://$SERVICE_IP:{{ include "els.svc.port" . }}
 {{- else if contains "ClusterIP" .Values.els.service.type }}
-  echo "Visit http://127.0.0.1:{{ .Values.els.service.port }} to use your application"
-  kubectl --namespace {{ .Release.Namespace }} port-forward service {{ $svc }}  {{ .Values.els.service.port }}:{{ .Values.els.service.port }}
+  echo "Visit http://127.0.0.1:{{ include "els.svc.port" . }} to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward service {{ $svc }} {{ include "els.svc.port" . }}:{{ include "els.svc.port" . }}
 {{- end }}
