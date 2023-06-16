@@ -43,6 +43,8 @@ spec:
       serviceAccountName: {{ include "featbit.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.ui.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "initContainers-wait-for-other-components" . | indent 8 }}
       containers:
         - name: {{ .Chart.Name }}-ui
           securityContext:
@@ -60,7 +62,7 @@ spec:
               path: /health
               port: http
           readinessProbe:
-            periodSeconds: 30
+            periodSeconds: 10
             timeoutSeconds: 5
             httpGet:
               path: /health

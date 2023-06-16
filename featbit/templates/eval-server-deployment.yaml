@@ -62,7 +62,7 @@ spec:
               path: /health/liveness
               port: http
           readinessProbe:
-            periodSeconds: 30
+            periodSeconds: 10
             timeoutSeconds: 5
             httpGet:
               path: /health/liveness

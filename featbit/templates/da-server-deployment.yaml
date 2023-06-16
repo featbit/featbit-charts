@@ -62,7 +62,7 @@ spec:
               path: /api
               port: http
           readinessProbe:
-            periodSeconds: 30
+            periodSeconds: 10
             timeoutSeconds: 5
             httpGet:
               path: /api
