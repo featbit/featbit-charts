@@ -1,1 +1,10 @@
-/.idea/
+.idea
+.vscode
+.project
+.settings
+charts/*/charts
+*.pyc
+venv/
+.tool-versions
+.envrc
+.direnv
