@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ include "featbit.fullname" . }}-els
+  labels:
+    {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+    app.kubernetes.io/component: els
+  annotations:
+    {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+spec:
+  {{- if not .Values.els.autoscaling.enabled }}
+  replicas: {{ .Values.els.replicaCount }}
+  {{- end }}
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.els.rollout.maxSurge }}
+      maxUnavailable: {{ .Values.els.rollout.maxUnavailable }}
+
+  selector:
+    matchLabels:
+      {{- include "featbit.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: els
+  template:
+    metadata:
+      {{- with .Values.els.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "featbit.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: els
+        {{- with .Values.els.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "featbit.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "featbit.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.els.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "initContainers-wait-for-infrastructure-dependencies" . | indent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-els
+          securityContext:
+            {{- toYaml .Values.els.securityContext | nindent 12 }}
+          image: {{ include "featbit.els.image" . }}
+          imagePullPolicy: {{ .Values.els.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5100
+              protocol: TCP
+          livenessProbe:
+            periodSeconds: 5
+            timeoutSeconds: 2
+            httpGet:
+              path: /health/liveness
+              port: http
+          readinessProbe:
+            periodSeconds: 10
+            timeoutSeconds: 5
+            httpGet:
+              path: /health/liveness
+              port: http
+          resources:
+            {{- toYaml .Values.els.resources | nindent 12 }}
+          env:
+            {{- include "redis-env" . | indent 12 }}
+            {{- include "mongodb-env" . | indent 12 }}
+            {{- with .Values.els.env }}
+            {{ toYaml . | indent 12 }}
+            {{- end }}
+      {{- with .Values.els.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.els.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.els.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

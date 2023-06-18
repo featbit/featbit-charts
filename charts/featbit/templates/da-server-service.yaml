@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ include "das.svc.name" . }}
+  labels:
+    {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+    app.kubernetes.io/component: das
+  annotations:
+    {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+    {{- with .Values.das.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.das.service.type }}
+  ports:
+    - port: {{ include "das.svc.port" . }}
+      targetPort: 80
+      protocol: TCP
+      {{- if and (.Values.das.service.nodePort) (eq .Values.das.service.type "NodePort") }}
+      nodePort: {{ .Values.das.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "featbit.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: das

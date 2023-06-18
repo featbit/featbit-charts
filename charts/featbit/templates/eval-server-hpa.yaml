@@ -1,0 +1,27 @@
+{{- if .Values.els.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ include "featbit.fullname" . }}-els-hpa
+  labels:
+    {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+  annotations:
+    {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "featbit.fullname" . }}-els
+  minReplicas: {{ .Values.els.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.els.autoscaling.maxReplicas }}
+  metrics:
+    {{- with .Values.els.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ . }}
+    {{- end }}
+{{- end }}

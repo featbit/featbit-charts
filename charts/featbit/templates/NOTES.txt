@@ -1,0 +1,63 @@
+1. Get the ui URL by running these commands:
+{{ $svc := printf "%s-%s" (include "featbit.fullname" .) "ui" }}
+{{- if .Values.ui.ingress.enabled }}
+{{- range $host := .Values.ui.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ui.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.els.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ $svc }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.els.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "featbit.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $svc }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ include "ui.svc.port" . }}
+{{- else if contains "ClusterIP" .Values.els.service.type }}
+  echo "Visit http://127.0.0.1:{{ include "ui.svc.port" . }} to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ $svc }} {{ include "ui.svc.port" . }}:{{ include "ui.svc.port" .}}
+{{- end }}
+2. Get the api URL by running these commands:
+{{ $svc = printf "%s-%s" (include "featbit.fullname" .) "api" }}
+{{- if .Values.api.ingress.enabled }}
+{{- range $host := .Values.api.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.api.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.els.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ $svc }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.els.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "featbit.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $svc }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ include "api.svc.port" . }}
+{{- else if contains "ClusterIP" .Values.els.service.type }}
+  echo "Visit http://127.0.0.1:{{ include "api.svc.port" . }} to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ $svc }} {{ include "api.svc.port" . }}:{{ include "api.svc.port" . }}
+{{- end }}
+3. Get the evaluation server URL by running these commands:
+{{ $svc = printf "%s-%s" (include "featbit.fullname" .) "els" }}
+{{- if .Values.els.ingress.enabled }}
+{{- range $host := .Values.els.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.els.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.els.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ $svc }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.els.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "featbit.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $svc }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ include "els.svc.port" . }}
+{{- else if contains "ClusterIP" .Values.els.service.type }}
+  echo "Visit http://127.0.0.1:{{ include "els.svc.port" . }} to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ $svc }} {{ include "els.svc.port" . }}:{{ include "els.svc.port" . }}
+{{- end }}

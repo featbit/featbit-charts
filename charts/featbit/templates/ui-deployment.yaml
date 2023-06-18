@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ include "featbit.fullname" . }}-ui
+  labels:
+    {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+    app.kubernetes.io/component: ui
+  annotations:
+    {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+spec:
+  {{- if not .Values.ui.autoscaling.enabled }}
+  replicas: {{ .Values.ui.replicaCount }}
+  {{- end }}
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.ui.rollout.maxSurge }}
+      maxUnavailable: {{ .Values.ui.rollout.maxUnavailable }}
+
+  selector:
+    matchLabels:
+      {{- include "featbit.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ui
+  template:
+    metadata:
+      {{- with .Values.ui.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "featbit.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: ui
+        {{- with .Values.els.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "featbit.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "featbit.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.ui.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "initContainers-wait-for-other-components" . | indent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-ui
+          securityContext:
+            {{- toYaml .Values.ui.securityContext | nindent 12 }}
+          image: {{ include "featbit.ui.image" . }}
+          imagePullPolicy: {{ .Values.ui.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            periodSeconds: 5
+            timeoutSeconds: 2
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            periodSeconds: 10
+            timeoutSeconds: 5
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml .Values.ui.resources | nindent 12 }}
+          env:
+            - name: API_URL
+              value: {{ include "featbit.api.external.url" . }}
+            - name: EVALUATION_URL
+              value: {{ include "featbit.els.external.url" . }}
+            - name: DEMO_URL
+              value: {{ include "featbit.demo.external.url" . }}
+            {{- with .Values.ui.env }}
+            {{ toYaml . | indent 12 }}
+            {{- end }}
+      {{- with .Values.ui.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ui.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ui.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

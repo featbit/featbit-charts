@@ -1,0 +1,29 @@
+apiExternalUrl: "http://api.featbit.test"
+evaluationServerExternalUrl: "http://els.featbit.test"
+
+ui:
+  ingress:
+    enabled: true
+    hosts:
+      - host: ui.featbit.test
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+
+api:
+  ingress:
+    enabled: true
+    hosts:
+      - host: api.featbit.test
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+
+els:
+  ingress:
+    enabled: true
+    hosts:
+      - host: els.featbit.test
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
