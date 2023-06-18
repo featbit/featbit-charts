@@ -1,5 +1,6 @@
 {{- if .Values.els.ingress.enabled -}}
 {{- $fullName := (include "featbit.fullname" .) -}}
+{{- $svcName := (include "els.svc.name" .) -}}
 {{- $svcPort := 80 -}}
 {{- if and .Values.els.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.els.ingress.annotations "kubernetes.io/ingress.class") }}
@@ -50,11 +51,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "els.svc.name" .}}
+                name: {{ $svcName }}
                 port:
                   number: {{ $svcPort }}
               {{- else }}
-              serviceName: {{ include "els.svc.name" .}}
+              serviceName: {{ $svcName }}
               servicePort: {{ $svcPort }}
               {{- end }}
           {{- end }}
