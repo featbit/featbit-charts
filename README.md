@@ -78,9 +78,9 @@ if you deploy the chart in a k8s cluster provided by cloud provider(AKE, GKE, EK
 ### NodePort
 Exposes the Services on each k8s cluster Node's IP at a static port:
 
-ui: http://NODE_IP:30025
-api: http://NODE_IP:30050
-evaluation server(els): http://NODE_IP:30100
+* ui: http://NODE_IP:30025
+* api: http://NODE_IP:30050
+* evaluation server(els): http://NODE_IP:30100
 
 Set your [values.yaml](https://helm.sh/docs/chart_template_guide/values_files/) as following:
 
@@ -183,6 +183,7 @@ K3D deploys traefik as the default ingress controller, [doc for exposing service
 
 Here is a simple example that show how to use ingress to expose services:
 ```yaml
+# charts/featbit/examples/expose-services-via-ingress.yaml
 
 apiExternalUrl: "http://api.featbit.test"
 evaluationServerExternalUrl: "http://els.featbit.test"
