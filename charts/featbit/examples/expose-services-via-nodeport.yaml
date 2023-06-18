@@ -4,7 +4,6 @@ evaluationServerExternalUrl: "http://192.168.64.32:30100"
 ui:
   service:
     type: NodePort
-    nodePort: 30025
 
 api:
   service:

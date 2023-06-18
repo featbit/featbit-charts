@@ -36,10 +36,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.das.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      {{- include "featbit.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "featbit.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.das.podSecurityContext | nindent 8 }}
@@ -49,7 +46,7 @@ spec:
         - name: {{ .Chart.Name }}-das
           securityContext:
             {{- toYaml .Values.das.securityContext | nindent 12 }}
-          image: "{{ .Values.das.image.repository }}:{{ .Values.das.image.tag | default .Chart.AppVersion }}"
+          image: {{ include "featbit.das.image" . }}
           imagePullPolicy: {{ .Values.das.image.pullPolicy }}
           ports:
             - name: http

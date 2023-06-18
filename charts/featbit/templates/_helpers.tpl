@@ -78,6 +78,34 @@ helm.sh/chart: {{ include "featbit.chart" . }}
 {{- end }}
 
 {{/*
+Return the proper Docker Image Registry Secret Names
+*/}}
+{{- define "featbit.imagePullSecrets" -}}
+{{- include "featbit.images.pullSecrets" (dict "images" (list .Values.ui .Values.api .Values.els .Values.das .Values.busybox) "global" .Values.global) -}}
+{{- end -}}
+
+{{- define "featbit.init-container.busybox.image" -}}
+{{- include "featbit.images.image" (dict "imageRoot" .Values.busybox.image "global" .Values.global) -}}
+{{- end -}}
+
+{{- define "featbit.ui.image" -}}
+{{- include "featbit.images.image" (dict "imageRoot" .Values.ui.image "global" .Values.global) -}}
+{{- end -}}
+
+{{- define "featbit.api.image" -}}
+{{- include "featbit.images.image" (dict "imageRoot" .Values.api.image "global" .Values.global) -}}
+{{- end -}}
+
+{{- define "featbit.els.image" -}}
+{{- include "featbit.images.image" (dict "imageRoot" .Values.els.image "global" .Values.global) -}}
+{{- end -}}
+
+{{- define "featbit.das.image" -}}
+{{- include "featbit.images.image" (dict "imageRoot" .Values.das.image "global" .Values.global) -}}
+{{- end -}}
+
+
+{{/*
 -----Mongodb-----
 */}}
 

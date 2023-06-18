@@ -1,8 +1,8 @@
 {{/* Common initContainers-wait-for-infrastructure-dependencies definition */}}
 {{- define "initContainers-wait-for-infrastructure-dependencies" }}
 - name: wait-for-infrastructure-dependencies
-  image: {{ .Values.busybox.image }}
-  imagePullPolicy: {{ .Values.busybox.pullPolicy }}
+  image: {{ include "featbit.init-container.busybox.image" . }}
+  imagePullPolicy: {{ .Values.busybox.image.pullPolicy }}
   command:
     - /bin/sh
     - -c

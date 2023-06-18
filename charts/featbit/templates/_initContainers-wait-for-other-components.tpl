@@ -1,8 +1,8 @@
 {{/* ui waits for other components */}}
 {{- define "initContainers-wait-for-other-components" }}
 - name: wait-for-other-components
-  image: {{ .Values.busybox.image }}
-  imagePullPolicy: {{ .Values.busybox.pullPolicy }}
+  image: {{ include "featbit.init-container.busybox.image" . }}
+  imagePullPolicy: {{ .Values.busybox.image.pullPolicy }}
   command:
     - /bin/sh
     - -c

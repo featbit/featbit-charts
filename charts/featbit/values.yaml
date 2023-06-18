@@ -2,6 +2,15 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+global:
+  imageRegistry: ""
+  ## E.g.
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  imagePullSecrets: []
+
+
 nameOverride: ""
 fullnameOverride: ""
 
@@ -22,10 +31,11 @@ ui:
   replicaCount: 1
 
   image:
+    registry: docker.io
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "2.3.0"
+    tag: 2.3.0
 
   imagePullSecrets: [ ]
 
@@ -104,10 +114,11 @@ api:
   replicaCount: 1
 
   image:
+    registry: docker.io
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "2.3.0"
+    tag: 2.3.0
 
   imagePullSecrets: [ ]
 
@@ -186,10 +197,11 @@ els:
   replicaCount: 1
 
   image:
+    registry: docker.io
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "2.3.0"
+    tag: 2.3.0
 
   imagePullSecrets: [ ]
 
@@ -269,10 +281,11 @@ das:
   replicaCount: 1
 
   image:
+    registry: docker.io
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "2.3.0"
+    tag: 2.3.0
 
   imagePullSecrets: [ ]
 
@@ -368,6 +381,9 @@ redis:
     #
     existingSecretPasswordKey: ""
 
+  image:
+    registry: docker.io
+
   master:
     persistence:
       # -- Enable data persistence using PVC.
@@ -391,7 +407,7 @@ externalRedis:
 
 ###
 ###
-### ---- REDIS ----
+### ---- MongoDB ----
 ###
 ###
 
@@ -405,6 +421,9 @@ mongodb:
   useStatefulSet: true
 
   initdbScriptsConfigMap: featbit-mongodb-init-scripts-configmap
+
+  image:
+    registry: docker.io
 
   auth:
     # -- Enable Mongodb password authentication.
@@ -427,6 +446,9 @@ externalMongodb:
 
 
 busybox:
-  image: busybox:1.34
-  pullPolicy: IfNotPresent
-  pullSecrets: [ ]
+  image:
+    registry: docker.io
+    repository: busybox
+    tag: 1.34
+    pullPolicy: IfNotPresent
+  imagePullSecrets: [ ]
