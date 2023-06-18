@@ -133,6 +133,16 @@ data:
                 },
                 {
                     _id: getUUIDString(),
+                    resourceType: "relay-proxy",
+                    effect: "allow",
+                    actions: [
+                        "ManageRelayProxies",
+                        "ListRelayProxies"
+                    ],
+                    resources: ["relay-proxy/*"]
+                },
+                {
+                    _id: getUUIDString(),
                     resourceType: "project",
                     effect: "allow",
                     actions: [
@@ -185,6 +195,16 @@ data:
                 },
                 {
                     _id: getUUIDString(),
+                    resourceType: "relay-proxy",
+                    effect: "allow",
+                    actions: [
+                        "ManageRelayProxies",
+                        "ListRelayProxies"
+                    ],
+                    resources: ["relay-proxy/*"]
+                },
+                {
+                    _id: getUUIDString(),
                     resourceType: "project",
                     effect: "allow",
                     actions: [
@@ -223,5 +243,4 @@ data:
         }
     )
     print('collection seeded: MemberPolicies')
-
-{{- end -}}
+  {{- end -}}
