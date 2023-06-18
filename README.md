@@ -173,7 +173,7 @@ minikube addons enable Kong
 
 #### K3D
 
-K3D deploys traefik as the default ingress controller, [doc for exposing services in K3D](charts/featbit/examples/expose-services-via-nodeport.yaml)
+K3D deploys traefik as the default ingress controller, pleae read the [doc for exposing services in K3D](charts/featbit/examples/expose-services-via-nodeport.yaml)
 
 #### K8s provided by Cloud (AKE, GKE, EKS etc.)
 
