@@ -9,7 +9,7 @@ metadata:
   annotations:
     {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
 data:
-  init.js: |
+  init.js: |-
     const dbName = "featbit";
     print('use', dbName, 'database')
     db = db.getSiblingDB(dbName)

@@ -13,6 +13,9 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.els.service.type }}
+  {{ if and (eq .Values.els.service.type "LoadBalancer") .Values.els.service.staticIP }}
+  loadBalancerIP: {{ .Values.els.service.staticIP }}
+  {{ end }}
   ports:
     - targetPort: 5100
       port: {{ include "els.svc.port" . }}

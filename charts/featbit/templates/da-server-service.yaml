@@ -13,6 +13,9 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.das.service.type }}
+  {{ if and (eq .Values.das.service.type "LoadBalancer") .Values.das.service.staticIP }}
+  loadBalancerIP: {{ .Values.das.service.staticIP }}
+  {{ end }}
   ports:
     - port: {{ include "das.svc.port" . }}
       targetPort: 80

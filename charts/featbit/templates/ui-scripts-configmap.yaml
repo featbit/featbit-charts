@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: ui-scripts-configmap
+  labels:
+      {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+    annotations:
+      {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+data:
+  {{ $api_port := .Values.api.service.port }}
+  {{ $els_port := .Values.els.service.port }}
+  setup.sh: |-
+    #!/bin/bash
+
+    {{ if .Values.autoDiscovery  }}
+    {{ if ((eq .Values.api.service.type "LoadBalancer")) }}
+    api_curr_ip="$(<${SHARED_API_URL_FILE})"
+    export API_URL="http://$api_curr_ip:{{ $api_port }}"
+    {{ end }}
+    {{ if ((eq .Values.els.service.type "LoadBalancer")) }}
+    els_curr_ip="$(<${SHARED_EVALUATION_URL_FILE})"
+    export EVALUATION_URL="http://$els_curr_ip:{{ $els_port }}"
+    {{ end }}
+    {{ end }}
+    . /scripts/docker-entrypoint.sh
+  {{- if and .Values.autoDiscovery (or (eq .Values.api.service.type "LoadBalancer") (eq .Values.els.service.type "LoadBalancer")) }}
+  {{- $apiSVCName := (include "api.svc.name" .) }}
+  {{- $elsSVCName := (include "els.svc.name" .) }}
+    {{- $releaseNamespace := .Release.Namespace }}
+  auto-discovery.sh: |-
+    #!/bin/bash
+
+    # Auxiliary functions
+    retry_while() {
+        local -r cmd="${1:?cmd is missing}"
+        local -r retries="${2:-60}"
+        local -r sleep_time="${3:-5}"
+        local return_value=1
+
+        read -r -a command <<< "$cmd"
+        for ((i = 1 ; i <= retries ; i+=1 )); do
+            "${command[@]}" && return_value=0 && break
+            sleep "$sleep_time"
+        done
+        return $return_value
+    }
+    k8s_svc_lb_ip() {
+        local namespace=${1:?namespace is missing}
+        local service=${2:?service is missing}
+        local service_ip=$(kubectl get svc "$service" -n "$namespace" -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+
+        if [[ -n ${service_ip} ]]; then
+            echo "${service_ip}"
+        else
+            echo ""
+        fi
+    }
+    k8s_svc_lb_ip_ready() {
+        local namespace=${1:?namespace is missing}
+        local service=${2:?service is missing}
+        [[ -n "$(k8s_svc_lb_ip "$namespace" "$service")" ]]
+    }
+
+    {{ if (eq .Values.api.service.type "LoadBalancer") }}
+    # Wait until LoadBalancer IP is ready
+    retry_while "k8s_svc_lb_ip_ready {{ $releaseNamespace }} {{ $apiSVCName }}" || exit 1
+    # Obtain LoadBalancer external IP
+    k8s_svc_lb_ip "{{ $releaseNamespace }}" "{{ $apiSVCName }}" | tee $SHARED_API_URL_FILE
+    {{ end }}
+
+    {{ if (eq .Values.els.service.type "LoadBalancer") }}
+    # Wait until LoadBalancer IP is ready
+    retry_while "k8s_svc_lb_ip_ready {{ $releaseNamespace }} {{ $elsSVCName }}" || exit 1
+    # Obtain LoadBalancer external IP
+    k8s_svc_lb_ip "{{ $releaseNamespace }}" "{{ $elsSVCName }}" | tee $SHARED_EVALUATION_URL_FILE
+    {{ end }}
+  {{- end }}
