@@ -39,22 +39,6 @@ api:
     nodePort: 30050
     annotations: { }
 
-  ingress:
-    enabled: false
-    className: "traefik"
-    annotations: { }
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    hosts: [ ]
-    #      - host: eval.featbit.test
-    #        paths:
-    #          - path: /
-    #            pathType: ImplementationSpecific
-    tls: [ ]
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
-
   rollout:
     # The max surge in pods during a rollout
     maxSurge: 25%
