@@ -104,6 +104,47 @@ Return the proper Docker Image Registry Secret Names
 {{- include "featbit.images.image" (dict "imageRoot" .Values.das.image "global" .Values.global) -}}
 {{- end -}}
 
+{{/*
+Get KubeVersion removing pre-release information.
+*/}}
+{{- define "featbit.kubeVersion" -}}
+  {{- default .Capabilities.KubeVersion.Version (regexFind "v[0-9]+\\.[0-9]+\\.[0-9]+" .Capabilities.KubeVersion.Version) -}}
+{{- end -}}
+
+{{/*
+Return the appropriate apiVersion for ingress.
+*/}}
+{{- define "featbit.ingress.apiVersion" -}}
+  {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+        {{- print "networking.k8s.io/v1" -}}
+    {{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+        {{- print "networking.k8s.io/v1beta1" -}}
+    {{- else -}}
+        {{- print "extensions/v1beta1" -}}
+  {{- end }}
+{{- end -}}
+
+{{/*
+Return if ingress supports ingressClassName.
+*/}}
+{{- define "featbit.ingress.supportsIngressClassName" -}}
+  {{- or (eq (include "featbit.ingress.isStable" .) "true") (and (eq (include "featbit.ingress.apiVersion" .) "networking.k8s.io/v1beta1") (semverCompare ">= 1.18.x" (include "featbit.kubeVersion" .))) -}}
+{{- end -}}
+
+{{/*
+Return if ingress supports pathType.
+*/}}
+{{- define "featbit.ingress.supportsPathType" -}}
+  {{- or (eq (include "featbit.ingress.isStable" .) "true") (and (eq (include "featbit.ingress.apiVersion" .) "networking.k8s.io/v1beta1") (semverCompare ">= 1.18.x" (include "featbit.kubeVersion" .))) -}}
+{{- end -}}
+
+{{/*
+Return if ingress is stable.
+*/}}
+{{- define "featbit.ingress.isStable" -}}
+  {{- eq (include "featbit.ingress.apiVersion" .) "networking.k8s.io/v1" -}}
+{{- end -}}
+
 
 {{/*
 -----Mongodb-----

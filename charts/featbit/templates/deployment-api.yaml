@@ -2,87 +2,87 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ include "featbit.fullname" . }}-das
+  name: {{ include "featbit.fullname" . }}-api
   labels:
     {{- include "featbit-metadata-labels-common" . | nindent 4 }}
-    app.kubernetes.io/component: das
+    app.kubernetes.io/component: api
   annotations:
     {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
 spec:
-  {{- if not .Values.das.autoscaling.enabled }}
-  replicas: {{ .Values.das.replicaCount }}
+{{- if .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+{{- end }}
+  {{- if not .Values.api.autoscaling.enabled }}
+  replicas: {{ .Values.api.replicaCount }}
   {{- end }}
 
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: {{ .Values.das.rollout.maxSurge }}
-      maxUnavailable: {{ .Values.das.rollout.maxUnavailable }}
+      maxSurge: {{ .Values.api.rollout.maxSurge }}
+      maxUnavailable: {{ .Values.api.rollout.maxUnavailable }}
 
   selector:
     matchLabels:
       {{- include "featbit.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: das
+      app.kubernetes.io/component: api
   template:
     metadata:
-      {{- with .Values.das.podAnnotations }}
+      {{- with .Values.api.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "featbit.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: das
-        {{- with .Values.das.podLabels }}
+        app.kubernetes.io/component: api
+        {{- with .Values.api.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       {{- include "featbit.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "featbit.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.das.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.api.podSecurityContext | nindent 8 }}
       initContainers:
         {{- include "initContainers-wait-for-infrastructure-dependencies" . | indent 8 }}
       containers:
-        - name: {{ .Chart.Name }}-das
+        - name: {{ .Chart.Name }}-api
           securityContext:
-            {{- toYaml .Values.das.securityContext | nindent 12 }}
-          image: {{ include "featbit.das.image" . }}
-          imagePullPolicy: {{ .Values.das.image.pullPolicy }}
+            {{- toYaml .Values.api.securityContext | nindent 12 }}
+          image: {{ include "featbit.api.image" . }}
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 5000
               protocol: TCP
           livenessProbe:
             periodSeconds: 5
             timeoutSeconds: 2
             httpGet:
-              path: /api
+              path: /health/liveness
               port: http
           readinessProbe:
             periodSeconds: 10
             timeoutSeconds: 5
             httpGet:
-              path: /api
+              path: /health/liveness
               port: http
           resources:
-            {{- toYaml .Values.das.resources | nindent 12 }}
+            {{- toYaml .Values.api.resources | nindent 12 }}
           env:
-            - name: CHECK_DB_LIVNESS
-              value: "false"
-            {{- include "redis-env" . | indent 12 }}
-            {{- include "mongodb-env" . | indent 12 }}
-            {{- with .Values.das.env }}
+            {{ include "featbit.api.env" . | indent 12 }}
+            {{- with .Values.api.env }}
             {{ toYaml . | indent 12 }}
             {{- end }}
-      {{- with .Values.das.nodeSelector }}
+      {{- with .Values.api.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.das.affinity }}
+      {{- with .Values.api.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.das.tolerations }}
+      {{- with .Values.api.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

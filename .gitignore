@@ -2,7 +2,6 @@
 .vscode
 .project
 .settings
-charts/*/charts
 *.pyc
 venv/
 .tool-versions

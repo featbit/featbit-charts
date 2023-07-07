@@ -1,0 +1,25 @@
+{{- define "featbit.dataanalytics.env" -}}
+- name: CHECK_DB_LIVNESS
+  value: "false"
+{{- if .Values.isPro }}
+- name: IS_PRO
+  value: "true"
+- name: CLICKHOUSE_HOST
+  value: {{ include "featbit.clickhouse.host" . }}
+- name: CLICKHOUSE_KAFKA_HOSTS
+  value: {{ include "featbit.kafka.bootstrap_servers_string" . | quote }}
+- name: CLICKHOUSE_PASSWORD
+  value: {{ include "featbit.clickhouse.password" . | quote }}
+  # valueFrom:
+  #   secretKeyRef:
+  #     name: clickhouse-password
+  #     key: password
+- name: KAFKA_HOSTS
+  value: {{ include "featbit.kafka.bootstrap_servers_string" . | quote }}
+{{- else }}
+{{- include "mongodb-env" . }}
+{{- end }}
+{{- include "redis-env" . }}
+{{- end -}}
+
+

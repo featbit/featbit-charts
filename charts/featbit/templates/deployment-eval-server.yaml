@@ -2,55 +2,55 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ include "featbit.fullname" . }}-api
+  name: {{ include "featbit.fullname" . }}-els
   labels:
     {{- include "featbit-metadata-labels-common" . | nindent 4 }}
-    app.kubernetes.io/component: api
+    app.kubernetes.io/component: els
   annotations:
     {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
 spec:
-  {{- if not .Values.api.autoscaling.enabled }}
-  replicas: {{ .Values.api.replicaCount }}
+  {{- if not .Values.els.autoscaling.enabled }}
+  replicas: {{ .Values.els.replicaCount }}
   {{- end }}
 
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: {{ .Values.api.rollout.maxSurge }}
-      maxUnavailable: {{ .Values.api.rollout.maxUnavailable }}
+      maxSurge: {{ .Values.els.rollout.maxSurge }}
+      maxUnavailable: {{ .Values.els.rollout.maxUnavailable }}
 
   selector:
     matchLabels:
       {{- include "featbit.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: api
+      app.kubernetes.io/component: els
   template:
     metadata:
-      {{- with .Values.api.podAnnotations }}
+      {{- with .Values.els.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "featbit.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: api
-        {{- with .Values.api.podLabels }}
+        app.kubernetes.io/component: els
+        {{- with .Values.els.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       {{- include "featbit.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "featbit.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.api.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.els.podSecurityContext | nindent 8 }}
       initContainers:
         {{- include "initContainers-wait-for-infrastructure-dependencies" . | indent 8 }}
       containers:
-        - name: {{ .Chart.Name }}-api
+        - name: {{ .Chart.Name }}-els
           securityContext:
-            {{- toYaml .Values.api.securityContext | nindent 12 }}
-          image: {{ include "featbit.api.image" . }}
-          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+            {{- toYaml .Values.els.securityContext | nindent 12 }}
+          image: {{ include "featbit.els.image" . }}
+          imagePullPolicy: {{ .Values.els.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 5000
+              containerPort: 5100
               protocol: TCP
           livenessProbe:
             periodSeconds: 5
@@ -65,24 +65,21 @@ spec:
               path: /health/liveness
               port: http
           resources:
-            {{- toYaml .Values.api.resources | nindent 12 }}
+            {{- toYaml .Values.els.resources | nindent 12 }}
           env:
-            - name: OLAP__ServiceHost
-              value: {{ printf "http://%s:%s" (include "das.svc.name" .) (include "das.svc.port" .) }}
-            {{- include "redis-env" . | indent 12 }}
-            {{- include "mongodb-env" . | indent 12 }}
-            {{- with .Values.api.env }}
-            {{ toYaml . | indent 12 }}
+            {{ include "featbit.evaluation.env" . | indent 12 }}
+            {{- if .Values.els.env }}
+              {{ toYaml .Values.els.env | indent 12 }}
             {{- end }}
-      {{- with .Values.api.nodeSelector }}
+      {{- with .Values.els.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.api.affinity }}
+      {{- with .Values.els.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.api.tolerations }}
+      {{- with .Values.els.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
