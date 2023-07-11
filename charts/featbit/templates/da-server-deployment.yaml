@@ -67,12 +67,9 @@ spec:
           resources:
             {{- toYaml .Values.das.resources | nindent 12 }}
           env:
-            - name: CHECK_DB_LIVNESS
-              value: "false"
-            {{- include "redis-env" . | indent 12 }}
-            {{- include "mongodb-env" . | indent 12 }}
-            {{- with .Values.das.env }}
-            {{ toYaml . | indent 12 }}
+            {{ include "featbit.dataanalytics.env" . | nindent 12 }}
+            {{- if .Values.das.env }}
+            {{ toYaml .Values.das.env | nindent 12 }}
             {{- end }}
       {{- with .Values.das.nodeSelector }}
       nodeSelector:

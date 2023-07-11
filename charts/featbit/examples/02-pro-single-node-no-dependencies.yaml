@@ -1,0 +1,72 @@
+### to quickstart with this example use deployInfrastrusture.ps1 from the main featbit project kubernetes/pro
+
+isPro: true
+
+apiExternalUrl: "http://127.0.0.1:5000"
+evaluationServerExternalUrl: "http://127.0.0.1:5100"
+demoExternalUrl: "https://featbit-samples.vercel.app"
+
+clickhouse:
+  enabled: false
+zookeeper: 
+  enabled: false
+mongodb:
+  enabled: false
+redis:
+  enabled: false
+kafka:
+  enabled: false
+
+## This value is only used when kafka.enabled is set to false
+##
+externalKafka:
+  ## Hostname or ip address of external kafka
+  ##
+  host: "kafka"
+  port: 9092    
+
+## This value is only used when redis.enabled is set to false
+##
+externalRedis:
+  ## Hostname or ip address of external redis cluster
+  ##
+  host: "redis"
+  port: 6379
+  ## Just omit the password field if your redis cluster doesn't use password
+  # password: redis
+
+## This value is only used when mongodb.enabled is set to false
+##
+externalmongodb:
+  ## Hostname or ip address of external redis cluster
+  ##
+  host: "mongodb"
+  port: 27017
+  database: featbit
+  username: admin
+  ## Just omit the password field if your redis cluster doesn't use password
+  password: password
+
+externalMongodb:
+  fullConnectionString: "mongodb://admin:password@mongodb:27017"
+
+externalZookeeper:
+  ## @param externalZookeeper.servers List of external zookeeper servers to use
+  ## @param externalZookeeper.port Port of the Zookeeper servers
+  ##
+  servers: [zookeeper]
+  port: 2181  
+
+## This value is only used when clickhouse.enabled is set to false
+##
+externalClickhouse:
+  ## Hostname or ip address of external clickhouse
+  ##
+  host: "clickhouse-server"
+  tcpPort: 9000
+  httpPort: 8123
+  username: default
+  password: ""
+  database: default
+  singleNode: true
+

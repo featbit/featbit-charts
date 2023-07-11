@@ -2,6 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+isPro: false
+
 global:
   imageRegistry: ""
   ## E.g.
@@ -13,6 +15,13 @@ global:
 
 nameOverride: ""
 fullnameOverride: ""
+
+clickhouse:
+  enabled: false
+zookeeper:
+  enabled: false
+kafka:
+  enabled: false
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -83,7 +92,7 @@ ui:
 
   resources:
     requests:
-      cpu: 250m
+#      cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -166,7 +175,7 @@ api:
 
   resources:
     requests:
-      cpu: 250m
+#      cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -191,7 +200,7 @@ api:
   affinity: { }
 
   # -- Additional env variables to inject into the da server deployment.
-  env: { }
+#  env: { }
 
 els:
   replicaCount: 1

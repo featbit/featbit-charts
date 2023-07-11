@@ -9,6 +9,9 @@ metadata:
   annotations:
     {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
 spec:
+{{- if .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+{{- end }}
   {{- if not .Values.api.autoscaling.enabled }}
   replicas: {{ .Values.api.replicaCount }}
   {{- end }}
@@ -67,10 +70,7 @@ spec:
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
           env:
-            - name: OLAP__ServiceHost
-              value: {{ printf "http://%s:%s" (include "das.svc.name" .) (include "das.svc.port" .) }}
-            {{- include "redis-env" . | indent 12 }}
-            {{- include "mongodb-env" . | indent 12 }}
+            {{ include "featbit.api.env" . | indent 12 }}
             {{- with .Values.api.env }}
             {{ toYaml . | indent 12 }}
             {{- end }}

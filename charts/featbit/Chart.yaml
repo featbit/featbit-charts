@@ -39,6 +39,18 @@ dependencies:
     version: 17.0.1
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
+  - name: kafka
+    repository: https://charts.bitnami.com/bitnami
+    version: 23.0.2
+    condition: kafka.enabled
+  - name: clickhouse
+    repository: https://charts.bitnami.com/bitnami
+    version: 3.4.1
+    condition: clickhouse.enabled
+  - name: zookeeper
+    repository: https://charts.bitnami.com/bitnami
+    version: 11.4.2
+    condition: zookeeper.enabled
 
 maintainers:
   - name: featbit.master

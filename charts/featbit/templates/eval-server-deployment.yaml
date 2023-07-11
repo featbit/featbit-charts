@@ -67,10 +67,9 @@ spec:
           resources:
             {{- toYaml .Values.els.resources | nindent 12 }}
           env:
-            {{- include "redis-env" . | indent 12 }}
-            {{- include "mongodb-env" . | indent 12 }}
-            {{- with .Values.els.env }}
-            {{ toYaml . | indent 12 }}
+            {{ include "featbit.evaluation.env" . | indent 12 }}
+            {{- if .Values.els.env }}
+              {{ toYaml .Values.els.env | indent 12 }}
             {{- end }}
       {{- with .Values.els.nodeSelector }}
       nodeSelector:
