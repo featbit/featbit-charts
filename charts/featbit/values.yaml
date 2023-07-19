@@ -23,9 +23,11 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-apiExternalUrl: ""
-evaluationServerExternalUrl: ""
+apiExternalUrl: "http://localhost:5000"
+evaluationServerExternalUrl: "http://localhost:5100"
 demoExternalUrl: ""
+# only considered in exposing LoadBalancer service
+autoDiscovery: false
 
 ui:
   replicaCount: 1
@@ -35,7 +37,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.3.0
+    tag: 2.4.1
 
   imagePullSecrets: [ ]
 
@@ -58,6 +60,7 @@ ui:
     port: 8081
     nodePort: 30025
     annotations: { }
+    staticIP:
 
   ingress:
     enabled: false
@@ -118,7 +121,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.3.0
+    tag: 2.4.1
 
   imagePullSecrets: [ ]
 
@@ -141,6 +144,7 @@ api:
     port: 5000
     nodePort: 30050
     annotations: { }
+    staticIP:
 
   ingress:
     enabled: false
@@ -201,7 +205,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.3.0
+    tag: 2.4.1
 
   imagePullSecrets: [ ]
 
@@ -224,6 +228,7 @@ els:
     port: 5100
     nodePort: 30100
     annotations: { }
+    staticIP:
 
   ingress:
     enabled: false
@@ -285,7 +290,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.3.0
+    tag: 2.4.1
 
   imagePullSecrets: [ ]
 
@@ -308,6 +313,7 @@ das:
     port: 8200
     nodePort:
     annotations: { }
+    staticIP:
 
   rollout:
     # The max surge in pods during a rollout
@@ -450,5 +456,13 @@ busybox:
     registry: docker.io
     repository: busybox
     tag: 1.34
+    pullPolicy: IfNotPresent
+  imagePullSecrets: [ ]
+
+kubectl:
+  image:
+    registry: docker.io
+    repository: bitnami/kubectl
+    tag: 1.24.3-debian-11-r8
     pullPolicy: IfNotPresent
   imagePullSecrets: [ ]

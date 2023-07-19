@@ -4,7 +4,7 @@
 This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) installation on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm](https://helm.sh/) package manager.
 
 ## Prerequisites
-* Kubernetes >=1.19
+* Kubernetes >=1.23
 * Helm >= 3.7.0
 
 ## Usage 

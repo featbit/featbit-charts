@@ -13,6 +13,9 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.api.service.type }}
+  {{ if and (eq .Values.api.service.type "LoadBalancer") .Values.api.service.staticIP }}
+  loadBalancerIP: {{ .Values.api.service.staticIP }}
+  {{ end }}
   ports:
     - targetPort: 5000
       port: {{ include "api.svc.port" . }}

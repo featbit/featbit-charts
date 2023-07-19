@@ -59,18 +59,21 @@
 {{- end -}}
 
 {{- define "featbit.api.external.url" -}}
-{{- default "http://localhost:5000" .Values.apiExternalUrl -}}
+{{- if and .Values.autoDiscovery (eq .Values.api.service.type "LoadBalancer") -}}
+{{- .Values.apiExternalUrl -}}
+{{- else -}}
+{{- required "The api url should be set before FeatBit starts" .Values.apiExternalUrl -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "featbit.els.external.url" -}}
-{{- default "http://localhost:5100" .Values.evaluationServerExternalUrl -}}
+{{- if and .Values.autoDiscovery (eq .Values.els.service.type "LoadBalancer") -}}
+{{- .Values.evaluationServerExternalUrl -}}
+{{- else -}}
+{{- required "The evaluation server url should be set before FeatBit starts" .Values.evaluationServerExternalUrl -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "featbit.demo.external.url" -}}
 {{- default "https://featbit-samples.vercel.app" .Values.demoExternalUrl -}}
 {{- end -}}
-
-
-
-
-
