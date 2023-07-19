@@ -218,7 +218,7 @@ Return the Redis host
 {{- if .Values.redis.enabled }}
     {{- printf "%s-master" (include "featbit.redis.fullname" .) -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalRedis.host -}}
+    {{- required "You need to provide a redis host when using external redis" .Values.externalRedis.host | printf "%s" }}
 {{- end -}}
 {{- end -}}
 
@@ -229,7 +229,7 @@ Return the Redis port
 {{- if .Values.redis.enabled }}
     {{- 6379 -}}
 {{- else -}}
-    {{- .Values.externalRedis.port -}}
+    {{- required "You need to provide a redis port when using external redis" .Values.externalRedis.port | printf "%s" }}
 {{- end -}}
 {{- end -}}
 
