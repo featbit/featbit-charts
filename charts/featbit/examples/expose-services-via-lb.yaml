@@ -1,14 +1,19 @@
-apiExternalUrl: "http://192.168.64.201:5000"
-evaluationServerExternalUrl: "http://192.168.64.202:5100"
+apiExternalUrl: ""
+evaluationServerExternalUrl: ""
+autoDiscovery: true
 
 ui:
   service:
     type: LoadBalancer
+    port: 80
+
 
 api:
   service:
     type: LoadBalancer
+    port: 80
 
 els:
   service:
     type: LoadBalancer
+    port: 80
