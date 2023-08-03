@@ -1,0 +1,22 @@
+apiExternalUrl: "http://<your-api-ip>"
+evaluationServerExternalUrl: "http://<your-els-ip>"
+autoDiscovery: false
+
+ui:
+  service:
+    type: LoadBalancer
+    port: 80
+    staticIP: <ui-static-ip>
+
+
+api:
+  service:
+    type: LoadBalancer
+    port: 80
+    staticIP:  <api-static-ip>
+
+els:
+  service:
+    type: LoadBalancer
+    port: 80
+    staticIP: <els-static-ip>
