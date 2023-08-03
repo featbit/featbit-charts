@@ -73,7 +73,7 @@ kubectl port-forward service/featbit-api 5000:5000 [--namespace <your-name-space
 kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space>]
 ```
 
-if you deploy the chart in a k8s cluster provided by cloud provider(AKE, GKE, EKS etc.), you can expose ClusterIP services to the public internet using a [Gateway](https://gateway-api.sigs.k8s.io/) or an Ingress(the discussion about it will follow)
+if you deploy the chart in a k8s cluster provided by cloud provider(AKS, GKE, EKS etc.), you can expose ClusterIP services to the public internet using a [Gateway](https://gateway-api.sigs.k8s.io/) or an Ingress(the discussion about it will follow)
 
 ### NodePort
 Exposes the Services on each k8s cluster Node's IP at a static port:
@@ -175,9 +175,9 @@ minikube addons enable Kong
 
 K3D deploys traefik as the default ingress controller, pleae read the [doc for exposing services in K3D](charts/featbit/examples/expose-services-via-nodeport.yaml)
 
-#### K8s provided by Cloud (AKE, GKE, EKS etc.)
+#### K8s provided by Cloud (AKS, GKE, EKS etc.)
 
-* [AKE](https://learn.microsoft.com/en-us/azure/aks/ingress-basic?tabs=azure-cli)
+* [AKS](https://learn.microsoft.com/en-us/azure/aks/ingress-basic?tabs=azure-cli)
 * [GKE](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress)
 * [EKS](https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html)
 
