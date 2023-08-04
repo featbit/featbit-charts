@@ -32,7 +32,7 @@ spec:
       labels:
         {{- include "featbit.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: ui
-        {{- with .Values.els.podLabels }}
+        {{- with .Values.ui.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
