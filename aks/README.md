@@ -119,7 +119,7 @@ If all looks well, install the Helm chart:
 helm install featbit featbit/featbit -f ./examples/expose-services-via-azurelb.yaml
 
 # or to upgrade
-helm upgrade --install featbit-trial . -f ./examples/expose-services-via-azurelb.yaml
+helm upgrade --install featbit . -f ./examples/expose-services-via-azurelb.yaml
 ```
 
 NOTE: 
