@@ -72,10 +72,10 @@ cd ./featbit-charts/charts/featbit
 
 In the `featbit-charts/charts/featbit/examples` directory, locate the AKS example file, `expose-services-via-azurelb.yaml`. Replace placeholders ({}) with the appropriate values:
 
-- `apiExternalUrl`, the URL that UI portal will call to get feature flags
-- `evaluationServerExternalUrl`, the URL that SDK will call to get return variations or rules of feature flags
-- `staticIP` of `ui.service`, `api.service` and `els.service`, the public IPs you created in previous step
-- `service.beta.kubernetes.io/azure-load-balancer-resource-group`, the resource group name where your public IPs located in
+- `apiExternalUrl`, the URL the UI portal utilizes to retrieve feature flags.
+- `evaluationServerExternalUrl`, the URL the SDK accesses to obtain variations or rules for feature flags.
+- `staticIP` of `ui.service`, `api.service` and `els.service`, the public IPs you created in previous step.
+- `service.beta.kubernetes.io/azure-load-balancer-resource-group`, the name of the resource group where your public IPs are situated.
 
 ```yaml
 apiExternalUrl: "http://{API Service Public IP Address, ex. 4.194.69.254}"
