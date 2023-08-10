@@ -67,7 +67,7 @@ Clone and navigate to the Helm chart repository:
 ```bash
 git clone https://github.com/featbit/featbit-charts
 
-cd /featbit-charts/charts/featbit
+cd ./featbit-charts/charts/featbit
 ```
 
 In the `featbit-charts/charts/featbit/examples` directory, locate the AKS example file, `expose-services-via-azurelb.yaml`. Replace placeholders ({}) with the appropriate values:
