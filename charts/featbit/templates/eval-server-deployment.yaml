@@ -67,6 +67,7 @@ spec:
           resources:
             {{- toYaml .Values.els.resources | nindent 12 }}
           env:
+            {{- include "kafka-env" . | indent 12 }}
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
             {{- with .Values.els.env }}
