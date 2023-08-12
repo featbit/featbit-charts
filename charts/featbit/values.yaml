@@ -86,7 +86,7 @@ ui:
 
   resources:
     requests:
-      cpu: 250m
+    # cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -170,7 +170,7 @@ api:
 
   resources:
     requests:
-      cpu: 250m
+    # cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -254,7 +254,7 @@ els:
 
   resources:
     requests:
-      cpu: 250m
+    #  cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -323,7 +323,7 @@ das:
 
   resources:
     requests:
-      cpu: 250m
+    #  cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -466,3 +466,21 @@ kubectl:
     tag: 1.24.3-debian-11-r8
     pullPolicy: IfNotPresent
   imagePullSecrets: [ ]
+
+
+
+###
+###
+### ---- Variables Compoenents for FeatBit Pro----
+###
+###
+
+
+isPro: false
+
+clickhouse:
+  enabled: false
+zookeeper:
+  enabled: false
+kafka:
+  enabled: false
