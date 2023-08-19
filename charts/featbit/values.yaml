@@ -482,5 +482,27 @@ clickhouse:
   enabled: false
 zookeeper:
   enabled: false
+
 kafka:
-  enabled: false
+  enabled: true
+  nameOverride: featbit-kafka
+
+  replicaCount: 1
+  # -- The amount of data to retain in the log for each topic partition: 2Gi
+  logRetentionBytes: _2_000_000_000
+  # -- The minimum age of a log file to be eligible for deletion due to age: 24H
+  logRetentionHours: 24
+
+  provisioning:
+    enabled: true
+    topics:
+      - name: "featbit-feature-flag-change"
+      - name: "featbit-segment-change"
+      - name: "featbit-endusers"
+      - name: "featbit-insights"
+
+  persistence:
+    # - Enable data persistence using PVC.
+    enabled: true
+    # -- PVC Storage Request for Kafka data volume.
+    size: 8Gi
