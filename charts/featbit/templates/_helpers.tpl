@@ -196,10 +196,6 @@ Return the Redis port
 {{- end -}}
 {{- end -}}
 
-{{- define "featbit.redis.connStr" -}}
-{{- printf "%s:%s"  (include "featbit.redis.host" .) (include "featbit.redis.port" .) -}}
-{{- end -}}
-
 {{/*
 Return true if a secret object for Redis should be created
 */}}
@@ -250,8 +246,53 @@ Return whether Redis uses password authentication or not
 
 {{- define "featbit.redis.ssl" -}}
 {{- if and .Values.externalRedis.ssl (not .Values.redis.enabled) -}}
-    {{- printf "true" -}}
+    {{- true -}}
 {{- else -}}
-    {{- printf "false" -}}
+    {{- false -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "featbit.redis.config.1" -}}
+{{- printf "%s:%s,abortConnect=false,ssl=%s" (include "featbit.redis.host" .) (include "featbit.redis.port" .) (include "featbit.redis.ssl" .) -}}
+{{- end -}}
+
+{{- define "featbit.redis.config.2" -}}
+{{- if (include "featbit.redis.auth.enabled" .) -}}
+{{- printf "%s,password=%s" (include "featbit.redis.config.1" .) (default .Values.redis.auth.password .Values.externalRedis.password) -}}
+{{- else -}}
+{{- printf "%s" (include "featbit.redis.config.1" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.redis.config.3" -}}
+{{- if and .Values.externalRedis.user (not .Values.redis.enabled) -}}
+{{- printf "%s,user=" (include "featbit.redis.config.2" .) .Values.externalRedis.user -}}
+{{- else -}}
+{{- printf "%s" (include "featbit.redis.config.2" .) -}}
+{{- end -}}
+{{- end -}}
+
+
+{{- define "featbit.redis.url" -}}
+{{- $protocol := "redis://" -}}
+{{- if and .Values.externalRedis.ssl (not .Values.redis.enabled) -}}
+{{- $protocol = "rediss://" -}}
+{{- end -}}
+{{- $user := "" -}}
+{{- if and .Values.externalRedis.user (not .Values.redis.enabled) -}}
+{{- $user = .Values.externalRedis.user -}}
+{{- end -}}
+{{- $pass := "" -}}
+{{- if (include "featbit.redis.auth.enabled" .) -}}
+{{- $pass = (default .Values.redis.auth.password .Values.externalRedis.password) -}}
+{{- end -}}
+{{- $usrpass := "" -}}
+{{- if or $pass $user -}}
+{{- $usrpass = (printf "%s:%s@" $user $pass) -}}
+{{- end -}}
+{{- printf "%s%s%s:%s" $protocol $usrpass (include "featbit.redis.host" .) (include "featbit.redis.port" .) -}}
+{{- end -}}
+
+{{- define "featbit.redis.conn.secretName" -}}
+{{- printf "%s-conn-str" (include "featbit.redis.fullname" .) -}}
 {{- end -}}

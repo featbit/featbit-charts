@@ -8,7 +8,7 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  imagePullSecrets: []
+  imagePullSecrets: [ ]
 
 
 nameOverride: ""
@@ -37,7 +37,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.1
+    tag: 2.4.3
 
   imagePullSecrets: [ ]
 
@@ -121,7 +121,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.1
+    tag: 2.4.3
 
   imagePullSecrets: [ ]
 
@@ -205,7 +205,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.1
+    tag: 2.4.3
 
   imagePullSecrets: [ ]
 
@@ -216,7 +216,7 @@ els:
   # fsGroup: 2000
 
   securityContext: { }
-    # capabilities:
+  # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
@@ -290,7 +290,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.1
+    tag: 2.4.3
 
   imagePullSecrets: [ ]
 
@@ -302,7 +302,7 @@ das:
 
   securityContext: { }
     # capabilities:
-    #   drop:
+  #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
@@ -396,19 +396,22 @@ redis:
       enabled: true
 
       # -- Persistent Volume size.
-      size: 5Gi
+      size: 8Gi
 
 externalRedis:
   # -- External Redis host to use.
   host: ""
   # -- External Redis port to use.
   port: 6379
+  # -- User for the external redis server (for use with ACLs on redis 6 and above)
+  user: ""
   # -- Password for the external Redis. Ignored if `externalRedis.existingSecret` is set.
   password: ""
   # -- Name of an existing Kubernetes secret object containing the Redis password.
   existingSecret: ""
   # -- Name of the key pointing to the password in your Kubernetes secret.
   existingSecretPasswordKey: ""
+  # -- Specifies that SSL encryption should be used
   ssl: false
 
 ###
