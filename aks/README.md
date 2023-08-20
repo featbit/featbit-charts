@@ -2,7 +2,9 @@
 
 [FeatBit](https://www.featbit.co) is an open-source feature flags service that enables teams to test their applications in production, roll out features incrementally, and instantly rollback if an issue arises.
 
-This guide outlines how to deploy FeatBit to Azure Kubernetes Service (AKS) using Helm charts, with services exposed via Azure Load Balancer.
+This guide outlines how to deploy FeatBit to Azure Kubernetes Service (AKS) using Helm charts, with services exposed via Azure Load Balancer and `static public IP addresses`.
+
+> Note: This guide is for demonstration purposes only. It is not intended for production use.
 
 ## Prerequisites
 
@@ -80,7 +82,7 @@ In the `featbit-charts/charts/featbit/examples` directory, locate the AKS exampl
 ```yaml
 apiExternalUrl: "http://{API Service Public IP Address, ex. 4.194.69.254}"
 evaluationServerExternalUrl: "http://{Evaluation Service Public IP Address, ex. 4.193.158.12}"
-autoDiscovery: true
+# autoDiscovery: true
 
 ui:
   service:
@@ -106,6 +108,8 @@ els:
       service.beta.kubernetes.io/azure-load-balancer-resource-group: {Resource Group where your Public IP located in, ex. myNetworkResourceGroup}
     staticIP: {Evaluation Service Public IP Address, ex. 4.193.158.12}
 ```
+
+> Note: API server and Evaluation server are optional. If you set `autoDiscovery` to `true` and keep delete `staticIP` values in `api` and `els` services, the IP addresses of these two services will be created automatically by Azure. But in this tutorial, we won't demonstrate it.
 
 Preview the Helm installation:
 

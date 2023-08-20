@@ -1,27 +1,27 @@
-apiExternalUrl: "http://4.193.158.12"
-evaluationServerExternalUrl: "http://4.193.159.40"
-autoDiscovery: true
+apiExternalUrl: "http://{API Service Public IP Address, ex. 4.194.69.254}"
+evaluationServerExternalUrl: "http://{Evaluation Service Public IP Address, ex. 4.193.158.12}"
+# autoDiscovery: true
 
 ui:
   service:
     type: LoadBalancer
     port: 80
     annotations: 
-      service.beta.kubernetes.io/azure-load-balancer-resource-group: MC_bestpractice_featbit-k8s-trial_southeastasia
-    staticIP: 4.194.69.254
+      service.beta.kubernetes.io/azure-load-balancer-resource-group: {Resource Group where your Public IP located in, ex. myNetworkResourceGroup}
+    staticIP: {UI Portal Public IP Address, ex. 4.194.13.155}
 
 api:
   service:
     type: LoadBalancer
     port: 80
     annotations: 
-      service.beta.kubernetes.io/azure-load-balancer-resource-group: MC_bestpractice_featbit-k8s-trial_southeastasia
-    staticIP: 4.193.158.12
+      service.beta.kubernetes.io/azure-load-balancer-resource-group: {Resource Group where your Public IP located in, ex. myNetworkResourceGroup}
+    staticIP: {API Service Public IP Address, ex. 4.194.69.254}
 
 els:
   service:
     type: LoadBalancer
     port: 80
     annotations: 
-      service.beta.kubernetes.io/azure-load-balancer-resource-group: MC_bestpractice_featbit-k8s-trial_southeastasia
-    staticIP: 4.193.159.40
+      service.beta.kubernetes.io/azure-load-balancer-resource-group: {Resource Group where your Public IP located in, ex. myNetworkResourceGroup}
+    staticIP: {Evaluation Service Public IP Address, ex. 4.193.158.12}
