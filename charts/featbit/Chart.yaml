@@ -45,12 +45,8 @@ dependencies:
     condition: kafka.enabled
   - name: clickhouse
     repository: https://charts.bitnami.com/bitnami
-    version: 3.4.1
+    version: 3.6.8
     condition: clickhouse.enabled
-  - name: zookeeper
-    repository: https://charts.bitnami.com/bitnami
-    version: 11.4.2
-    condition: zookeeper.enabled
 
 maintainers:
   - name: featbit.master

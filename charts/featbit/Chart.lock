@@ -5,5 +5,11 @@ dependencies:
 - name: redis
   repository: https://charts.bitnami.com/bitnami
   version: 17.0.1
-digest: sha256:e29a400ab8ffbc42fe9ba0bdb19d75c56f9a0831d4dce3653e30515b8047d066
-generated: "2023-06-15T10:33:42.199578+02:00"
+- name: kafka
+  repository: https://charts.bitnami.com/bitnami
+  version: 23.0.7
+- name: clickhouse
+  repository: https://charts.bitnami.com/bitnami
+  version: 3.6.8
+digest: sha256:5216820a0c78b79a1baed297e1c0c0d76ad528fa22ff41d4fd44d109da552ce7
+generated: "2023-08-20T15:57:14.404115+02:00"
