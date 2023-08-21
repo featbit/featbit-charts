@@ -144,6 +144,11 @@ In the next version, we will support the automatic discovery of Load Balancer se
 But if you are using a k8s cluster from a cloud provider, the allocation of Load Balancer IPs may take a significant amount of time. 
 In such cases, the automatic discovery feature may not fundamentally solve the problem.
 
+
+#### Azure Kubernetes Service (AKS) + Azure Load Balancer
+
+[Visit README in ask subdirectory for more details.](./aks/README.md)
+
 ### Ingress
 
 Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource.
