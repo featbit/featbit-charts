@@ -505,14 +505,20 @@ kafka:
     # -- PVC Storage Request for Kafka data volume.
     size: 8Gi
 
+externalKafka:
+  # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
+  brokers: []
+
 clickhouse:
   enabled: false
   nameOverride: featbit-clickhouse
   shards: 1
   replicaCount: 1
   auth:
-    username: default
+    username: "default"
     password: "supersecret"
+    existingSecret:	""
+    existingSecretKey: ""
   keeper:
     enabled: true
   zookeeper:
@@ -658,3 +664,22 @@ clickhouse:
       <!-- Maximum number of concurrent queries. -->
       <max_concurrent_queries>1000</max_concurrent_queries>
     </clickhouse>
+externalClickhouse:
+  # -- Host of the external cluster. This is required when clickhouse.enabled is false
+  host: ""
+  # -- Name of the external cluster to run DDL queries on. This is required when clickhouse.enabled is false
+  cluster: ""
+  # -- Database name for the external cluster
+  database: "featbit"
+  # -- User name for the external cluster to connect to the external cluster as
+  user: "default"
+  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  password: ""
+  # -- Name of an existing Kubernetes secret object containing the password
+  existingSecret: ""
+  # -- Name of the key pointing to the password in your Kubernetes secret
+  existingSecretKey: ""
+  # -- Whether to use TLS connection connecting to ClickHouse
+  secure: false
+  # -- Whether to verify TLS connection connecting to ClickHouse
+  verify: false

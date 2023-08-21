@@ -139,7 +139,7 @@ Return the Mongodb host
 {{- if .Values.mongodb.enabled -}}
     {{- printf "mongodb://%s:%s@%s:27017" .Values.mongodb.auth.rootUser .Values.mongodb.auth.rootPassword (include "featbit.mongodb.host" .) -}}
 {{- else -}}
-    {{- required "You need to provide a full connection string when using external mongodb" .Values.externalMongodb.fullConnectionString | printf "%s" }}
+    {{- required "You need to provide a full connection string when using external mongodb" .Values.externalMongodb.fullConnectionString | printf "%s" -}}
 {{- end -}}
 {{- end -}}
 
@@ -181,7 +181,7 @@ Return the Redis host
 {{- if .Values.redis.enabled }}
     {{- printf "%s-master" (include "featbit.redis.fullname" .) -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalRedis.host -}}
+    {{- required "You need to provide a host when using external redis" .Values.externalRedis.host | printf "%s" -}}
 {{- end -}}
 {{- end -}}
 
@@ -192,7 +192,7 @@ Return the Redis port
 {{- if .Values.redis.enabled }}
     {{- 6379 -}}
 {{- else -}}
-    {{- .Values.externalRedis.port -}}
+    {{- default 6379 .Values.externalRedis.port -}}
 {{- end -}}
 {{- end -}}
 
@@ -296,3 +296,112 @@ Return whether Redis uses password authentication or not
 {{- define "featbit.redis.conn.secretName" -}}
 {{- printf "%s-conn-str" (include "featbit.redis.fullname" .) -}}
 {{- end -}}
+
+{*
+   ------ KAFKA ------
+*}
+
+{{/* Return the Kafka fullname */}}
+{{- define "featbit.kafka.fullname" }}
+{{- if .Values.kafka.fullnameOverride }}
+{{- .Values.kafka.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else if .Values.kafka.nameOverride }}
+{{- printf "%s-%s" .Release.Name .Values.kafka.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+{{- printf "%s-%s" (include "featbit.fullname" .) "kafka" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/* Return the Kafka hosts (brokers) as a comma separated list */}}
+{{- define "featbit.kafka.brokers"}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "%s:%d" (include "featbit.kafka.fullname" .) (.Values.kafka.service.ports.client | int) }}
+{{- else if .Values.isPro -}}
+    {{- required "You need to provide a broker list when using external kafka" (join "," .Values.externalKafka.brokers | quote) | printf "%s" -}}
+{{- end }}
+{{- end }}
+
+{*
+   ------ CLICKHOUSE ------
+*}
+
+{{/*
+Return clickhouse fullname
+*/}}
+{{- define "featbit.clickhouse.fullname" -}}
+{{- if .Values.clickhouse.fullnameOverride -}}
+{{- .Values.clickhouse.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else if .Values.clickhouse.nameOverride }}
+{{- printf "%s-%s" .Release.Name .Values.clickhouse.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+{{- printf "%s-%s" "clickhouse" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis host
+*/}}
+{{- define "featbit.clickhouse.host" -}}
+{{- if .Values.clickhouse.enabled }}
+    {{- printf "%s" (include "featbit.clickhouse.fullname" .) -}}
+{{- else if .Values.isPro -}}
+    {{- required "You need to provide a host when using external Clickhouse" .Values.externalClickhouse.host | printf "%s" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.clickhouse.user" -}}
+{{- if .Values.clickhouse.enabled }}
+    {{- .Values.clickhouse.auth.username -}}
+{{- else if .Values.isPro -}}
+    {{- required "You need to provide a admin user when using external Clickhouse" .Values.externalClickhouse.user | printf "%s" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.clickhouse.database" -}}
+{{- if .Values.clickhouse.enabled }}
+    {{- "featbit" -}}
+{{- else if .Values.isPro -}}
+    {{- default "featbit" .Values.externalClickhouse.database -}}
+{{- end -}}
+{{- end -}}
+
+
+{{/*
+Return true if a secret object for ClickHouse should be created
+*/}}
+{{- define "featbit.clickhouse.createSecret" -}}
+{{- if and (not .Values.clickhouse.enabled) (not .Values.externalClickhouse.existingSecret) .Values.externalClickhouse.password }}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the ClickHouse secret name
+*/}}
+{{- define "featbit.clickhouse.secretName" -}}
+{{- if .Values.clickhouse.enabled }}
+    {{- if .Values.clickhouse.auth.existingSecret }}
+        {{- printf "%s" .Values.clickhouse.auth.existingSecret -}}
+    {{- else -}}
+        {{- printf "%s" (include "featbit.clickhouse.fullname" .) -}}
+    {{- end -}}
+{{- else if .Values.externalClickhouse.existingSecret }}
+    {{- printf "%s" .Values.externalClickhouse.existingSecret -}}
+{{- else -}}
+    {{- printf "%s-external" (include "featbit.clickhouse.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the ClickHouse secret key
+*/}}
+{{- define "featbit.clickhouse.secretPasswordKey" -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.auth.existingSecret -}}
+    {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in Clickhouse" .Values.clickhouse.auth.existingSecretKey | printf "%s" -}}
+{{- else if and (not .Values.redis.enabled) .Values.externalRedis.existingSecret -}}
+    {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in external Clickhouse" .Values.externalClickhouse.existingSecretKey | printf "%s" -}}
+{{- else -}}
+    {{- printf "admin-password" -}}
+{{- end -}}
+{{- end -}}
+
