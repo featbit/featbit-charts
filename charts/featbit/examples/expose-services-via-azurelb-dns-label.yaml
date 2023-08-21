@@ -1,0 +1,24 @@
+apiExternalUrl: ""
+evaluationServerExternalUrl: ""
+autoDiscovery: true
+
+ui:
+  service:
+    type: LoadBalancer
+    port: 80
+    annotations:
+      service.beta.kubernetes.io/azure-dns-label-name: {ui dns unique label}
+
+api:
+  service:
+    type: LoadBalancer
+    port: 80
+    annotations:
+      service.beta.kubernetes.io/azure-dns-label-name: {api dns unique label}
+
+els:
+  service:
+    type: LoadBalancer
+    port: 80
+    annotations:
+      service.beta.kubernetes.io/azure-dns-label-name: {evaluation server dns unique label}
