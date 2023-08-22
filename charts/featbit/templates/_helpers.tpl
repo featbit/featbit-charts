@@ -398,7 +398,7 @@ Return the ClickHouse secret key
 {{- define "featbit.clickhouse.secretPasswordKey" -}}
 {{- if and .Values.clickhouse.enabled .Values.clickhouse.auth.existingSecret -}}
     {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in Clickhouse" .Values.clickhouse.auth.existingSecretKey | printf "%s" -}}
-{{- else if and (not .Values.redis.enabled) .Values.externalRedis.existingSecret -}}
+{{- else if and (not .Values.clickhouse.enabled) .Values.externalClickhouse.existingSecret -}}
     {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in external Clickhouse" .Values.externalClickhouse.existingSecretKey | printf "%s" -}}
 {{- else -}}
     {{- printf "admin-password" -}}

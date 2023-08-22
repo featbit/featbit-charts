@@ -17,20 +17,20 @@
       key: {{ include "featbit.clickhouse.secretPasswordKey" . }}
 - name: CLICKHOUSE_DATABASE
   value: {{ include "featbit.clickhouse.database" . }}
-{{- if (not .Values.clickhouse.enabled) -}}
+{{- if (not .Values.clickhouse.enabled) }}
 - name: CLICKHOUSE_SECURE
   value: {{ .Values.externalClickhouse.secure | quote }}
 - name: CLICKHOUSE_VERIFY
   value: {{ .Values.externalClickhouse.verify | quote }}
-{{- if .Values.externalClickhouse.cluster -}}
+{{- if .Values.externalClickhouse.cluster }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.externalClickhouse.cluster | quote }}
-{{- else -}}
+{{- else }}
 - name: CLICKHOUSE_REPLICATION
   value: "false"
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- end -}}
 
 {{- define "kafka-bootstrapservers" -}}
@@ -39,7 +39,7 @@
   value: "true"
 - name: Kafka__BootstrapServers
   value: {{ include "featbit.kafka.brokers" . }}
-{{- end -}}
+{{- end }}
 {{- end -}}
 
 {{- define "clickhouse-usr-pass" -}}
@@ -51,5 +51,5 @@
     secretKeyRef:
       name: {{ include "featbit.clickhouse.secretName" . }}
       key: {{ include "featbit.clickhouse.secretPasswordKey" . }}
-{{- end -}}
+{{- end }}
 {{- end -}}
