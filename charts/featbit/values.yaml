@@ -8,7 +8,7 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  imagePullSecrets: []
+  imagePullSecrets: [ ]
 
 
 nameOverride: ""
@@ -37,7 +37,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.1
+    tag: 2.4.3
 
   imagePullSecrets: [ ]
 
@@ -86,7 +86,7 @@ ui:
 
   resources:
     requests:
-      cpu: 250m
+    # cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -121,7 +121,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.1
+    tag: 2.4.3
 
   imagePullSecrets: [ ]
 
@@ -170,7 +170,7 @@ api:
 
   resources:
     requests:
-      cpu: 250m
+    # cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -205,7 +205,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.1
+    tag: 2.4.3
 
   imagePullSecrets: [ ]
 
@@ -216,7 +216,7 @@ els:
   # fsGroup: 2000
 
   securityContext: { }
-    # capabilities:
+  # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
@@ -254,7 +254,7 @@ els:
 
   resources:
     requests:
-      cpu: 250m
+    #  cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -290,7 +290,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.1
+    tag: 2.4.3
 
   imagePullSecrets: [ ]
 
@@ -302,7 +302,7 @@ das:
 
   securityContext: { }
     # capabilities:
-    #   drop:
+  #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
@@ -323,7 +323,7 @@ das:
 
   resources:
     requests:
-      cpu: 250m
+    #  cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -396,19 +396,22 @@ redis:
       enabled: true
 
       # -- Persistent Volume size.
-      size: 5Gi
+      size: 8Gi
 
 externalRedis:
   # -- External Redis host to use.
   host: ""
   # -- External Redis port to use.
   port: 6379
+  # -- User for the external redis server (for use with ACLs on redis 6 and above)
+  user: ""
   # -- Password for the external Redis. Ignored if `externalRedis.existingSecret` is set.
   password: ""
   # -- Name of an existing Kubernetes secret object containing the Redis password.
   existingSecret: ""
   # -- Name of the key pointing to the password in your Kubernetes secret.
   existingSecretPasswordKey: ""
+  # -- Specifies that SSL encryption should be used
   ssl: false
 
 ###
@@ -466,3 +469,217 @@ kubectl:
     tag: 1.24.3-debian-11-r8
     pullPolicy: IfNotPresent
   imagePullSecrets: [ ]
+
+
+
+###
+###
+### ---- Variables Compoenents for FeatBit Pro----
+###
+###
+
+
+isPro: false
+
+kafka:
+  enabled: false
+  nameOverride: featbit-kafka
+
+  replicaCount: 1
+  # -- The amount of data to retain in the log for each topic partition: 2Gi
+  logRetentionBytes: _2_000_000_000
+  # -- The minimum age of a log file to be eligible for deletion due to age: 24H
+  logRetentionHours: 24
+
+  provisioning:
+    enabled: true
+    topics:
+      - name: "featbit-feature-flag-change"
+      - name: "featbit-segment-change"
+      - name: "featbit-endusers"
+      - name: "featbit-insights"
+
+  persistence:
+    # - Enable data persistence using PVC.
+    enabled: true
+    # -- PVC Storage Request for Kafka data volume.
+    size: 8Gi
+
+externalKafka:
+  # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
+  brokers: []
+
+clickhouse:
+  enabled: false
+  nameOverride: featbit-clickhouse
+  shards: 1
+  replicaCount: 1
+  auth:
+    username: "default"
+    password: "supersecret"
+    existingSecret:	""
+    existingSecretKey: ""
+  keeper:
+    enabled: true
+  zookeeper:
+    enabled: false
+  persistence:
+    enabled: true
+    size: 8Gi
+
+  # DO NOT MODIFY this value
+  defaultConfigurationOverrides: |
+    <clickhouse>
+      <!-- Macros -->
+      <macros>
+        <shard from_env="CLICKHOUSE_SHARD_ID"></shard>
+        <replica from_env="CLICKHOUSE_REPLICA_ID"></replica>
+        <layer>{{ include "common.names.fullname" . }}</layer>
+      </macros>
+      <!-- Log Level -->
+      <logger>
+        <level>{{ .Values.logLevel }}</level>
+      </logger>
+      <!-- Cluster configuration - Any update of the shards and replicas requires helm upgrade -->
+      <remote_servers>
+        <featbit_ch_cluster>
+          {{- $shards := $.Values.shards | int }}
+          {{- range $shard, $e := until $shards }}
+          <shard>
+              {{- $replicas := $.Values.replicaCount | int }}
+              {{- range $i, $_e := until $replicas }}
+              <replica>
+                  <host>{{ printf "%s-shard%d-%d.%s.%s.svc.%s" (include "common.names.fullname" $ ) $shard $i (include "clickhouse.headlessServiceName" $) (include "common.names.namespace" $) $.Values.clusterDomain }}</host>
+                  <port>{{ $.Values.service.ports.tcp }}</port>
+              </replica>
+              {{- end }}
+          </shard>
+          {{- end }}
+        </featbit_ch_cluster>
+      </remote_servers>
+      {{- if .Values.keeper.enabled }}
+      <!-- keeper configuration -->
+      <keeper_server>
+        {{/*ClickHouse keeper configuration using the helm chart */}}
+        <tcp_port>{{ $.Values.containerPorts.keeper }}</tcp_port>
+        {{- if .Values.tls.enabled }}
+        <tcp_port_secure>{{ $.Values.containerPorts.keeperSecure }}</tcp_port_secure>
+        {{- end }}
+        <server_id from_env="KEEPER_SERVER_ID"></server_id>
+        <log_storage_path>/bitnami/clickhouse/keeper/coordination/log</log_storage_path>
+        <snapshot_storage_path>/bitnami/clickhouse/keeper/coordination/snapshots</snapshot_storage_path>
+
+        <coordination_settings>
+            <operation_timeout_ms>10000</operation_timeout_ms>
+            <session_timeout_ms>30000</session_timeout_ms>
+            <raft_logs_level>trace</raft_logs_level>
+        </coordination_settings>
+
+        <raft_configuration>
+        {{- $nodes := .Values.replicaCount | int }}
+        {{- range $node, $e := until $nodes }}
+        <server>
+          <id>{{ $node | int }}</id>
+          <hostname from_env="{{ printf "KEEPER_NODE_%d" $node }}"></hostname>
+          <port>{{ $.Values.service.ports.keeperInter }}</port>
+        </server>
+        {{- end }}
+        </raft_configuration>
+      </keeper_server>
+      {{- end }}
+      {{- if or .Values.keeper.enabled .Values.zookeeper.enabled .Values.externalZookeeper.servers }}
+      <!-- Zookeeper configuration -->
+      <zookeeper>
+        {{- if or .Values.keeper.enabled }}
+        {{- $nodes := .Values.replicaCount | int }}
+        {{- range $node, $e := until $nodes }}
+        <node>
+          <host from_env="{{ printf "KEEPER_NODE_%d" $node }}"></host>
+          <port>{{ $.Values.service.ports.keeper }}</port>
+        </node>
+        {{- end }}
+        {{- else if .Values.zookeeper.enabled }}
+        {{/* Zookeeper configuration using the helm chart */}}
+        {{- $nodes := .Values.zookeeper.replicaCount | int }}
+        {{- range $node, $e := until $nodes }}
+        <node>
+          <host from_env="{{ printf "KEEPER_NODE_%d" $node }}"></host>
+          <port>{{ $.Values.zookeeper.service.ports.client }}</port>
+        </node>
+        {{- end }}
+        {{- else if .Values.externalZookeeper.servers }}
+        {{/* Zookeeper configuration using an external instance */}}
+        {{- range $node :=.Values.externalZookeeper.servers }}
+        <node>
+          <host>{{ $node }}</host>
+          <port>{{ $.Values.externalZookeeper.port }}</port>
+        </node>
+        {{- end }}
+        {{- end }}
+      </zookeeper>
+      {{- end }}
+      {{- if .Values.tls.enabled }}
+      <!-- TLS configuration -->
+      <tcp_port_secure from_env="CLICKHOUSE_TCP_SECURE_PORT"></tcp_port_secure>
+      <https_port from_env="CLICKHOUSE_HTTPS_PORT"></https_port>
+      <openSSL>
+          <server>
+              {{- $certFileName := default "tls.crt" .Values.tls.certFilename }}
+              {{- $keyFileName := default "tls.key" .Values.tls.certKeyFilename }}
+              <certificateFile>/bitnami/clickhouse/certs/{{$certFileName}}</certificateFile>
+              <privateKeyFile>/bitnami/clickhouse/certs/{{$keyFileName}}</privateKeyFile>
+              <verificationMode>none</verificationMode>
+              <cacheSessions>true</cacheSessions>
+              <disableProtocols>sslv2,sslv3</disableProtocols>
+              <preferServerCiphers>true</preferServerCiphers>
+              {{- if or .Values.tls.autoGenerated .Values.tls.certCAFilename }}
+              {{- $caFileName := default "ca.crt" .Values.tls.certCAFilename }}
+              <caConfig>/bitnami/clickhouse/certs/{{$caFileName}}</caConfig>
+              {{- else }}
+              <loadDefaultCAFile>true</loadDefaultCAFile>
+              {{- end }}
+          </server>
+          <client>
+              <loadDefaultCAFile>true</loadDefaultCAFile>
+              <cacheSessions>true</cacheSessions>
+              <disableProtocols>sslv2,sslv3</disableProtocols>
+              <preferServerCiphers>true</preferServerCiphers>
+              <verificationMode>none</verificationMode>
+              <invalidCertificateHandler>
+                  <name>AcceptCertificateHandler</name>
+              </invalidCertificateHandler>
+          </client>
+      </openSSL>
+      {{- end }}
+      {{- if .Values.metrics.enabled }}
+       <!-- Prometheus metrics -->
+       <prometheus>
+          <endpoint>/metrics</endpoint>
+          <port from_env="CLICKHOUSE_METRICS_PORT"></port>
+          <metrics>true</metrics>
+          <events>true</events>
+          <asynchronous_metrics>true</asynchronous_metrics>
+      </prometheus>
+      {{- end }}
+      <!-- Maximum number of concurrent queries. -->
+      <max_concurrent_queries>1000</max_concurrent_queries>
+    </clickhouse>
+externalClickhouse:
+  # -- Host of the external cluster. This is required when clickhouse.enabled is false
+  host: ""
+  # -- Name of the external cluster to run DDL queries on. This is required when clickhouse.enabled is false
+  cluster: ""
+  # -- Database name for the external cluster
+  database: "featbit"
+  # -- User name for the external cluster to connect to the external cluster as
+  user: "default"
+  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  password: ""
+  # -- Name of an existing Kubernetes secret object containing the password
+  existingSecret: ""
+  # -- Name of the key pointing to the password in your Kubernetes secret
+  existingSecretKey: ""
+  # -- Whether to use TLS connection connecting to ClickHouse
+  secure: false
+  # -- Whether to verify TLS connection connecting to ClickHouse
+  verify: false

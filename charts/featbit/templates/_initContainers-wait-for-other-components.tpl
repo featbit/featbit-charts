@@ -8,21 +8,21 @@
     - -c
     - >
         {{ if (include "api.svc.fqdn" .) }}
-        until (nc -vz {{ include "api.svc.fqdn" . }} {{ include "api.svc.port" . }});
+        until (nc -vz -w 1 {{ include "api.svc.fqdn" . }} {{ include "api.svc.port" . }});
         do
             echo "waiting for API"; sleep 1;
         done
         {{ end }}
 
         {{ if (include "els.svc.fqdn" .) }}
-        until (nc -vz {{ include "els.svc.fqdn" . }} {{ include "els.svc.port" . }});
+        until (nc -vz -w 1 {{ include "els.svc.fqdn" . }} {{ include "els.svc.port" . }});
         do
             echo "waiting for Evaluation Server"; sleep 1;
         done
         {{ end }}
 
         {{ if (include "das.svc.fqdn" .) }}
-        until (nc -vz {{ include "das.svc.fqdn" . }} {{ include "das.svc.port" . }});
+        until (nc -vz -w 1 {{ include "das.svc.fqdn" . }} {{ include "das.svc.port" . }});
         do
           echo "waiting for DA Server"; sleep 1;
         done

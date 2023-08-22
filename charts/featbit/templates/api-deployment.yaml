@@ -71,6 +71,7 @@ spec:
               value: {{ printf "http://%s:%s" (include "das.svc.name" .) (include "das.svc.port" .) }}
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
+            {{- include "kafka-bootstrapservers" . | indent 12 -}}
             {{- with .Values.api.env }}
             {{ toYaml . | indent 12 }}
             {{- end }}

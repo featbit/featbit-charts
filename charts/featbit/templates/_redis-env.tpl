@@ -16,9 +16,14 @@
 {{- end }}
 
 - name: Redis__ConnectionString
-  value: {{ include "featbit.redis.connStr" . }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "featbit.redis.conn.secretName" . }}
+      key: featbit-redis-config
 
-- name: REDIS_SSL
-  value: {{ include "featbit.redis.ssl" . | quote }}
-
+- name: REDIS_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "featbit.redis.conn.secretName" . }}
+      key: featbit-redis-url
 {{- end }}

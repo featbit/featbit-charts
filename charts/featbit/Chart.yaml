@@ -21,7 +21,7 @@ version: 0.0.2
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "2.3.1"
+appVersion: "2.4.3"
 
 kubeVersion: ">=1.23-0"
 
@@ -39,6 +39,14 @@ dependencies:
     version: 17.0.1
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
+  - name: kafka
+    repository: https://charts.bitnami.com/bitnami
+    version: 23.0.7
+    condition: kafka.enabled
+  - name: clickhouse
+    repository: https://charts.bitnami.com/bitnami
+    version: 3.6.8
+    condition: clickhouse.enabled
 
 maintainers:
   - name: featbit.master

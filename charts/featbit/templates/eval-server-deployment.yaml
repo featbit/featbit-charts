@@ -69,6 +69,7 @@ spec:
           env:
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
+            {{- include "kafka-bootstrapservers" . | indent 12 -}}
             {{- with .Values.els.env }}
             {{ toYaml . | indent 12 }}
             {{- end }}
