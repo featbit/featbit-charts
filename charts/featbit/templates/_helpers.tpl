@@ -36,8 +36,8 @@ Common labels
 {{- define "featbit.labels" -}}
 helm.sh/chart: {{ include "featbit.chart" . }}
 {{ include "featbit.selectorLabels" . }}
-{{- if .Chart.appVersion }}
-app.kubernetes.io/version: {{ .Chart.appVersion | quote }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
@@ -404,4 +404,3 @@ Return the ClickHouse secret key
     {{- printf "admin-password" -}}
 {{- end -}}
 {{- end -}}
-

@@ -9,6 +9,7 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: [ ]
+  ingressClassName: "nginx"
 
 
 nameOverride: ""
@@ -37,7 +38,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.3
+    tag: 2.4.4-rc1
 
   imagePullSecrets: [ ]
 
@@ -64,19 +65,13 @@ ui:
 
   ingress:
     enabled: false
-    className: "nginx"
     annotations: { }
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    hosts: [ ]
-    #      - host: eval.featbit.test
-    #        paths:
-    #          - path: /
-    #            pathType: ImplementationSpecific
-    tls: [ ]
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
+    tls:
+      enabled: false
+      secretName: ""
+    path: "/"
+    pathType: "ImplementationSpecific"
+    host: ""
 
   rollout:
     # The max surge in pods during a rollout
@@ -121,7 +116,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.3
+    tag: 2.4.4-rc1
 
   imagePullSecrets: [ ]
 
@@ -148,19 +143,13 @@ api:
 
   ingress:
     enabled: false
-    className: "nginx"
     annotations: { }
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    hosts: [ ]
-    #      - host: eval.featbit.test
-    #        paths:
-    #          - path: /
-    #            pathType: ImplementationSpecific
-    tls: [ ]
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
+    tls:
+      enabled: false
+      secretName: ""
+    path: "/"
+    pathType: "ImplementationSpecific"
+    host: ""
 
   rollout:
     # The max surge in pods during a rollout
@@ -205,7 +194,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.3
+    tag: 2.4.4-rc1
 
   imagePullSecrets: [ ]
 
@@ -232,19 +221,13 @@ els:
 
   ingress:
     enabled: false
-    className: "nginx"
     annotations: { }
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-    hosts: [ ]
-    #      - host: eval.featbit.test
-    #        paths:
-    #          - path: /
-    #            pathType: ImplementationSpecific
-    tls: [ ]
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
+    tls:
+      enabled: false
+      secretName: ""
+    path: "/"
+    pathType: "ImplementationSpecific"
+    host: ""
 
   rollout:
     # The max surge in pods during a rollout
@@ -290,7 +273,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.3
+    tag: 2.4.4-rc1
 
   imagePullSecrets: [ ]
 

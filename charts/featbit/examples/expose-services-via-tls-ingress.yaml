@@ -1,0 +1,33 @@
+apiExternalUrl: "https://api.featbit.test"
+evaluationServerExternalUrl: "https://els.featbit.test"
+
+ui:
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    host: ui.featbit.com
+    tls:
+      enabled: true
+      secretName: "ui-tls-secret"
+
+api:
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    host: api.featbit.com
+    tls:
+      enabled: true
+      secretName: "api-tls-secret"
+
+
+els:
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    host: els.featbit.com
+    tls:
+      enabled: true
+      secretName: "els-tls-secret"
