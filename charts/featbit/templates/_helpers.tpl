@@ -313,11 +313,20 @@ Return whether Redis uses password authentication or not
 {{- end }}
 
 {{/* Return the Kafka hosts (brokers) as a comma separated list */}}
-{{- define "featbit.kafka.brokers"}}
+{{- define "featbit.kafka.producer.brokers"}}
 {{- if .Values.kafka.enabled -}}
     {{- printf "%s:%d" (include "featbit.kafka.fullname" .) (.Values.kafka.service.ports.client | int) }}
 {{- else if .Values.isPro -}}
-    {{- required "You need to provide a broker list when using external kafka" (join "," .Values.externalKafka.brokers | quote) | printf "%s" -}}
+    {{- required "You need to provide a producer broker list when using external kafka" (join "," .Values.externalKafka.brokers.producers | quote) | printf "%s" -}}
+{{- end }}
+{{- end }}
+
+{{/* Return the Kafka hosts (brokers) as a comma separated list */}}
+{{- define "featbit.kafka.consumer.brokers"}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "%s:%d" (include "featbit.kafka.fullname" .) (.Values.kafka.service.ports.client | int) }}
+{{- else if .Values.isPro -}}
+    {{- required "You need to provide a consumer broker list when using external kafka" (join "," .Values.externalKafka.brokers.consumers | quote) | printf "%s" -}}
 {{- end }}
 {{- end }}
 

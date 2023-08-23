@@ -3,9 +3,9 @@
 - name: IS_PRO
   value: "true"
 - name: KAFKA_HOSTS
-  value: {{ include "featbit.kafka.brokers" . }}
+  value: {{ include "featbit.kafka.producer.brokers" . }}
 - name: CLICKHOUSE_KAFKA_HOSTS
-  value: {{ include "featbit.kafka.brokers" . }}
+  value: {{ include "featbit.kafka.consumer.brokers" . }}
 - name: CLICKHOUSE_HOST
   value: {{ include "featbit.clickhouse.host" . }}
 - name: CLICKHOUSE_USER
@@ -38,7 +38,7 @@
 - name: IS_PRO
   value: "true"
 - name: Kafka__BootstrapServers
-  value: {{ include "featbit.kafka.brokers" . }}
+  value: {{ include "featbit.kafka.producer.brokers" . }}
 {{- end }}
 {{- end -}}
 

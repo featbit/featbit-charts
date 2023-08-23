@@ -490,7 +490,9 @@ kafka:
 
 externalKafka:
   # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
-  brokers: []
+  brokers:
+    producers: []
+    consumers: []
 
 clickhouse:
   enabled: false
