@@ -2,11 +2,6 @@
 {{- $fullName := (include "featbit.fullname" .) -}}
 {{- $svcName := (include "ui.svc.name" .) -}}
 {{- $svcPort := 80 -}}
-{{- if and .Values.ui.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
-  {{- if not (hasKey .Values.ui.ingress.annotations "kubernetes.io/ingress.class") }}
-  {{- $_ := set .Values.ui.ingress.annotations "kubernetes.io/ingress.class" .Values.ui.ingress.className}}
-  {{- end }}
-{{- end }}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -22,31 +17,23 @@ metadata:
     {{- include "featbit-metadata-labels-common" . | nindent 4 }}
   annotations:
     {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+    kubernetes.io/ingress.class: {{ default "nginx" .Values.global.ingressClassName }}
     {{- with .Values.ui.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if and .Values.ui.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.ui.ingress.className }}
-  {{- end }}
-  {{- if .Values.ui.ingress.tls }}
+  {{- if and .Values.ui.ingress.tls.enabled .Values.ui.ingress.tls.secretName .Values.ui.ingress.host}}
   tls:
-    {{- range .Values.ui.ingress.tls }}
-    - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      secretName: {{ .secretName }}
-    {{- end }}
+    - secretName: {{ .Values.ui.ingress.tls.secretName }}
+      hosts:
+        - {{ .Values.ui.ingress.host }}
   {{- end }}
   rules:
-    {{- range .Values.ui.ingress.hosts }}
     - http:
         paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
-            pathType: {{ default "ImplementationSpecific" .pathType }}
+          - path: {{ default "/" .Values.ui.ingress.path }}
+            {{- if and .Values.ui.ingress.pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            pathType: {{ default "ImplementationSpecific" .Values.ui.ingress.pathType }}
             {{- end }}
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
@@ -58,9 +45,7 @@ spec:
               serviceName: {{ $svcName }}
               servicePort: {{ $svcPort }}
               {{- end }}
-          {{- end }}
-      {{- with .host }}
-      host: {{ . | quote }}
+      {{- if .Values.ui.ingress.host }}
+      host: {{ .Values.ui.ingress.host }}
       {{- end }}
-    {{- end }}
 {{- end }}

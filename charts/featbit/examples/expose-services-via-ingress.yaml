@@ -4,26 +4,16 @@ evaluationServerExternalUrl: "http://els.featbit.test"
 ui:
   ingress:
     enabled: true
-    hosts:
-      - host: ui.featbit.test
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
+    host: ui.featbit.com
+
 
 api:
   ingress:
     enabled: true
-    hosts:
-      - host: api.featbit.test
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
+    host: api.featbit.com
+
 
 els:
   ingress:
     enabled: true
-    hosts:
-      - host: els.featbit.test
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
+    host: els.featbit.com
