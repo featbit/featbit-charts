@@ -1,5 +1,5 @@
-apiExternalUrl: "http://api.featbit.test"
-evaluationServerExternalUrl: "http://els.featbit.test"
+apiExternalUrl: "http://api.featbit.com"
+evaluationServerExternalUrl: "http://els.featbit.com"
 
 ui:
   ingress:
