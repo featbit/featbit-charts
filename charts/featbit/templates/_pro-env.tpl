@@ -39,6 +39,8 @@
   value: "true"
 - name: Kafka__BootstrapServers
   value: {{ include "featbit.kafka.producer.brokers" . }}
+- name: Kafka__ConsumerServers
+  value: {{ include "featbit.kafka.consumer.brokers" . }}
 {{- end }}
 {{- end -}}
 
