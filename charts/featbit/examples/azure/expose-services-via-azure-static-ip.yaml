@@ -1,5 +1,5 @@
-apiExternalUrl: "http://{API Service Public IP Address, ex. 4.194.69.254}"
-evaluationServerExternalUrl: "http://{Evaluation Service Public IP Address, ex. 4.193.158.12}"
+apiExternalUrl: "http://{API Service Public IP Address with port if not 80, ex. 4.194.69.254}"
+evaluationServerExternalUrl: "http://{Evaluation Service Public IP Address with port if not 80, ex. 4.193.158.12}"
 
 ui:
   service:

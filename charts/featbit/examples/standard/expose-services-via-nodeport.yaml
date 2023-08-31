@@ -1,0 +1,17 @@
+apiExternalUrl: "http://{any node external ip:API node port}"
+evaluationServerExternalUrl: "http://{any node external ip:Evaluation server node port}"
+
+ui:
+  service:
+    type: NodePort
+    nodePort: {UI node port, default: 30025}
+
+api:
+  service:
+    type: NodePort
+    nodePort: {API node port, default: 30050}
+
+els:
+  service:
+    type: NodePort
+    nodePort: {Evaluation server node port, default: 30100}

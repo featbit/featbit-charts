@@ -1,0 +1,40 @@
+apiExternalUrl: ""
+evaluationServerExternalUrl: ""
+autoDiscovery: true
+
+ui:
+  service:
+    type: LoadBalancer
+    port: 80
+  resources:
+    requests:
+      cpu: 250m
+  autoscaling:
+    enabled: true
+
+api:
+  service:
+    type: LoadBalancer
+    port: 80
+  resources:
+    requests:
+      cpu: 250m
+  autoscaling:
+    enabled: true
+
+els:
+  service:
+    type: LoadBalancer
+    port: 80
+  resources:
+    requests:
+      cpu: 250m
+  autoscaling:
+    enabled: true
+
+das:
+  resources:
+    requests:
+      cpu: 250m
+  autoscaling:
+    enabled: true

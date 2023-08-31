@@ -1,0 +1,19 @@
+apiExternalUrl: "http://{API host name, ex: api.featbit.com}"
+evaluationServerExternalUrl: "http://{Evaluation Server host name, ex: api.featbit.com}"
+
+ui:
+  ingress:
+    enabled: true
+    host: {UI host name, ex: ui.featbit.com}
+
+
+api:
+  ingress:
+    enabled: true
+    host: {API host name, ex: api.featbit.com}
+
+
+els:
+  ingress:
+    enabled: true
+    host: {Evaluation Server host name, ex: els.featbit.com}

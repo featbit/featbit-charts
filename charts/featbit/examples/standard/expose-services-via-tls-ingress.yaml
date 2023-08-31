@@ -1,0 +1,27 @@
+apiExternalUrl: "https://{API host name, ex: api.featbit.com}"
+evaluationServerExternalUrl: "https://{Evaluation Server host name, ex: api.featbit.com}"
+
+ui:
+  ingress:
+    enabled: true
+    host: {UI host name, ex: ui.featbit.com}
+    tls:
+      enabled: true
+      secretName: {your domain cert secret name, ex: "featbit-com-tls-secret"}
+
+api:
+  ingress:
+    enabled: true
+    host: {API host name, ex: api.featbit.com}
+    tls:
+      enabled: true
+      secretName: {your domain cert secret name, ex: "featbit-com-tls-secret"}
+
+
+els:
+  ingress:
+    enabled: true
+    host: {Evaluation Server host name, ex: els.featbit.com}
+    tls:
+      enabled: true
+      secretName: {your domain cert secret name, ex: "featbit-com-tls-secret"}
