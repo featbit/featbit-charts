@@ -48,11 +48,11 @@ Helm's [documentation](https://helm.sh/docs)
 
 To use FeatBit, three services must be exposed from the internal network of Kubernetes:
 
-* ui: FeatBit frontend (http://127.0.0.1:8081).
-* api: FeatBit api server (http://127.0.0.1:5000).
-* evaluation server(els): FeatBit data synchronization and data evaluation server (http://127.0.0.1:5100).
+* ui: FeatBit frontend
+* api: FeatBit api server
+* evaluation server(els): FeatBit data synchronization and data evaluation server
 
-If you cannot access the services using localhost and their default ports, `apiExternalUrl` and `evaluationServerExternalUrl` **_SHOULD_** be reset in the [values.yaml](https://helm.sh/docs/chart_template_guide/values_files/)
+If you cannot access the services using localhost and their default ports, `apiExternalUrl` and `evaluationServerExternalUrl` **_SHOULD_** be reset in the [values.yaml or your own values file with -f flag](https://helm.sh/docs/chart_template_guide/values_files/)
 
 ### ClusterIP
 
@@ -82,10 +82,9 @@ Exposes the Services on each k8s cluster Node's IP at a static port:
 * api: http://NODE_IP:30050
 * evaluation server(els): http://NODE_IP:30100
 
-Set your [values.yaml](https://helm.sh/docs/chart_template_guide/values_files/) as following:
+Set your [values.yaml](https://helm.sh/docs/chart_template_guide/values_files/) as the following [example](./charts/featbit/examples/standard/expose-services-via-nodeport.yaml)
 
 ```yaml
-# charts/featbit/examples/expose-services-via-nodeport.yaml
 
 apiExternalUrl: "http://NODE_IP:30050"
 evaluationServerExternalUrl: "http://NODE_IP:30100"
@@ -120,13 +119,44 @@ Exposes the Service externally using an external load balancer. K8s does not dir
 The 3 services must be assigned an IP before deployment. Especially, we **_MUST_** know the IPs of api and evaluation server in advance.
 If the load balancer randomly assigns external IP addresses to services, it can make it difficult to preconfigure parameters. Therefore, we currently **_DO NOT_** recommend to use this approach.
 
-Here is a LoadBalancer examples if you can bind static IPs to services:
+#### Static IP
+To expose service, we recommend you to bind static external IPs to services, as the following [example](./charts/featbit/examples/standard/expose-services-via-lb-static-ip.yaml)
 
 ```yaml
-# charts/featbit/examples/expose-services-via-lb.yaml
 
 apiExternalUrl: "http://API_EXTERNAL_IP:5000"
 evaluationServerExternalUrl: "http://ELS_EXTERNAL_IP:5100"
+
+ui:
+  service:
+    type: LoadBalancer
+    staticIP: {UI_EXTERNAL_IP}
+
+api:
+  service:
+    type: LoadBalancer
+    staticIP: {API_EXTERNAL_IP}
+
+els:
+  service:
+    type: LoadBalancer
+    staticIP: {ELS_EXTERNAL_IP}
+```
+K8s provided by Cloud (AKS, GKE, EKS etc.):
+
+* [AKS bind static ip with special annotation for load balancer service](./aks/README.md)
+* [GKE create and set Static IP for load balancer service](https://cloud.google.com/kubernetes-engine/docs/tutorials/configuring-domain-name-static-ip#step_2b_using_an_ingress)
+* [EKS assign elastic ip for load balancer service](https://stackoverflow.com/questions/60095864/how-can-i-assign-a-static-ip-to-my-eks-service)
+
+#### IP Auto Discovery 
+
+We also provide a support to discovery automatically Load Balancer service IPs, as the following [example](./charts/featbit/examples/standard/expose-services-via-lb-auto-discovery-ip.yaml):
+
+```yaml
+
+apiExternalUrl: ""
+evaluationServerExternalUrl: ""
+autoDiscovery: true
 
 ui:
   service:
@@ -140,14 +170,7 @@ els:
   service:
     type: LoadBalancer
 ```
-In the next version, we will support the automatic discovery of Load Balancer service IPs. 
-But if you are using a k8s cluster from a cloud provider, the allocation of Load Balancer IPs may take a significant amount of time. 
-In such cases, the automatic discovery feature may not fundamentally solve the problem.
-
-
-#### Azure Kubernetes Service (AKS) + Azure Load Balancer
-
-[Visit README in ask subdirectory for more details.](./aks/README.md)
+Use `kubectl get svc` to obtain the IP addresses.
 
 ### Ingress
 
@@ -186,53 +209,43 @@ K3D deploys traefik as the default ingress controller, pleae read the [doc for e
 * [GKE](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress)
 * [EKS](https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html)
 
-Here is a simple example that show how to use ingress to expose services:
+Here is a simple [example](./charts/featbit/examples/standard/expose-services-via-ingress.yaml) that show how to use ingress to expose services:
 ```yaml
-# charts/featbit/examples/expose-services-via-ingress.yaml
 
-apiExternalUrl: "http://api.featbit.test"
-evaluationServerExternalUrl: "http://els.featbit.test"
+apiExternalUrl: "http:/{API host name}"
+evaluationServerExternalUrl: "http://{Evaluation Server host name}"
 
 ui:
   ingress:
     enabled: true
-    hosts:
-      - host: ui.featbit.test
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
+    host: {UI host name}
+
 
 api:
   ingress:
     enabled: true
-    hosts:
-      - host: api.featbit.test
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
+    host: {API host name}
+
 
 els:
   ingress:
     enabled: true
-    hosts:
-      - host: els.featbit.test
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
+    host: {Evaluation Server host name}
 
 
 ```
 
 Note that:
 * you should bind the host names that can be resolved by DNS server or map the IPs and host names in the dns hosts file(/etc/hosts in linux and macox) in your local cluster.
-* the default ingress class is nginx, set your value in `<service>.ingress.className` if needed
+* the default ingress class is nginx, set your value in `global.ingressClassName` if needed
 * set the annotations in the `<service>.ingress.annotations`, if needed
     for example:
     ``` yaml
-    ...  
+    ... 
     ui:
       ingress:
           enabled: true
+          host: {UI host name}
           annotations:
               nginx.ingress.kubernetes.io/use-regex: "true"
               nginx.ingress.kubernetes.io/rewrite-target: /$2

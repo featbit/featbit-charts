@@ -27,7 +27,7 @@
 
         {{ if and .Values.kafka.enabled .Values.isPro }}
 
-        KAFKA_BROKERS="{{ include "featbit.kafka.brokers" . }}"
+        KAFKA_BROKERS="{{ include "featbit.kafka.consumer.brokers" . }}"
 
         KAFKA_HOST=$(echo $KAFKA_BROKERS | cut -f1 -d:)
         KAFKA_PORT=$(echo $KAFKA_BROKERS | cut -f2 -d:)

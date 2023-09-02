@@ -1,0 +1,24 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ca-issuer
+spec:
+  ca:
+    secretName: ca-key-pair
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: featbit-com-cert
+spec:
+  secretName: featbit-com-tls-secret
+  issuerRef:
+    name: ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+  commonName: "*.featbit.com"
+  dnsNames:
+    - "featbit.com"
+    - "*.featbit.com"
