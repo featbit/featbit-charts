@@ -144,8 +144,7 @@ els:
 ```
 K8s provided by Cloud (AKS, GKE, EKS etc.):
 
-* [AKS set Static IP](https://learn.microsoft.com/en-us/azure/aks/static-ip)
-* [AKS bind static ip with special annotation for load balancer service](./charts/featbit/examples/azure/expose-services-via-azure-static-ip.yaml)
+* [AKS bind static ip with special annotation for load balancer service](./aks/README.md)
 * [GKE create and set Static IP for load balancer service](https://cloud.google.com/kubernetes-engine/docs/tutorials/configuring-domain-name-static-ip#step_2b_using_an_ingress)
 * [EKS assign elastic ip for load balancer service](https://stackoverflow.com/questions/60095864/how-can-i-assign-a-static-ip-to-my-eks-service)
 

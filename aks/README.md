@@ -68,71 +68,63 @@ Clone and navigate to the Helm chart repository:
 
 ```bash
 git clone https://github.com/featbit/featbit-charts
-
-cd ./featbit-charts/charts/featbit
 ```
 
-In the `featbit-charts/charts/featbit/examples` directory, locate the AKS example file, `expose-services-via-azurelb.yaml`. Replace placeholders ({}) with the appropriate values:
+In the `featbit-charts/charts/featbit/examples/azure` directory, locate the AKS example file, `expose-services-via-azure-static-ip.yaml`. Replace placeholders ({}) with the appropriate values:
 
 - `apiExternalUrl`, the URL the UI portal utilizes to retrieve feature flags.
 - `evaluationServerExternalUrl`, the URL the SDK accesses to obtain variations or rules for feature flags.
-- `staticIP` of `ui.service`, `api.service` and `els.service`, the public IPs you created in previous step.
+- `service.beta.kubernetes.io/azure-load-balancer-ipv4`, bind the public IPs you created in previous step to each service
 - `service.beta.kubernetes.io/azure-load-balancer-resource-group`, the name of the resource group where your public IPs are situated.
 
 ```yaml
-apiExternalUrl: "http://{API Service Public IP Address, ex. 4.194.69.254}"
-evaluationServerExternalUrl: "http://{Evaluation Service Public IP Address, ex. 4.193.158.12}"
-# autoDiscovery: true
+apiExternalUrl: "http://{API Service Public IP Address with port if not 80, ex. 4.194.69.254}"
+evaluationServerExternalUrl: "http://{Evaluation Service Public IP Address with port if not 80, ex. 4.193.158.12}"
 
 ui:
   service:
     type: LoadBalancer
     port: 80
-    annotations: 
+    annotations:
       service.beta.kubernetes.io/azure-load-balancer-resource-group: {Resource Group where your Public IP located in, ex. myNetworkResourceGroup}
-    staticIP: {UI Portal Public IP Address, ex. 4.194.13.155}
+      service.beta.kubernetes.io/azure-load-balancer-ipv4: {UI Portal Public IP Address, ex. 4.194.13.155}
 
 api:
   service:
     type: LoadBalancer
     port: 80
-    annotations: 
+    annotations:
       service.beta.kubernetes.io/azure-load-balancer-resource-group: {Resource Group where your Public IP located in, ex. myNetworkResourceGroup}
-    staticIP: {API Service Public IP Address, ex. 4.194.69.254}
+      service.beta.kubernetes.io/azure-load-balancer-ipv4: {API Service Public IP Address, ex. 4.194.69.254}
 
 els:
   service:
     type: LoadBalancer
     port: 80
-    annotations: 
+    annotations:
       service.beta.kubernetes.io/azure-load-balancer-resource-group: {Resource Group where your Public IP located in, ex. myNetworkResourceGroup}
-    staticIP: {Evaluation Service Public IP Address, ex. 4.193.158.12}
+      service.beta.kubernetes.io/azure-load-balancer-ipv4: {Evaluation Service Public IP Address, ex. 4.193.158.12}
 ```
-
-> Note: API server and Evaluation server are optional. If you set `autoDiscovery` to `true` and keep delete `staticIP` values in `api` and `els` services, the IP addresses of these two services will be created automatically by Azure. But in this tutorial, we won't demonstrate it.
 
 Preview the Helm installation:
 
 ```bash
-helm install featbit featbit/featbit -f ./examples/expose-services-via-azurelb.yaml --dry-run
+helm install featbit featbit/featbit -f featbit-charts/charts/featbit/examples/azure/expose-services-via-azure-static-ip.yaml --dry-run
 ```
 
 If all looks well, install the Helm chart:
 
 ```bash
-helm install featbit featbit/featbit -f ./examples/expose-services-via-azurelb.yaml
+helm install featbit featbit/featbit -f featbit-charts/charts/featbit/examples/azure/expose-services-via-azure-static-ip.yaml
 
 # or to upgrade
-helm upgrade --install featbit . -f ./examples/expose-services-via-azurelb.yaml
+helm upgrade --install featbit featbit/featbit -f featbit-charts/charts/featbit/examples/azure/expose-services-via-azure-static-ip.yaml
 ```
 
 NOTE: 
 
-- Ensure you run the command from the directory containing `expose-services-via-azurelb.yaml`.
+- Ensure you run the command from the directory containing `expose-services-via-azure-static-ip.yaml`.
 - Specify a namespace with `--namespace` option during installation if needed.
-- Adjust replica counts or disable autoscaling in the YAML file as desired in `expose-services-via-azurelb.yaml` file:
-  - `.Values.{service name， ex. api | ui | els | das }.replicaCount`, the default value is 1
-  - `.Values.api.autoscaling.enabled`, set the value to `false`
 
 # Verification
 
