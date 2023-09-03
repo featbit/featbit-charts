@@ -4,9 +4,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: ui-scripts-configmap
   labels:
-      {{- include "featbit-metadata-labels-common" . | nindent 4 }}
-    annotations:
-      {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+    {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+  annotations:
+    {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
 data:
   {{ $api_port := .Values.api.service.port }}
   {{ $els_port := .Values.els.service.port }}
