@@ -38,7 +38,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.4
+    tag: 2.4.5
 
   imagePullSecrets: [ ]
 
@@ -116,7 +116,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.4
+    tag: 2.4.5
 
   imagePullSecrets: [ ]
 
@@ -194,7 +194,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.4
+    tag: 2.4.5
 
   imagePullSecrets: [ ]
 
@@ -273,7 +273,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.4.4
+    tag: 2.4.5
 
   imagePullSecrets: [ ]
 
@@ -382,10 +382,10 @@ redis:
       size: 8Gi
 
 externalRedis:
-  # -- External Redis host to use.
-  host: ""
-  # -- External Redis port to use.
-  port: 6379
+  cluster:
+    enabled: false
+  # -- External Redis host:port to use.
+  hosts: [ ]
   # -- User for the external redis server (for use with ACLs on redis 6 and above)
   user: ""
   # -- Password for the external Redis. Ignored if `externalRedis.existingSecret` is set.

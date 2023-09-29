@@ -1,7 +1,6 @@
 apiExternalUrl: ""
 evaluationServerExternalUrl: ""
 autoDiscovery: true
-
 isPro: true
 
 ui:
@@ -20,9 +19,48 @@ els:
     type: LoadBalancer
     port: 80
 
-
+mongodb:
+  enabled: false
+redis:
+  enabled: false
 kafka:
-  enabled: true
-
+  enabled: false
 clickhouse:
-  enabled: true
+  enabled: false
+
+externalMongodb:
+  fullConnectionString: {Mongodb connection url, ex. mongodb://admin:password@infra-featbit-mongodb:27017}
+
+externalRedis:
+  # set false if external cluster is not in cluster mode
+  cluster:
+    enabled: true
+  hosts: [ ]
+  # - infra-featbit-redis-cluster:6379
+  ssl: false
+  # set your password if redis auth is enabled
+  password: ""
+
+externalKafka:
+  # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
+  brokers:
+    producers: [ ]
+    # - infra-featbit-kafka:9092
+    consumers: [ ]
+    # - infra-featbit-kafka:9092
+
+externalClickhouse:
+  # -- Host of the external cluster.
+  host: {ClickHouse host name, ex: "infra-featbit-clickhouse"}
+  # -- Name of the external cluster to run DDL queries on.
+  cluster: {ClickHouse cluster name, ex: "featbit_ch_cluster"}
+  # -- Database name for the external cluster
+  database: {ClickHouse database, ex: "featbit"}
+  # -- Username for the external cluster to connect to the external cluster as
+  user: {ClickHouse username, ex: "default"}
+  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  password: {ClickHouse password, ex: "supersecret"}
+  # -- Whether to use TLS connection connecting to ClickHouse
+  secure: false
+  # -- Whether to verify TLS connection connecting to ClickHouse
+  verify: false

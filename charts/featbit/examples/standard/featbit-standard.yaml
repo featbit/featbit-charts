@@ -1,0 +1,38 @@
+apiExternalUrl: ""
+evaluationServerExternalUrl: ""
+autoDiscovery: true
+
+ui:
+  service:
+    type: LoadBalancer
+    port: 80
+
+
+api:
+  service:
+    type: LoadBalancer
+    port: 80
+
+els:
+  service:
+    type: LoadBalancer
+    port: 80
+
+mongodb:
+  enabled: false
+redis:
+  enabled: false
+
+externalMongodb:
+  fullConnectionString: {Mongodb connection url, ex. mongodb://admin:password@infra-featbit-mongodb:27017}
+
+externalRedis:
+  # set false if external cluster is not in cluster mode
+  cluster:
+    enabled: true
+  # multiple redis nodes can be provided as array/list. you should put at least one redis node here
+  hosts: [ ]
+  #    - infra-featbit-redis-cluster:6379
+  ssl: false
+  # set your password if redis auth is enabled
+  password: ""

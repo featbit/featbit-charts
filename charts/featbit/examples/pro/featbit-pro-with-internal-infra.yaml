@@ -1,0 +1,30 @@
+apiExternalUrl: ""
+evaluationServerExternalUrl: ""
+autoDiscovery: true
+
+isPro: true
+
+ui:
+  service:
+    type: LoadBalancer
+    port: 80
+
+
+api:
+  service:
+    type: LoadBalancer
+    port: 80
+
+els:
+  service:
+    type: LoadBalancer
+    port: 80
+
+mongodb:
+  enabled: true
+redis:
+  enabled: true
+kafka:
+  enabled: true
+clickhouse:
+  enabled: true
