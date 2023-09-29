@@ -135,9 +135,15 @@ Return the Mongodb host
 {{- end -}}
 {{- end -}}
 
+{{- define "featbit.mongodb.port" -}}
+{{- if .Values.mongodb.enabled }}
+    {{- .Values.mongodb.service.ports.mongodb -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "featbit.mongodb.connStr" -}}
 {{- if .Values.mongodb.enabled -}}
-    {{- printf "mongodb://%s:%s@%s:27017" .Values.mongodb.auth.rootUser .Values.mongodb.auth.rootPassword (include "featbit.mongodb.host" .) -}}
+    {{- printf "mongodb://%s:%s@%s:%s" .Values.mongodb.auth.rootUser .Values.mongodb.auth.rootPassword (include "featbit.mongodb.host" .) (include "featbit.mongodb.port" .) -}}
 {{- else -}}
     {{- required "You need to provide a full connection string when using external mongodb" .Values.externalMongodb.fullConnectionString | printf "%s" -}}
 {{- end -}}
@@ -178,10 +184,10 @@ Return the Redis fullname
 Return the Redis host
 */}}
 {{- define "featbit.redis.host" -}}
-{{- if .Values.redis.enabled }}
+{{- if .Values.redis.enabled -}}
     {{- printf "%s-master" (include "featbit.redis.fullname" .) -}}
 {{- else -}}
-    {{- required "You need to provide a host when using external redis" .Values.externalRedis.host | printf "%s" -}}
+    {{- required "You need to provide a host when using external redis" (join "," .Values.externalRedis.hosts) | printf "%s" -}}
 {{- end -}}
 {{- end -}}
 
@@ -190,9 +196,7 @@ Return the Redis port
 */}}
 {{- define "featbit.redis.port" -}}
 {{- if .Values.redis.enabled }}
-    {{- 6379 -}}
-{{- else -}}
-    {{- default 6379 .Values.externalRedis.port -}}
+    {{- .Values.redis.master.service.ports.redis -}}
 {{- end -}}
 {{- end -}}
 
@@ -235,6 +239,12 @@ Return the Redis secret password key
 {{- end -}}
 {{- end -}}
 
+{{- define "featbit.redis.cluster.enabled" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.cluster.enabled -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
 {{/*
 Return whether Redis uses password authentication or not
 */}}
@@ -252,8 +262,16 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 {{- end -}}
 
+{{- define "featbit.redis.config.0" -}}
+{{- if .Values.redis.enabled -}}
+{{- printf "%s:%s" (include "featbit.redis.host" .) (include "featbit.redis.port" .) -}}
+{{- else -}}
+{{- printf "%s" (include "featbit.redis.host" .) -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "featbit.redis.config.1" -}}
-{{- printf "%s:%s,abortConnect=false,ssl=%s" (include "featbit.redis.host" .) (include "featbit.redis.port" .) (include "featbit.redis.ssl" .) -}}
+{{- printf "%s,abortConnect=false,ssl=%s" (include "featbit.redis.config.0" .) (include "featbit.redis.ssl" .) -}}
 {{- end -}}
 
 {{- define "featbit.redis.config.2" -}}
@@ -290,7 +308,7 @@ Return whether Redis uses password authentication or not
 {{- if or $pass $user -}}
 {{- $usrpass = (printf "%s:%s@" $user $pass) -}}
 {{- end -}}
-{{- printf "%s%s%s:%s" $protocol $usrpass (include "featbit.redis.host" .) (include "featbit.redis.port" .) -}}
+{{- printf "%s%s%s" $protocol $usrpass (include "featbit.redis.config.0" .) -}}
 {{- end -}}
 
 {{- define "featbit.redis.conn.secretName" -}}
@@ -317,7 +335,7 @@ Return whether Redis uses password authentication or not
 {{- if .Values.kafka.enabled -}}
     {{- printf "%s:%d" (include "featbit.kafka.fullname" .) (.Values.kafka.service.ports.client | int) }}
 {{- else if .Values.isPro -}}
-    {{- required "You need to provide a producer broker list when using external kafka" (join "," .Values.externalKafka.brokers.producers | quote) | printf "%s" -}}
+    {{- required "You need to provide a producer broker list when using external kafka" (join "," .Values.externalKafka.brokers.producers) | printf "%s" -}}
 {{- end }}
 {{- end }}
 
@@ -326,7 +344,7 @@ Return whether Redis uses password authentication or not
 {{- if .Values.kafka.enabled -}}
     {{- printf "%s:%d" (include "featbit.kafka.fullname" .) (.Values.kafka.service.ports.client | int) }}
 {{- else if .Values.isPro -}}
-    {{- required "You need to provide a consumer broker list when using external kafka" (join "," .Values.externalKafka.brokers.consumers | quote) | printf "%s" -}}
+    {{- required "You need to provide a consumer broker list when using external kafka" (join "," .Values.externalKafka.brokers.consumers) | printf "%s" -}}
 {{- end }}
 {{- end }}
 

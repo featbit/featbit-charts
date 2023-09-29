@@ -19,7 +19,7 @@
         {{ end }}
 
         {{ if .Values.mongodb.enabled }}
-        until (nc -vz -w 1 "{{ include "featbit.mongodb.host" . }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local" 27017);
+        until (nc -vz -w 1 "{{ include "featbit.mongodb.host" . }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local" {{ include "featbit.mongodb.port" . }});
         do
             echo "waiting for Mongodb"; sleep 1;
         done
