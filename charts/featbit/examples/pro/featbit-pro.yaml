@@ -32,13 +32,23 @@ externalMongodb:
   fullConnectionString: {Mongodb connection url, ex. mongodb://admin:password@infra-featbit-mongodb:27017}
 
 externalRedis:
-  # set false if external cluster is not in cluster mode
+  # -- Redis is considered as standalone or replication by default.
+  # -- if your external redis is run in sentinel or cluster mode, set sentinel.enabled or cluster.enabled true
+  sentinel:
+    enabled: false
+    # -- External Redis master set name
+    masterSet: "mymaster"
   cluster:
-    enabled: true
+    enabled: false
+  # -- External Redis Servers in host:port. Put sentinel nodes here in sentinel mode
   hosts: [ ]
-  # - infra-featbit-redis-cluster:6379
+  # - infra-featbit-redis:6379
+  # -- External Redis database index, ignore in cluster mode
+  db: 0
+  # -- User for the external Redis server (for use with ACLs on redis 6 and above)
+  user: ""
   ssl: false
-  # set your password if redis auth is enabled
+  # set your password if Redis server auth is enabled
   password: ""
 
 externalKafka:
