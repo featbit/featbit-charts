@@ -245,6 +245,22 @@ Return the Redis secret password key
 {{- end -}}
 {{- end -}}
 
+{{- define "featbit.redis.sentinel.enabled" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.sentinel.enabled -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.redis.db" -}}
+{{- $db := "" -}}
+{{- if and (not .Values.externalRedis.cluster.enabled) (not .Values.redis.enabled) -}}
+    {{- $db = (default 0 (.Values.externalRedis.db | int) | printf "%d") -}}
+{{- else if .Values.redis.enabled -}}
+    {{- $db = "0" -}}
+{{- end -}}
+    {{- printf "%s" $db -}}
+{{- end -}}
+
 {{/*
 Return whether Redis uses password authentication or not
 */}}
@@ -262,6 +278,7 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 {{- end -}}
 
+
 {{- define "featbit.redis.config.0" -}}
 {{- if .Values.redis.enabled -}}
 {{- printf "%s:%s" (include "featbit.redis.host" .) (include "featbit.redis.port" .) -}}
@@ -271,7 +288,13 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 
 {{- define "featbit.redis.config.1" -}}
+{{- if and (include "featbit.redis.db" .) (include "featbit.redis.sentinel.enabled" .) -}}
+{{- printf "%s,serviceName=%s,defaultDatabase=%s,abortConnect=false,ssl=%s" (include "featbit.redis.config.0" .) .Values.externalRedis.sentinel.masterSet (include "featbit.redis.db" .) (include "featbit.redis.ssl" .) -}}
+{{- else if (include "featbit.redis.db" .) -}}
+{{- printf "%s,defaultDatabase=%s,abortConnect=false,ssl=%s" (include "featbit.redis.config.0" .) (include "featbit.redis.db" .) (include "featbit.redis.ssl" .) -}}
+{{- else -}}
 {{- printf "%s,abortConnect=false,ssl=%s" (include "featbit.redis.config.0" .) (include "featbit.redis.ssl" .) -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "featbit.redis.config.2" -}}
@@ -284,7 +307,7 @@ Return whether Redis uses password authentication or not
 
 {{- define "featbit.redis.config.3" -}}
 {{- if and .Values.externalRedis.user (not .Values.redis.enabled) -}}
-{{- printf "%s,user=" (include "featbit.redis.config.2" .) .Values.externalRedis.user -}}
+{{- printf "%s,user=%s" (include "featbit.redis.config.2" .) .Values.externalRedis.user -}}
 {{- else -}}
 {{- printf "%s" (include "featbit.redis.config.2" .) -}}
 {{- end -}}
@@ -308,7 +331,7 @@ Return whether Redis uses password authentication or not
 {{- if or $pass $user -}}
 {{- $usrpass = (printf "%s:%s@" $user $pass) -}}
 {{- end -}}
-{{- printf "%s%s%s" $protocol $usrpass (include "featbit.redis.config.0" .) -}}
+{{- printf "%s%s%s/%s" $protocol $usrpass (include "featbit.redis.config.0" .) (include "featbit.redis.db" .) -}}
 {{- end -}}
 
 {{- define "featbit.redis.conn.secretName" -}}
