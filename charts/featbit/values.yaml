@@ -106,7 +106,7 @@ ui:
   affinity: { }
 
   # -- Additional env variables to inject into the da server deployment.
-  env: { }
+  env: []
 
 api:
   replicaCount: 1
@@ -184,7 +184,7 @@ api:
   affinity: { }
 
   # -- Additional env variables to inject into the da server deployment.
-  env: { }
+  env: []
 
 els:
   replicaCount: 1
@@ -262,7 +262,7 @@ els:
   affinity: { }
 
   # -- Additional env variables to inject into the da server deployment.
-  env: { }
+  env: []
 
 
 das:
@@ -331,7 +331,7 @@ das:
   affinity: { }
 
   # -- Additional env variables to inject into the da server deployment.
-  env: { }
+  env: []
 
 
 ###
