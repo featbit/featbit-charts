@@ -100,7 +100,7 @@ spec:
               value: "/shared/evaluation_url.txt"
             {{- end }}
             {{- with .Values.ui.env }}
-            {{ toYaml . | indent 12 }}
+            {{ toYaml . | nindent 12 }}
             {{- end }}
           volumeMounts:
             - name: scripts
