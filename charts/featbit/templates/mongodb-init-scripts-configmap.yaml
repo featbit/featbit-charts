@@ -39,7 +39,6 @@ data:
             email: "test@featbit.com",
             password: "AQAAAAEAACcQAAAAELDHEjCrDQrmnAXU5C//mOLvUBJ7lnVFEMMFxNMDIIrF7xK8JDQKUifU3HH4gexNAQ==",
             name: "tester",
-            origin: "Local",
             createAt: new Date(),
             updatedAt: new Date()
         }
@@ -109,10 +108,10 @@ data:
             statements: [
                 {
                     _id: getUUIDString(),
-                    resourceType: "organization",
+                    resourceType: "account",
                     effect: "allow",
                     actions: ["UpdateOrgName"],
-                    resources: ["organization/*"]
+                    resources: ["account/*"]
                 },
                 {
                     _id: getUUIDString(),
