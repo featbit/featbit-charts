@@ -38,7 +38,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.5.0
+    tag: 2.5.2
 
   imagePullSecrets: [ ]
 
@@ -116,7 +116,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.5.0
+    tag: 2.5.2
 
   imagePullSecrets: [ ]
 
@@ -194,7 +194,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.5.0
+    tag: 2.5.2
 
   imagePullSecrets: [ ]
 
@@ -273,7 +273,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.5.0
+    tag: 2.5.2
 
   imagePullSecrets: [ ]
 
@@ -471,7 +471,7 @@ kubectl:
 isPro: false
 
 kafka:
-  enabled: false
+  enabled: true
   nameOverride: featbit-kafka
 
   replicaCount: 1
@@ -497,8 +497,23 @@ kafka:
 externalKafka:
   # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
   brokers:
-    producers: []
-    consumers: []
+    producer:
+      hosts: [ ]
+      user: ""
+      password: ""
+      existingSecret: ""
+      existingSecretPasswordKey: ""
+      mechanism: "PLAIN"
+      protocol: "PLAINTEXT"
+
+    consumer:
+      hosts: [ ]
+      user: ""
+      password: ""
+      existingSecret: ""
+      existingSecretPasswordKey: ""
+      mechanism: "PLAIN"
+      protocol: "PLAINTEXT"
 
 clickhouse:
   enabled: false
@@ -656,8 +671,14 @@ clickhouse:
       <max_concurrent_queries>1000</max_concurrent_queries>
     </clickhouse>
 externalClickhouse:
-  # -- Host of the external cluster. This is required when clickhouse.enabled is false
+  # -- Host of the external clickhouse. This is required when clickhouse.enabled is false
   host: ""
+  # -- TCP(security) port of the external clickhouse. This is required when clickhouse.enabled is false
+  tcpPort: 9000
+  # -- HTTP(s) port of the external clickhouse. This is required when clickhouse.enabled is false
+  httpPort: 8123
+  # -- if the external clickhouse has more than one shard, set a list of clickhouse extra shards in host:tcp.
+  altHosts: [ ]
   # -- Name of the external cluster to run DDL queries on. This is required when clickhouse.enabled is false
   cluster: ""
   # -- Database name for the external cluster

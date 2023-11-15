@@ -358,7 +358,7 @@ Return whether Redis uses password authentication or not
 {{- if .Values.kafka.enabled -}}
     {{- printf "%s:%d" (include "featbit.kafka.fullname" .) (.Values.kafka.service.ports.client | int) }}
 {{- else if .Values.isPro -}}
-    {{- required "You need to provide a producer broker list when using external kafka" (join "," .Values.externalKafka.brokers.producers) | printf "%s" -}}
+    {{- required "You need to provide a producer broker list when using external kafka" (join "," .Values.externalKafka.brokers.producer.hosts) | printf "%s" -}}
 {{- end }}
 {{- end }}
 
@@ -367,9 +367,65 @@ Return whether Redis uses password authentication or not
 {{- if .Values.kafka.enabled -}}
     {{- printf "%s:%d" (include "featbit.kafka.fullname" .) (.Values.kafka.service.ports.client | int) }}
 {{- else if .Values.isPro -}}
-    {{- required "You need to provide a consumer broker list when using external kafka" (join "," .Values.externalKafka.brokers.consumers) | printf "%s" -}}
+    {{- required "You need to provide a consumer broker list when using external kafka" (join "," .Values.externalKafka.brokers.consumer.hosts) | printf "%s" -}}
 {{- end }}
 {{- end }}
+
+{{- define "featbit.kafka.producer.auth.enabled" -}}
+{{- if and (not .Values.kafka.enabled) (or .Values.externalKafka.brokers.producer.password .Values.externalKafka.brokers.producer.existingSecret) -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.producer.createSecret" -}}
+{{- if and (not .Values.kafka.enabled) (not .Values.externalKafka.brokers.producer.existingSecret) .Values.externalKafka.brokers.producer.password }}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.producer.secretName" -}}
+{{- if .Values.externalKafka.brokers.producer.existingSecret }}
+    {{- printf "%s" .Values.externalKafka.brokers.producer.existingSecret -}}
+{{- else -}}
+    {{- printf "%s-external-producer" (include "featbit.kafka.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.producer.secretPasswordKey" -}}
+{{- if and (not .Values.kafka.enabled) .Values.externalKafka.brokers.producer.existingSecret -}}
+    {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in external kafka producer" .Values.externalKafka.brokers.producer.existingSecretPasswordKey | printf "%s" -}}
+{{- else -}}
+    {{- printf "kafka-external-producer-password" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.consumer.auth.enabled" -}}
+{{- if and (not .Values.kafka.enabled) (or .Values.externalKafka.brokers.consumer.password .Values.externalKafka.brokers.consumer.existingSecret) -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.consumer.createSecret" -}}
+{{- if and (not .Values.kafka.enabled) (not .Values.externalKafka.brokers.consumer.existingSecret) .Values.externalKafka.brokers.consumer.password }}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.consumer.secretName" -}}
+{{- if .Values.externalKafka.brokers.consumer.existingSecret }}
+    {{- printf "%s" .Values.externalKafka.brokers.consumer.existingSecret -}}
+{{- else -}}
+    {{- printf "%s-external-consumer" (include "featbit.kafka.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.consumer.secretPasswordKey" -}}
+{{- if and (not .Values.kafka.enabled) .Values.externalKafka.brokers.consumer.existingSecret -}}
+    {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in external kafka consumer" .Values.externalKafka.brokers.consumer.existingSecretPasswordKey | printf "%s" -}}
+{{- else -}}
+    {{- printf "kafka-external-consumer-password" -}}
+{{- end -}}
+{{- end -}}
 
 {*
    ------ CLICKHOUSE ------
@@ -392,10 +448,32 @@ Return clickhouse fullname
 Return the Redis host
 */}}
 {{- define "featbit.clickhouse.host" -}}
-{{- if .Values.clickhouse.enabled }}
+{{- if .Values.clickhouse.enabled -}}
     {{- printf "%s" (include "featbit.clickhouse.fullname" .) -}}
 {{- else if .Values.isPro -}}
     {{- required "You need to provide a host when using external Clickhouse" .Values.externalClickhouse.host | printf "%s" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.clickhouse.altHosts" -}}
+{{- if and (not .Values.clickhouse.enabled) .Values.isPro .Values.externalClickhouse.altHosts  -}}
+    {{- print "%s" (join "," .Values.externalClickhouse.altHosts) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.clickhouse.port" -}}
+{{- if .Values.clickhouse.enabled -}}
+    {{- printf "%d" .Values.clickhouse.containerPorts.tcp -}}
+{{- else if .Values.isPro -}}
+    {{- required "You need to provide a host port when using external Clickhouse" (.Values.externalClickhouse.tcpPort | int) | printf "%d" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.clickhouse.httpPort" -}}
+{{- if .Values.clickhouse.enabled -}}
+    {{- printf "%d" .Values.clickhouse.containerPorts.http -}}
+{{- else if .Values.isPro -}}
+    {{- required "You need to provide a host http port when using external Clickhouse" (.Values.externalClickhouse.httpPort | int) | printf "%d" -}}
 {{- end -}}
 {{- end -}}
 

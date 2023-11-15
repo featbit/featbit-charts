@@ -56,13 +56,13 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 2
             httpGet:
-              path: /api
+              path: /health/liveness
               port: http
           readinessProbe:
             periodSeconds: 10
             timeoutSeconds: 5
             httpGet:
-              path: /api
+              path: /health/readiness
               port: http
           resources:
             {{- toYaml .Values.das.resources | nindent 12 }}
