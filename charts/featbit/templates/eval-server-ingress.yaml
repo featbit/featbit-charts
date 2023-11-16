@@ -2,6 +2,11 @@
 {{- $fullName := (include "featbit.fullname" .) -}}
 {{- $svcName := (include "els.svc.name" .) -}}
 {{- $svcPort := 80 -}}
+{{- if and .Values.global.ingressClassName (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.els.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.els.ingress.annotations "kubernetes.io/ingress.class" .Values.global.ingressClassName }}
+  {{- end }}
+{{- end }}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -17,12 +22,14 @@ metadata:
     {{- include "featbit-metadata-labels-common" . | nindent 4 }}
   annotations:
     {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
-    kubernetes.io/ingress.class: {{ default "nginx" .Values.global.ingressClassName }}
     {{- with .Values.els.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if and .Values.els.ingress.tls.enabled .Values.els.ingress.tls.secretName .Values.els.ingress.host}}
+  {{- if and .Values.global.ingressClassName (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.global.ingressClassName }}
+  {{- end }}
+  {{- if and .Values.els.ingress.tls.enabled .Values.els.ingress.tls.secretName .Values.els.ingress.host }}
   tls:
     - secretName: {{ .Values.els.ingress.tls.secretName }}
       hosts:
