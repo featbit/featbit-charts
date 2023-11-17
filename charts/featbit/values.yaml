@@ -455,7 +455,7 @@ kubectl:
   image:
     registry: docker.io
     repository: bitnami/kubectl
-    tag: 1.24.3-debian-11-r8
+    tag: 1.26.6-debian-11-r31
     pullPolicy: IfNotPresent
   imagePullSecrets: [ ]
 
