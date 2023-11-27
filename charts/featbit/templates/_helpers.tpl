@@ -136,8 +136,14 @@ Return the Mongodb host
 {{- end -}}
 
 {{- define "featbit.mongodb.port" -}}
-{{- if .Values.mongodb.enabled }}
+{{- if .Values.mongodb.enabled -}}
     {{- .Values.mongodb.service.ports.mongodb -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.mongodb.createSecret" -}}
+{{- if and (not .Values.mongodb.enabled) (not .Values.externalMongodb.existingSecret) -}}
+    {{- true -}}
 {{- end -}}
 {{- end -}}
 
@@ -153,19 +159,44 @@ Return the Mongodb host
 Return the Mongodb secret name
 */}}
 {{- define "featbit.mongodb.secretName" -}}
+{{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.existingSecret -}}
+{{- printf "%s" .Values.externalMongodb.existingSecret -}}
+{{- else -}}
 {{- printf "%s-conn-str" (include "featbit.mongodb.fullname" .) -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
 Return the Mongodb secret key
 */}}
 {{- define "featbit.mongodb.secretKey" -}}
+{{- if and (not .Values.mongodb.enabled) .Values.externalMongodb.existingSecret -}}
+{{- required "You need to provide existingSecretKey when an existingSecret is specified in external MongoDB" .Values.externalMongodb.existingSecretKey | printf "%s" -}}
+{{- else -}}
 {{- printf "mongodb-conn-str" -}}
 {{- end -}}
-
+{{- end -}}
 {{/*
 -----REDIS-----
 */}}
+
+{{- define "featbit.redis.cluster.enabled" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.cluster.enabled -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.redis.sentinel.enabled" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.sentinel.enabled -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.redis.standalone.enabled" -}}
+{{- if and (not (include "featbit.redis.cluster.enabled" .)) (not (include "featbit.redis.sentinel.enabled" .)) -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Return the Redis fullname
@@ -186,8 +217,11 @@ Return the Redis host
 {{- define "featbit.redis.host" -}}
 {{- if .Values.redis.enabled -}}
     {{- printf "%s-master" (include "featbit.redis.fullname" .) -}}
+{{- else if and (include "featbit.redis.standalone.enabled") (not .Values.externalRedis.hosts) -}}
+    {{- $parts:= split ":" (first .Values.externalRedis.hosts) -}}
+    {{- printf "%s" (first $parts) -}}
 {{- else -}}
-    {{- required "You need to provide a host when using external redis" (join "," .Values.externalRedis.hosts) | printf "%s" -}}
+    {{- required "You need to provide a host-pair when using external redis" (join "," .Values.externalRedis.hosts) | printf "%s" -}}
 {{- end -}}
 {{- end -}}
 
@@ -197,6 +231,13 @@ Return the Redis port
 {{- define "featbit.redis.port" -}}
 {{- if .Values.redis.enabled }}
     {{- .Values.redis.master.service.ports.redis -}}
+{{- else if and (include "featbit.redis.standalone.enabled") (not .Values.externalRedis.hosts) -}}
+    {{- $parts:= split ":" (first .Values.externalRedis.hosts) -}}
+    {{- if gt (len $parts) 1 -}}
+        {{- last $parts -}}
+    {{- else -}}
+        {{- 6379 -}}
+    {{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -239,18 +280,6 @@ Return the Redis secret password key
 {{- end -}}
 {{- end -}}
 
-{{- define "featbit.redis.cluster.enabled" -}}
-{{- if and (not .Values.redis.enabled) .Values.externalRedis.cluster.enabled -}}
-    {{- true -}}
-{{- end -}}
-{{- end -}}
-
-{{- define "featbit.redis.sentinel.enabled" -}}
-{{- if and (not .Values.redis.enabled) .Values.externalRedis.sentinel.enabled -}}
-    {{- true -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "featbit.redis.db" -}}
 {{- $db := "" -}}
 {{- if and (not .Values.externalRedis.cluster.enabled) (not .Values.redis.enabled) -}}
@@ -280,7 +309,7 @@ Return whether Redis uses password authentication or not
 
 
 {{- define "featbit.redis.config.0" -}}
-{{- if .Values.redis.enabled -}}
+{{- if (include "featbit.redis.standalone.enabled" .) -}}
 {{- printf "%s:%s" (include "featbit.redis.host" .) (include "featbit.redis.port" .) -}}
 {{- else -}}
 {{- printf "%s" (include "featbit.redis.host" .) -}}
@@ -298,44 +327,11 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 
 {{- define "featbit.redis.config.2" -}}
-{{- if (include "featbit.redis.auth.enabled" .) -}}
-{{- printf "%s,password=%s" (include "featbit.redis.config.1" .) (default .Values.redis.auth.password .Values.externalRedis.password) -}}
+{{- if and .Values.externalRedis.user (not .Values.redis.enabled) -}}
+{{- printf "%s,user=%s" (include "featbit.redis.config.1" .) .Values.externalRedis.user -}}
 {{- else -}}
 {{- printf "%s" (include "featbit.redis.config.1" .) -}}
 {{- end -}}
-{{- end -}}
-
-{{- define "featbit.redis.config.3" -}}
-{{- if and .Values.externalRedis.user (not .Values.redis.enabled) -}}
-{{- printf "%s,user=%s" (include "featbit.redis.config.2" .) .Values.externalRedis.user -}}
-{{- else -}}
-{{- printf "%s" (include "featbit.redis.config.2" .) -}}
-{{- end -}}
-{{- end -}}
-
-
-{{- define "featbit.redis.url" -}}
-{{- $protocol := "redis://" -}}
-{{- if and .Values.externalRedis.ssl (not .Values.redis.enabled) -}}
-{{- $protocol = "rediss://" -}}
-{{- end -}}
-{{- $user := "" -}}
-{{- if and .Values.externalRedis.user (not .Values.redis.enabled) -}}
-{{- $user = .Values.externalRedis.user -}}
-{{- end -}}
-{{- $pass := "" -}}
-{{- if (include "featbit.redis.auth.enabled" .) -}}
-{{- $pass = (default .Values.redis.auth.password .Values.externalRedis.password) -}}
-{{- end -}}
-{{- $usrpass := "" -}}
-{{- if or $pass $user -}}
-{{- $usrpass = (printf "%s:%s@" $user $pass) -}}
-{{- end -}}
-{{- printf "%s%s%s/%s" $protocol $usrpass (include "featbit.redis.config.0" .) (include "featbit.redis.db" .) -}}
-{{- end -}}
-
-{{- define "featbit.redis.conn.secretName" -}}
-{{- printf "%s-conn-str" (include "featbit.redis.fullname" .) -}}
 {{- end -}}
 
 {*

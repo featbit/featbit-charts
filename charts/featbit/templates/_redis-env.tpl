@@ -1,26 +1,30 @@
 {{/* Common Redis ENV variables */}}
 {{- define "redis-env" }}
 - name: Redis__ConnectionString
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "featbit.redis.conn.secretName" . }}
-      key: featbit-redis-config
-
-{{- if or (include "featbit.redis.sentinel.enabled" .) (include "featbit.redis.cluster.enabled" .) }}
-- name: REDIS_SSL
-  value: {{ (include "featbit.redis.ssl" .) | quote }}
+  value: {{ include "featbit.redis.config.2" . }}
 {{- if (include "featbit.redis.auth.enabled" .) }}
+{{- if .Values.externalRedis.user }}
+- name: REDIS_USER
+  value: {{ .Values.externalRedis.user }}
+{{- end }}
 - name: REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "featbit.redis.secretName" . }}
       key: {{ include "featbit.redis.secretPasswordKey" . }}
+- name: Redis__Password
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "featbit.redis.secretName" . }}
+      key: {{ include "featbit.redis.secretPasswordKey" . }}
 {{- end }}
-{{- if .Values.externalRedis.user }}
-- name: REDIS_USER
-  value: {{ .Values.externalRedis.user }}
-{{- end }}
-{{- end }}
+
+- name: REDIS_SSL
+  value: {{ (include "featbit.redis.ssl" .) | quote }}
+
+- name: REDIS_DB
+  value: {{ (include "featbit.redis.db" .) | quote }}
+
 {{- if (include "featbit.redis.cluster.enabled" .) }}
 - name: CACHE_TYPE
   value: RedisClusterCache
@@ -31,13 +35,10 @@
   value: RedisSentinelCache
 - name: REDIS_SENTINEL_HOST_PORT_PAIRS
   value: {{ include "featbit.redis.config.0" . }}
-- name: REDIS_SENTINEL_DB
-  value: {{ (include "featbit.redis.db" .) | quote }}
 {{- else }}
-- name: REDIS_URL
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "featbit.redis.conn.secretName" . }}
-      key: featbit-redis-url
+- name: REDIS_HOST
+  value: {{ include "featbit.redis.host" . }}
+- name: REDIS_PORT
+  value: {{ (include "featbit.redis.port" .) | quote }}
 {{- end }}
 {{- end }}
