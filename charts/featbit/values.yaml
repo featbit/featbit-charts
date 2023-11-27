@@ -38,7 +38,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.5.2
+    tag: 2.5.3
 
   imagePullSecrets: [ ]
 
@@ -116,7 +116,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.5.2
+    tag: 2.5.3
 
   imagePullSecrets: [ ]
 
@@ -194,7 +194,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.5.2
+    tag: 2.5.3
 
   imagePullSecrets: [ ]
 
@@ -273,7 +273,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 2.5.2
+    tag: 2.5.3
 
   imagePullSecrets: [ ]
 
@@ -441,6 +441,11 @@ mongodb:
 
 externalMongodb:
   fullConnectionString: ""
+  # -- Name of an existing Kubernetes secret object containing the full conn string
+  existingSecret: ""
+  # -- Name of the key pointing to the full conn string in your Kubernetes secret.
+  existingSecretKey: ""
+
 
 
 busybox:
