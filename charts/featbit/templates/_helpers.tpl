@@ -217,7 +217,7 @@ Return the Redis host
 {{- define "featbit.redis.host" -}}
 {{- if .Values.redis.enabled -}}
     {{- printf "%s-master" (include "featbit.redis.fullname" .) -}}
-{{- else if and (include "featbit.redis.standalone.enabled") (not .Values.externalRedis.hosts) -}}
+{{- else if and (include "featbit.redis.standalone.enabled" .) (.Values.externalRedis.hosts) -}}
     {{- $parts:= split ":" (first .Values.externalRedis.hosts) -}}
     {{- printf "%s" (first $parts) -}}
 {{- else -}}
@@ -231,7 +231,7 @@ Return the Redis port
 {{- define "featbit.redis.port" -}}
 {{- if .Values.redis.enabled }}
     {{- .Values.redis.master.service.ports.redis -}}
-{{- else if and (include "featbit.redis.standalone.enabled") (not .Values.externalRedis.hosts) -}}
+{{- else if and (include "featbit.redis.standalone.enabled" .) (.Values.externalRedis.hosts) -}}
     {{- $parts:= split ":" (first .Values.externalRedis.hosts) -}}
     {{- if gt (len $parts) 1 -}}
         {{- last $parts -}}
