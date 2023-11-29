@@ -142,7 +142,7 @@ Return the Mongodb host
 {{- end -}}
 
 {{- define "featbit.mongodb.createSecret" -}}
-{{- if and (not .Values.mongodb.enabled) (not .Values.externalMongodb.existingSecret) -}}
+{{- if (not .Values.externalMongodb.existingSecret) -}}
     {{- true -}}
 {{- end -}}
 {{- end -}}
@@ -150,7 +150,7 @@ Return the Mongodb host
 {{- define "featbit.mongodb.connStr" -}}
 {{- if .Values.mongodb.enabled -}}
     {{- printf "mongodb://%s:%s@%s:%s" .Values.mongodb.auth.rootUser .Values.mongodb.auth.rootPassword (include "featbit.mongodb.host" .) (include "featbit.mongodb.port" .) -}}
-{{- else -}}
+{{- else if (not .Values.externalMongodb.existingSecret) -}}
     {{- required "You need to provide a full connection string when using external mongodb" .Values.externalMongodb.fullConnectionString | printf "%s" -}}
 {{- end -}}
 {{- end -}}
@@ -459,7 +459,7 @@ Return the Redis host
 
 {{- define "featbit.clickhouse.port" -}}
 {{- if .Values.clickhouse.enabled -}}
-    {{- printf "%d" .Values.clickhouse.containerPorts.tcp -}}
+    {{- printf "%d" (.Values.clickhouse.containerPorts.tcp | int) -}}
 {{- else if .Values.isPro -}}
     {{- required "You need to provide a host port when using external Clickhouse" (.Values.externalClickhouse.tcpPort | int) | printf "%d" -}}
 {{- end -}}
@@ -467,7 +467,7 @@ Return the Redis host
 
 {{- define "featbit.clickhouse.httpPort" -}}
 {{- if .Values.clickhouse.enabled -}}
-    {{- printf "%d" .Values.clickhouse.containerPorts.http -}}
+    {{- printf "%d" (.Values.clickhouse.containerPorts.http | int) -}}
 {{- else if .Values.isPro -}}
     {{- required "You need to provide a host http port when using external Clickhouse" (.Values.externalClickhouse.httpPort | int) | printf "%d" -}}
 {{- end -}}
