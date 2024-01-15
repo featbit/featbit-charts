@@ -44,6 +44,8 @@ helm delete <your-realease-name>
 To get the more details of using helm to deploy or maintain your featbit release in the k8s, please refer to
 Helm's [documentation](https://helm.sh/docs)
 
+Note that if your device is based on the arm64 architecture, please use version 0.2.1 and above.
+
 ## Expose self-hosted deployment
 
 To use FeatBit, three services must be exposed from the internal network of Kubernetes:
