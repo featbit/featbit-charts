@@ -415,29 +415,21 @@ mongodb:
   nameOverride: "featbit-mongodb"
   fullnameOverride: ""
 
-  architecture: standalone
-  useStatefulSet: true
+  extraScripts: featbit-mongodb-init-scripts-configmap
 
-  initdbScriptsConfigMap: featbit-mongodb-init-scripts-configmap
-
-  image:
-    registry: docker.io
-
-  auth:
-    # -- Enable Mongodb password authentication.
-    enabled: true
-
-    # -- Mongodb root user.
-    rootUser: "admin"
-
-    # -- Mongodb root password.
-    #    NOTE: ignored unless `mongodb.auth.enabled` is `true` or if `mongodb.auth.existingSecret` is set.
-    #
+  settings:
+    ## The root username
+    rootUsername: "admin"
+    ## The root user password
     rootPassword: "password"
 
-  persistence:
-    enabled: true
-    size: 8Gi
+  userDatabase:
+    name: "featbit"
+    user: "featbit"
+    password: "featbit"
+
+  storage:
+    requestedSize: 8Gi
 
 externalMongodb:
   fullConnectionString: ""

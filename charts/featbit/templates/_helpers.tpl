@@ -137,7 +137,7 @@ Return the Mongodb host
 
 {{- define "featbit.mongodb.port" -}}
 {{- if .Values.mongodb.enabled -}}
-    {{- .Values.mongodb.service.ports.mongodb -}}
+    {{- .Values.mongodb.service.port -}}
 {{- end -}}
 {{- end -}}
 
@@ -149,7 +149,7 @@ Return the Mongodb host
 
 {{- define "featbit.mongodb.connStr" -}}
 {{- if .Values.mongodb.enabled -}}
-    {{- printf "mongodb://%s:%s@%s:%s" .Values.mongodb.auth.rootUser .Values.mongodb.auth.rootPassword (include "featbit.mongodb.host" .) (include "featbit.mongodb.port" .) -}}
+    {{- printf "mongodb://%s:%s@%s:%s" .Values.mongodb.settings.rootUsername .Values.mongodb.settings.rootPassword (include "featbit.mongodb.host" .) (include "featbit.mongodb.port" .) -}}
 {{- else if (not .Values.externalMongodb.existingSecret) -}}
     {{- required "You need to provide a full connection string when using external mongodb" .Values.externalMongodb.fullConnectionString | printf "%s" -}}
 {{- end -}}
