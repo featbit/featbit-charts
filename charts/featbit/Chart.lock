@@ -1,7 +1,7 @@
 dependencies:
 - name: mongodb
-  repository: https://charts.bitnami.com/bitnami
-  version: 13.0.0
+  repository: https://groundhog2k.github.io/helm-charts/
+  version: 0.6.2
 - name: redis
   repository: https://charts.bitnami.com/bitnami
   version: 17.0.1
@@ -11,5 +11,5 @@ dependencies:
 - name: clickhouse
   repository: https://charts.bitnami.com/bitnami
   version: 3.6.8
-digest: sha256:5216820a0c78b79a1baed297e1c0c0d76ad528fa22ff41d4fd44d109da552ce7
-generated: "2023-11-15T16:05:25.343071+01:00"
+digest: sha256:53402193e59d5eeadc35e1066896671269bea829e0e969ac372befcabf740620
+generated: "2024-01-15T22:12:19.83632+01:00"
