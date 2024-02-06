@@ -40,11 +40,11 @@
 {{- end }}
 {{- if (include "featbit.kafka.producer.auth.enabled" .) }}
 - name: KAFKA_SECURITY_PROTOCOL
-  value: {{ .Values.externalKafka.brokers.producer.protocol }}
+  value: {{ include "featbit.kafka.producer.protocol" . }}
 - name: KAFKA_SASL_MECHANISM
-  value: {{ .Values.externalKafka.brokers.producer.mechanism }}
+  value: {{ include "featbit.kafka.producer.mechanism" . }}
 - name: KAFKA_SASL_USER
-  value: {{ .Values.externalKafka.brokers.producer.user }}
+  value: {{ include "featbit.kafka.producer.user" . }}
 - name: KAFKA_SASL_PASSWORD
   valueFrom:
     secretKeyRef:
@@ -65,30 +65,30 @@
 
 {{- if (include "featbit.kafka.producer.auth.enabled" .) }}
 - name: Kafka__Producer__sasl.username
-  value: {{ .Values.externalKafka.brokers.producer.user }}
+  value: {{ include "featbit.kafka.producer.user" . }}
 - name: Kafka__Producer__sasl.password
   valueFrom:
     secretKeyRef:
       name: {{ include "featbit.kafka.producer.secretName" . }}
       key: {{ include "featbit.kafka.producer.secretPasswordKey" . }}
 - name: Kafka__Producer__sasl.mechanism
-  value: {{ .Values.externalKafka.brokers.producer.mechanism }}
+  value: {{ include "featbit.kafka.producer.mechanism" . }}
 - name: Kafka__Producer__security.protocol
-  value: {{ .Values.externalKafka.brokers.producer.protocol }}
+  value: {{ include "featbit.kafka.producer.protocol" . }}
 {{- end }}
 
 {{- if (include "featbit.kafka.consumer.auth.enabled" .) }}
 - name: Kafka__Consumer__sasl.username
-  value: {{ .Values.externalKafka.brokers.consumer.user }}
+  value: {{ include "featbit.kafka.consumer.user" . }}
 - name: Kafka__Consumer__sasl.password
   valueFrom:
     secretKeyRef:
       name: {{ include "featbit.kafka.consumer.secretName" . }}
       key: {{ include "featbit.kafka.consumer.secretPasswordKey" . }}
 - name: Kafka__Consumer__sasl.mechanism
-  value: {{ .Values.externalKafka.brokers.consumer.mechanism }}
+  value: {{ include "featbit.kafka.consumer.mechanism" . }}
 - name: Kafka__Consumer__security.protocol
-  value: {{ .Values.externalKafka.brokers.consumer.protocol }}
+  value: {{ include "featbit.kafka.consumer.protocol" . }}
 {{- end }}
 {{- end }}
 {{- end -}}

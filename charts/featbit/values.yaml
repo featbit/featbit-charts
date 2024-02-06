@@ -111,6 +111,8 @@ ui:
 api:
   replicaCount: 1
 
+  ssoEnabled: false
+
   image:
     registry: docker.io
     repository: featbit/featbit-api-server
@@ -468,14 +470,18 @@ kubectl:
 isPro: false
 
 kafka:
-  enabled: true
+  enabled: false
   nameOverride: featbit-kafka
-
-  replicaCount: 1
-  # -- The amount of data to retain in the log for each topic partition: 2Gi
-  logRetentionBytes: _2_000_000_000
-  # -- The minimum age of a log file to be eligible for deletion due to age: 24H
-  logRetentionHours: 24
+  extraConfig: "logRetentionHours=24;logRetentionBytes=_2_000_000_000"
+  listeners:
+    client:
+      protocol: "PLAINTEXT"
+    controller:
+      protocol: "PLAINTEXT"
+    interbroker:
+      protocol: "PLAINTEXT"
+    external:
+      protocol: "PLAINTEXT"
 
   provisioning:
     enabled: true
@@ -485,11 +491,10 @@ kafka:
       - name: "featbit-endusers"
       - name: "featbit-insights"
 
-  persistence:
-    # - Enable data persistence using PVC.
-    enabled: true
-    # -- PVC Storage Request for Kafka data volume.
-    size: 8Gi
+  controller:
+    persistence:
+      enabled: true
+      size: 8Gi
 
 externalKafka:
   # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
@@ -519,7 +524,7 @@ clickhouse:
   replicaCount: 1
   auth:
     username: "default"
-    password: "supersecret"
+    password: "featbit"
     existingSecret:	""
     existingSecretKey: ""
   keeper:

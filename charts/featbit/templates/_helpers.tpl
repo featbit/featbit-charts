@@ -368,7 +368,11 @@ Return whether Redis uses password authentication or not
 {{- end }}
 
 {{- define "featbit.kafka.producer.auth.enabled" -}}
-{{- if and (not .Values.kafka.enabled) (or .Values.externalKafka.brokers.producer.password .Values.externalKafka.brokers.producer.existingSecret) -}}
+{{- if .Values.kafka.enabled -}}
+{{- if ne "PLAINTEXT" (upper .Values.kafka.listeners.client.protocol) -}}
+    {{- true -}}
+{{- end -}}
+{{- else if and (not .Values.kafka.enabled) (or .Values.externalKafka.brokers.producer.password .Values.externalKafka.brokers.producer.existingSecret) -}}
     {{- true -}}
 {{- end -}}
 {{- end -}}
@@ -380,7 +384,13 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 
 {{- define "featbit.kafka.producer.secretName" -}}
-{{- if .Values.externalKafka.brokers.producer.existingSecret }}
+{{- if .Values.kafka.enabled -}}
+{{- if .Values.kafka.sasl.existingSecret -}}
+    {{- printf "%s" .Values.kafka.sasl.existingSecret -}}
+{{- else -}}
+    {{- printf "%s-user-passwords" (include "featbit.kafka.fullname" .) -}}
+{{- end -}}
+{{- else if .Values.externalKafka.brokers.producer.existingSecret }}
     {{- printf "%s" .Values.externalKafka.brokers.producer.existingSecret -}}
 {{- else -}}
     {{- printf "%s-external-producer" (include "featbit.kafka.fullname" .) -}}
@@ -388,7 +398,9 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 
 {{- define "featbit.kafka.producer.secretPasswordKey" -}}
-{{- if and (not .Values.kafka.enabled) .Values.externalKafka.brokers.producer.existingSecret -}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "client-passwords" -}}
+{{- else if and (not .Values.kafka.enabled) .Values.externalKafka.brokers.producer.existingSecret -}}
     {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in external kafka producer" .Values.externalKafka.brokers.producer.existingSecretPasswordKey | printf "%s" -}}
 {{- else -}}
     {{- printf "kafka-external-producer-password" -}}
@@ -396,7 +408,11 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 
 {{- define "featbit.kafka.consumer.auth.enabled" -}}
-{{- if and (not .Values.kafka.enabled) (or .Values.externalKafka.brokers.consumer.password .Values.externalKafka.brokers.consumer.existingSecret) -}}
+{{- if .Values.kafka.enabled -}}
+{{- if ne "PLAINTEXT" (upper .Values.kafka.listeners.client.protocol) -}}
+    {{- true -}}
+{{- end -}}
+{{- else if and (not .Values.kafka.enabled) (or .Values.externalKafka.brokers.consumer.password .Values.externalKafka.brokers.consumer.existingSecret) -}}
     {{- true -}}
 {{- end -}}
 {{- end -}}
@@ -408,7 +424,13 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 
 {{- define "featbit.kafka.consumer.secretName" -}}
-{{- if .Values.externalKafka.brokers.consumer.existingSecret }}
+{{- if .Values.kafka.enabled -}}
+{{- if .Values.kafka.sasl.existingSecret -}}
+    {{- printf "%s" .Values.kafka.sasl.existingSecret -}}
+{{- else -}}
+    {{- printf "%s-user-passwords" (include "featbit.kafka.fullname" .) -}}
+{{- end -}}
+{{- else if .Values.externalKafka.brokers.consumer.existingSecret }}
     {{- printf "%s" .Values.externalKafka.brokers.consumer.existingSecret -}}
 {{- else -}}
     {{- printf "%s-external-consumer" (include "featbit.kafka.fullname" .) -}}
@@ -416,10 +438,60 @@ Return whether Redis uses password authentication or not
 {{- end -}}
 
 {{- define "featbit.kafka.consumer.secretPasswordKey" -}}
-{{- if and (not .Values.kafka.enabled) .Values.externalKafka.brokers.consumer.existingSecret -}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "client-passwords" -}}
+{{- else if and (not .Values.kafka.enabled) .Values.externalKafka.brokers.consumer.existingSecret -}}
     {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in external kafka consumer" .Values.externalKafka.brokers.consumer.existingSecretPasswordKey | printf "%s" -}}
 {{- else -}}
     {{- printf "kafka-external-consumer-password" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.producer.user" -}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "%s" (first .Values.kafka.sasl.client.users) -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalKafka.brokers.producer.user -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.consumer.user" -}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "%s" (first .Values.kafka.sasl.client.users) -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalKafka.brokers.consumer.user -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.producer.protocol" -}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "%s" (.Values.kafka.listeners.client.protocol) -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalKafka.brokers.producer.protocol -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.consumer.protocol" -}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "%s" (.Values.kafka.listeners.client.protocol) -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalKafka.brokers.consumer.protocol -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.producer.mechanism" -}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "PLAIN" -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalKafka.brokers.producer.mechanism -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "featbit.kafka.consumer.mechanism" -}}
+{{- if .Values.kafka.enabled -}}
+    {{- printf "PLAIN" -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalKafka.brokers.consumer.mechanism -}}
 {{- end -}}
 {{- end -}}
 
