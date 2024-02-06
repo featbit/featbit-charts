@@ -69,6 +69,8 @@ spec:
           env:
             - name: OLAP__ServiceHost
               value: {{ printf "http://%s:%s" (include "das.svc.name" .) (include "das.svc.port" .) }}
+            - name: SSOEnabled
+              value: {{ .Values.api.ssoEnabled | quote }}
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
             {{- include "kafka-bootstrapservers" . | indent 12 -}}

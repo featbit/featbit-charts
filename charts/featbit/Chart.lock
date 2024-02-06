@@ -1,15 +1,15 @@
 dependencies:
 - name: mongodb
   repository: https://groundhog2k.github.io/helm-charts/
-  version: 0.6.2
+  version: 0.6.3
 - name: redis
   repository: https://charts.bitnami.com/bitnami
-  version: 17.0.1
+  version: 18.12.1
 - name: kafka
   repository: https://charts.bitnami.com/bitnami
-  version: 23.0.7
+  version: 26.8.5
 - name: clickhouse
   repository: https://charts.bitnami.com/bitnami
-  version: 3.6.8
-digest: sha256:53402193e59d5eeadc35e1066896671269bea829e0e969ac372befcabf740620
-generated: "2024-01-15T22:12:19.83632+01:00"
+  version: 4.5.4
+digest: sha256:083f6794b528c3fad94381b561346dd8468f1e7b0c3be3acde9d1502d6e179cf
+generated: "2024-02-06T10:46:01.488044+01:00"
