@@ -71,6 +71,8 @@ spec:
               value: "false"
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
+            {{- include "otel-common-env" . | indent 12 }}
+            {{- include "das-otel-env" . | indent 12 }}
             {{- include "das-pro-env" . | indent 12 }}
             {{- with .Values.das.env }}
             {{ toYaml . | nindent 12 }}
