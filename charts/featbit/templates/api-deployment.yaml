@@ -73,7 +73,9 @@ spec:
               value: {{ .Values.api.ssoEnabled | quote }}
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
-            {{- include "kafka-bootstrapservers" . | indent 12 -}}
+            {{- include "otel-common-env" . | indent 12 }}
+            {{- include "api-otel-env" . | indent 12 }}
+            {{- include "kafka-bootstrapservers" . | indent 12 }}
             {{- with .Values.api.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}

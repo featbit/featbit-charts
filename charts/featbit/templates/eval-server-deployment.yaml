@@ -69,7 +69,9 @@ spec:
           env:
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
-            {{- include "kafka-bootstrapservers" . | indent 12 -}}
+            {{- include "otel-common-env" . | indent 12 }}
+            {{- include "els-otel-env" . | indent 12 }}
+            {{- include "kafka-bootstrapservers" . | indent 12 }}
             {{- with .Values.els.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}
