@@ -3,6 +3,40 @@ entries:
   featbit:
   - apiVersion: v2
     appVersion: 4.1.1
+    created: "2024-11-11T17:40:32.178245451Z"
+    dependencies:
+    - condition: mongodb.enabled
+      name: mongodb
+      repository: https://groundhog2k.github.io/helm-charts/
+      version: 0.6.3
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 18.12.1
+    - condition: kafka.enabled
+      name: kafka
+      repository: https://charts.bitnami.com/bitnami
+      version: 26.8.5
+    - condition: clickhouse.enabled
+      name: clickhouse
+      repository: https://charts.bitnami.com/bitnami
+      version: 4.5.4
+    description: A Helm chart for FeatBit feature flags service
+    digest: dd695c480877ab920c5b1855c6f1dcb6961925915b529c5335ee69da18aff639
+    home: https://github.com/featbit/featbit
+    kubeVersion: '>=1.23-0'
+    maintainers:
+    - email: featbit.master@gmail.com
+      name: featbit.master
+    name: featbit
+    sources:
+    - https://github.com/featbit/charts
+    type: application
+    urls:
+    - https://github.com/featbit/featbit-charts/releases/download/featbit-0.4.6/featbit-0.4.6.tgz
+    version: 0.4.6
+  - apiVersion: v2
+    appVersion: 4.1.1
     created: "2024-11-11T17:14:54.767136026Z"
     dependencies:
     - condition: mongodb.enabled
@@ -563,4 +597,4 @@ entries:
     urls:
     - https://github.com/featbit/featbit-charts/releases/download/featbit-0.0.1/featbit-0.0.1.tgz
     version: 0.0.1
-generated: "2024-11-11T17:14:54.76724563Z"
+generated: "2024-11-11T17:40:32.1783629Z"
