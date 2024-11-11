@@ -9,8 +9,8 @@ metadata:
 spec:
   containers:
     - name: wget
-      image: {{ .Values.busybox.image }}
-      imagePullPolicy: {{ .Values.busybox.pullPolicy }}
+      image: {{ include "featbit.init-container.busybox.image" . }}
+      imagePullPolicy: {{ .Values.busybox.image.pullPolicy }}
       command: ['wget']
       args: ['{{ include "das.svc.name" . }}:{{ include "das.svc.port" .}}/api']
   restartPolicy: Never
