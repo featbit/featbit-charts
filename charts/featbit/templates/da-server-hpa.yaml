@@ -15,11 +15,23 @@ spec:
     name: {{ include "featbit.fullname" . }}-das
   minReplicas: {{ .Values.das.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.das.autoscaling.maxReplicas }}
+  behavior:
+    {{- with .Values.das.autoscaling.behavior }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   metrics:
     {{- with .Values.das.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ . }}
+    {{- end }}
+    {{- with .Values.das.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
         target:
           type: Utilization
           averageUtilization: {{ . }}
