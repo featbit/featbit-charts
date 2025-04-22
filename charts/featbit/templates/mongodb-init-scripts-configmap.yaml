@@ -75,7 +75,11 @@ data:
             key: "playground",
             initialized: false,
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
+            defaultPermissions: {
+                policyIds: [developerPolicyId],
+                groupIds: []
+            }
         }
     )
     print('collection seeded: Organizations')
@@ -132,6 +136,13 @@ data:
                     resourceType: "organization",
                     effect: "allow",
                     actions: ["UpdateOrgName"],
+                    resources: ["organization/*"]
+                },
+                {
+                    _id: getUUIDString(),
+                    resourceType: "organization",
+                    effect: "allow",
+                    actions: ["UpdateOrgDefaultUserPermissions"],
                     resources: ["organization/*"]
                 },
                 {
@@ -267,4 +278,4 @@ data:
     db.Webhooks.createIndex({ createdAt: 1 });
     db.Webhooks.createIndex({ startedAt: 1 });
     print('indexes added')
-{{- end -}}
+    {{- end -}}
