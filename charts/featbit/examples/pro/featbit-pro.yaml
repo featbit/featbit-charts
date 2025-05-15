@@ -1,63 +1,87 @@
-apiExternalUrl: ""
-evaluationServerExternalUrl: ""
-autoDiscovery: true
-isPro: true
+# example of featbit pro configuration in exposing services via load balancer with static IPs
+# It is recommended to use ingress or ingress-tls to expose services in production.
+# ingress-tls depends on your domain cert secret or your cloud provider's cert manager.
+# we also recommend using hpa in production. @see standard/featbit-hpa-deployment.yaml
+
+apiExternalUrl: "http://{API Service Public IP Address with port if not 80, ex. 4.194.69.254}"
+evaluationServerExternalUrl: "http://{Evaluation Service Public IP Address with port if not 80, ex. 4.193.158.12}"
+
+architecture:
+  tier: "professional"
+  database: "postgresql"
 
 ui:
   service:
     type: LoadBalancer
     port: 80
+    staticIP: {UI Portal Public IP Address, ex. 4.194.13.155}
 
 
 api:
   service:
     type: LoadBalancer
     port: 80
+    staticIP: {API Service Public IP Address, ex. 4.194.69.254}
 
 els:
   service:
     type: LoadBalancer
     port: 80
+    staticIP: {Evaluation Service Public IP Address, ex. 4.193.158.12}
 
-mongodb:
+# it's recommended to use external postgresql, redis, kafka and clickhouse in production so here deactivate the internal postgresql and redis
+postgresql:
   enabled: false
 redis:
   enabled: false
-kafka:
-  enabled: false
-clickhouse:
-  enabled: false
 
-externalMongodb:
-  fullConnectionString: {Mongodb connection url, ex. mongodb://admin:password@infra-featbit-mongodb:27017}
 
 externalRedis:
-  # -- Redis is considered as standalone or replication by default.
-  # -- if your external redis is run in sentinel or cluster mode, set sentinel.enabled or cluster.enabled true
-  sentinel:
-    enabled: false
-    # -- External Redis master set name
-    masterSet: "mymaster"
-  cluster:
-    enabled: false
-  # -- External Redis Servers in host:port. Put sentinel nodes here in sentinel mode
-  hosts: [ ]
-  # - infra-featbit-redis:6379
-  # -- External Redis database index, ignore in cluster mode
+  # set your external redis hosts
+  hosts: []
+  # - infra-featbit-redis-master:6379
+  # set your external redis db index
   db: 0
-  # -- User for the external Redis server (for use with ACLs on redis 6 and above)
+  # if you set redis ACL, put user here
   user: ""
-  ssl: false
-  # set your password if Redis server auth is enabled
-  password: ""
+  # if you set redis auth, create a secret and put the secret name and key here
+  existingSecret: ""
+  existingSecretPasswordKey: ""
+
+
+externalPostgresql:
+  # set your external postgresql hosts
+  hosts: [ ]
+  # - infra-featbit-postgresql:5432
+  # set your external postgresql db name
+  database: "featbit"
+  # set your external postgresql user name
+  username: "featbit"
+  # create a secret and put the secret name and key here
+  existingSecret: "external-postgres-pass"
+  existingSecretPasswordKey: "password"
 
 externalKafka:
-  # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
+  # - External Kafka brokers. Multiple brokers can be provided as array/list.
   brokers:
-    producers: [ ]
-    # - infra-featbit-kafka:9092
-    consumers: [ ]
-    # - infra-featbit-kafka:9092
+    producers:
+      hosts: []
+      # - infra-featbit-kafka:9092
+      # if you enable kafka auth, set auth config as below
+      user: ""
+      existingSecret: ""
+      existingSecretPasswordKey: ""
+      mechanism: "PLAIN"
+      protocol: "PLAINTEXT"
+    consumers:
+        hosts: []
+        # - infra-featbit-kafka:9092
+        # if you enable kafka auth, set auth config as below
+        user: ""
+        existingSecret: ""
+        existingSecretPasswordKey: ""
+        mechanism: "PLAIN"
+        protocol: "PLAINTEXT"
 
 externalClickhouse:
   # -- Host of the external cluster.

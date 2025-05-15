@@ -56,7 +56,7 @@ To use FeatBit, three services must be exposed from the internal network of Kube
 
 If you cannot access the services using localhost and their default ports, `apiExternalUrl` and `evaluationServerExternalUrl` **_SHOULD_** be reset in the [values.yaml or your own values file with -f flag](https://helm.sh/docs/chart_template_guide/values_files/)
 
-**All the examples here are tested on Minikube. If you need to deploy them to a public cloud or your own private cloud, please contact us.**
+**All the examples here are tested on Minikube base on the embedding postgresql and redis If you need to deploy them to a public cloud or your own private cloud in the production, please contact us.**
 
 ### Ingress
 
