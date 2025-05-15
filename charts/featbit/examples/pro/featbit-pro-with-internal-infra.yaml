@@ -1,8 +1,10 @@
-apiExternalUrl: ""
+# example of featbit pro configuration in exposing services via load balancer(auto discovery ips)
 evaluationServerExternalUrl: ""
 autoDiscovery: true
 
-isPro: true
+architecture:
+  tier: "professional"
+  database: "postgresql"
 
 ui:
   service:
@@ -20,10 +22,6 @@ els:
     type: LoadBalancer
     port: 80
 
-mongodb:
-  enabled: true
-redis:
-  enabled: true
 kafka:
   enabled: true
 clickhouse:

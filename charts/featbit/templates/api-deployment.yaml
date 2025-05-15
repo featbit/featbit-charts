@@ -71,6 +71,7 @@ spec:
               value: {{ printf "http://%s:%s" (include "das.svc.name" .) (include "das.svc.port" .) }}
             - name: SSOEnabled
               value: {{ .Values.api.ssoEnabled | quote }}
+            {{- include "postgresql-env" . | indent 12 }}
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
             {{- include "otel-common-env" . | indent 12 }}

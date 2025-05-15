@@ -69,6 +69,7 @@ spec:
           env:
             - name: CHECK_DB_LIVNESS
               value: "false"
+            {{- include "postgresql-env" . | indent 12 }}
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
             {{- include "otel-common-env" . | indent 12 }}

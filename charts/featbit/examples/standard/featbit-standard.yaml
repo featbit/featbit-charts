@@ -1,38 +1,59 @@
-apiExternalUrl: ""
-evaluationServerExternalUrl: ""
-autoDiscovery: true
+# It is recommended to use ingress or ingress-tls to expose services in production.
+# ingress-tls depends on your domain cert secret or your cloud provider's cert manager.
+# we also recommend using hpa in production. @see featbit-hpa-deployment.yaml
+apiExternalUrl: "http://{API host name, ex: api.featbit.com}"
+evaluationServerExternalUrl: "http://{Evaluation Server host name, ex: api.featbit.com}"
+
+# this part is optional for standard deployment
+architecture:
+  tier: "standalone"
+  database: "postgres"
 
 ui:
-  service:
-    type: LoadBalancer
-    port: 80
+  ingress:
+    enabled: true
+    host: {UI host name, ex: ui.featbit.com}
 
 
 api:
-  service:
-    type: LoadBalancer
-    port: 80
+  ingress:
+    enabled: true
+    host: {API host name, ex: api.featbit.com}
+
 
 els:
-  service:
-    type: LoadBalancer
-    port: 80
+  ingress:
+    enabled: true
+    host: {Evaluation Server host name, ex: els.featbit.com}
 
-mongodb:
+
+# it's recommended to use external redis and postgresql in production so here deactivate the internal postgresql and redis
+postgresql:
   enabled: false
 redis:
   enabled: false
 
-externalMongodb:
-  fullConnectionString: {Mongodb connection url, ex. mongodb://admin:password@infra-featbit-mongodb:27017}
-
 externalRedis:
-  # set false if external cluster is not in cluster mode
-  cluster:
-    enabled: true
-  # multiple redis nodes can be provided as array/list. you should put at least one redis node here
+  # set your external redis hosts
+  hosts: []
+  # - infra-featbit-redis-master:6379
+  # set your external redis db index
+  db: 0
+  # if you set redis ACL, put user here
+  user: ""
+  # if you set redis auth, create a secret and put the secret name and key here
+  existingSecret: ""
+  existingSecretPasswordKey: ""
+
+
+externalPostgresql:
+  # set your external postgresql hosts
   hosts: [ ]
-  #    - infra-featbit-redis-cluster:6379
-  ssl: false
-  # set your password if redis auth is enabled
-  password: ""
+  # - infra-featbit-postgresql:5432
+  # set your external postgresql db name
+  database: "featbit"
+  # set your external postgresql user name
+  username: "featbit"
+  # create a secret and put the secret name and key here
+  existingSecret: "external-postgres-pass"
+  existingSecretPasswordKey: "password"

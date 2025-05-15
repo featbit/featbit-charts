@@ -8,18 +8,21 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  imagePullSecrets: [ ]
+  imagePullSecrets: []
   ingressClassName: "nginx"
-
 
 nameOverride: ""
 fullnameOverride: ""
+
+architecture:
+  tier: "standalone"
+  database: "postgres"
 
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Annotations to add to the service account
-  annotations: { }
+  annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
@@ -38,17 +41,17 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 4.2.2
+    tag: 5.0.2
 
-  imagePullSecrets: [ ]
+  imagePullSecrets: []
 
-  podAnnotations: { }
-  podLabels: { }
+  podAnnotations: {}
+  podLabels: {}
 
-  podSecurityContext: { }
+  podSecurityContext: {}
   # fsGroup: 2000
 
-  securityContext: { }
+  securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -60,12 +63,12 @@ ui:
     type: ClusterIP
     port: 8081
     nodePort: 30025
-    annotations: { }
+    annotations: {}
     staticIP:
 
   ingress:
     enabled: false
-    annotations: { }
+    annotations: {}
     tls:
       enabled: false
       secretName: ""
@@ -80,7 +83,7 @@ ui:
     maxUnavailable: 25%
 
   resources:
-    requests: { }
+    requests: {}
     # cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -113,11 +116,11 @@ ui:
             value: 100
             periodSeconds: 10
 
-  nodeSelector: { }
+  nodeSelector: {}
 
-  tolerations: [ ]
+  tolerations: []
 
-  affinity: { }
+  affinity: {}
 
   # -- Additional env variables to inject into the da server deployment.
   env: []
@@ -132,17 +135,17 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 4.2.2
+    tag: 5.0.2
 
-  imagePullSecrets: [ ]
+  imagePullSecrets: []
 
-  podAnnotations: { }
-  podLabels: { }
+  podAnnotations: {}
+  podLabels: {}
 
-  podSecurityContext: { }
+  podSecurityContext: {}
   # fsGroup: 2000
 
-  securityContext: { }
+  securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -154,12 +157,12 @@ api:
     type: ClusterIP
     port: 5000
     nodePort: 30050
-    annotations: { }
+    annotations: {}
     staticIP:
 
   ingress:
     enabled: false
-    annotations: { }
+    annotations: {}
     tls:
       enabled: false
       secretName: ""
@@ -174,7 +177,7 @@ api:
     maxUnavailable: 25%
 
   resources:
-    requests: { }
+    requests: {}
     # cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -207,11 +210,11 @@ api:
             value: 100
             periodSeconds: 10
 
-  nodeSelector: { }
+  nodeSelector: {}
 
-  tolerations: [ ]
+  tolerations: []
 
-  affinity: { }
+  affinity: {}
 
   # -- Additional env variables to inject into the da server deployment.
   env: []
@@ -224,17 +227,17 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 4.2.2
+    tag: 5.0.2
 
-  imagePullSecrets: [ ]
+  imagePullSecrets: []
 
-  podAnnotations: { }
-  podLabels: { }
+  podAnnotations: {}
+  podLabels: {}
 
-  podSecurityContext: { }
+  podSecurityContext: {}
   # fsGroup: 2000
 
-  securityContext: { }
+  securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -246,12 +249,12 @@ els:
     type: ClusterIP
     port: 5100
     nodePort: 30100
-    annotations: { }
+    annotations: {}
     staticIP:
 
   ingress:
     enabled: false
-    annotations: { }
+    annotations: {}
     tls:
       enabled: false
       secretName: ""
@@ -266,7 +269,7 @@ els:
     maxUnavailable: 25%
 
   resources:
-    requests: { }
+    requests: {}
     #  cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -299,15 +302,14 @@ els:
             value: 100
             periodSeconds: 10
 
-  nodeSelector: { }
+  nodeSelector: {}
 
-  tolerations: [ ]
+  tolerations: []
 
-  affinity: { }
+  affinity: {}
 
   # -- Additional env variables to inject into the da server deployment.
   env: []
-
 
 das:
   replicaCount: 1
@@ -317,17 +319,18 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 4.2.2
+    tag: 5.0.2
 
-  imagePullSecrets: [ ]
+  imagePullSecrets: []
 
-  podAnnotations: { }
-  podLabels: { }
+  podAnnotations: {}
+  podLabels: {}
 
-  podSecurityContext: { }
+  podSecurityContext: {}
   # fsGroup: 2000
 
-  securityContext: { }
+  securityContext:
+    {}
     # capabilities:
   #   drop:
   #   - ALL
@@ -339,7 +342,7 @@ das:
     type: ClusterIP
     port: 8200
     nodePort:
-    annotations: { }
+    annotations: {}
     staticIP:
 
   rollout:
@@ -349,7 +352,7 @@ das:
     maxUnavailable: 25%
 
   resources:
-    requests: { }
+    requests: {}
     #  cpu: 250m
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -382,14 +385,50 @@ das:
             value: 100
             periodSeconds: 10
 
-  nodeSelector: { }
+  nodeSelector: {}
 
-  tolerations: [ ]
+  tolerations: []
 
-  affinity: { }
+  affinity: {}
 
   # -- Additional env variables to inject into the da server deployment.
   env: []
+
+
+###
+###
+### ---- Postgresql ----
+###
+###
+postgresql:
+  enabled: true
+  nameOverride: featbit-postgresql
+  architecture: standalone
+  auth:
+    username: featbit
+    password: featbit
+    database: featbit
+    existingSecret: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+    initdb:
+      scriptsConfigMap: featbit-postgresql-init-scripts-configmap
+
+externalPostgresql:
+  # -- External PostgreSQL host:port to use.
+  hosts: []
+  # -- External PostgreSQL service database name.
+  database: "featbit"
+  # -- External PostgreSQL service user.
+  username: ""
+  # -- External PostgreSQL service password. Either this or `externalPostgresql.existingSecret` must be set.
+  password: ""
+  # -- Name of an existing Kubernetes secret object containing the PostgreSQL password
+  existingSecret: ""
+  # -- Name of the key pointing to the password in your Kubernetes secret
+  existingSecretPasswordKey: ""
 
 
 ###
@@ -447,7 +486,7 @@ externalRedis:
   cluster:
     enabled: false
   # -- External Redis host:port to use.
-  hosts: [ ]
+  hosts: []
   # -- External Redis database index, ignore in cluster mode
   db: 0
   # -- User for the external Redis server (for use with ACLs on redis 6 and above)
@@ -468,7 +507,7 @@ externalRedis:
 ###
 
 mongodb:
-  enabled: true
+  enabled: false
 
   nameOverride: "featbit-mongodb"
   fullnameOverride: ""
@@ -496,15 +535,13 @@ externalMongodb:
   # -- Name of the key pointing to the full conn string in your Kubernetes secret.
   existingSecretKey: ""
 
-
-
 busybox:
   image:
     registry: docker.io
     repository: busybox
     tag: 1.34
     pullPolicy: IfNotPresent
-  imagePullSecrets: [ ]
+  imagePullSecrets: []
 
 kubectl:
   image:
@@ -512,18 +549,13 @@ kubectl:
     repository: bitnami/kubectl
     tag: 1.26.6-debian-11-r31
     pullPolicy: IfNotPresent
-  imagePullSecrets: [ ]
-
-
+  imagePullSecrets: []
 
 ###
 ###
 ### ---- Variables Compoenents for FeatBit Pro----
 ###
 ###
-
-
-isPro: false
 
 kafka:
   enabled: false
@@ -556,7 +588,7 @@ externalKafka:
   # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
   brokers:
     producer:
-      hosts: [ ]
+      hosts: []
       user: ""
       password: ""
       existingSecret: ""
@@ -565,7 +597,7 @@ externalKafka:
       protocol: "PLAINTEXT"
 
     consumer:
-      hosts: [ ]
+      hosts: []
       user: ""
       password: ""
       existingSecret: ""
@@ -581,7 +613,7 @@ clickhouse:
   auth:
     username: "default"
     password: "featbit"
-    existingSecret:	""
+    existingSecret: ""
     existingSecretKey: ""
   keeper:
     enabled: true
@@ -736,7 +768,7 @@ externalClickhouse:
   # -- HTTP(s) port of the external clickhouse. This is required when clickhouse.enabled is false
   httpPort: 8123
   # -- if the external clickhouse has more than one shard, set a list of clickhouse extra shards in host:tcp.
-  altHosts: [ ]
+  altHosts: []
   # -- Name of the external cluster to run DDL queries on. This is required when clickhouse.enabled is false
   cluster: ""
   # -- Database name for the external cluster

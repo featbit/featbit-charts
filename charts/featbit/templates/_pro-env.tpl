@@ -1,13 +1,4 @@
-{{- define "das-pro-env" -}}
-{{- if .Values.isPro }}
-- name: IS_PRO
-  value: "true"
-- name: KAFKA_HOSTS
-  value: {{ include "featbit.kafka.producer.brokers" . }}
-- name: CLICKHOUSE_KAFKA_HOSTS
-  value: {{ include "featbit.kafka.consumer.brokers" . }}
-- name: CLICKHOUSE_HOST
-  value: {{ include "featbit.clickhouse.host" . }}
+{{- define "clickhouse-usr-pass" -}}
 - name: CLICKHOUSE_USER
   value: {{ include "featbit.clickhouse.user" . }}
 - name: CLICKHOUSE_PASSWORD
@@ -15,6 +6,22 @@
     secretKeyRef:
       name: {{ include "featbit.clickhouse.secretName" . }}
       key: {{ include "featbit.clickhouse.secretPasswordKey" . }}
+{{- end -}}
+
+
+{{- define "das-pro-env" -}}
+{{- if (include "featbit.isPro" .) }}
+- name: DB_PROVIDER
+  value: ClickHouse
+- name: KAFKA_HOSTS
+  value: {{ include "featbit.kafka.producer.brokers" . }}
+- name: CLICKHOUSE_KAFKA_HOSTS
+  value: {{ include "featbit.kafka.consumer.brokers" . }}
+- name: CLICKHOUSE_HOST
+  value: {{ include "featbit.clickhouse.host" . }}
+
+{{ include "clickhouse-usr-pass" . }}
+
 - name: CLICKHOUSE_DATABASE
   value: {{ include "featbit.clickhouse.database" . }}
 - name: CLICKHOUSE_PORT
@@ -55,9 +62,9 @@
 {{- end -}}
 
 {{- define "kafka-bootstrapservers" -}}
-{{- if .Values.isPro }}
-- name: IS_PRO
-  value: "true"
+{{- if (include "featbit.isPro" .) }}
+- name: MqProvider
+  value: Kafka
 - name: Kafka__Producer__bootstrap.servers
   value: {{ include "featbit.kafka.producer.brokers" . }}
 - name: Kafka__Consumer__bootstrap.servers
@@ -90,17 +97,5 @@
 - name: Kafka__Consumer__security.protocol
   value: {{ include "featbit.kafka.consumer.protocol" . }}
 {{- end }}
-{{- end }}
-{{- end -}}
-
-{{- define "clickhouse-usr-pass" -}}
-{{- if .Values.isPro }}
-- name: CLICKHOUSE_USER
-  value: {{ include "featbit.clickhouse.user" . }}
-- name: CLICKHOUSE_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "featbit.clickhouse.secretName" . }}
-      key: {{ include "featbit.clickhouse.secretPasswordKey" . }}
 {{- end }}
 {{- end -}}
