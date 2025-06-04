@@ -6,7 +6,7 @@ evaluationServerExternalUrl: "http://{Evaluation Server host name, ex: api.featb
 
 # this part is optional for standard deployment
 architecture:
-  tier: "standalone"
+  tier: "standard"
   database: "postgres"
 
 ui:
@@ -50,10 +50,10 @@ externalPostgresql:
   # set your external postgresql hosts
   hosts: [ ]
   # - infra-featbit-postgresql:5432
-  # set your external postgresql db name
-  database: "featbit"
+  # set your external postgresql db name that initialized with featbit schema
+  database: ""
   # set your external postgresql user name
-  username: "featbit"
+  username: ""
   # create a secret and put the secret name and key here
-  existingSecret: "external-postgres-pass"
-  existingSecretPasswordKey: "password"
+  existingSecret: ""
+  existingSecretPasswordKey: ""
