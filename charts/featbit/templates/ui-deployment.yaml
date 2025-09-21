@@ -41,11 +41,13 @@ spec:
       securityContext:
         {{- toYaml .Values.ui.podSecurityContext | nindent 8 }}
       initContainers:
-        {{- include "initContainers-wait-for-other-components" . | indent 8 }}
+        {{- include "initContainers-wait-for-other-components" (dict "context" . "component" "ui") | indent 8 }}
         {{- if and .Values.autoDiscovery (or (eq .Values.api.service.type "LoadBalancer") (eq .Values.els.service.type "LoadBalancer")) }}
         - name: auto-discovery
           image: {{ include "featbit.init-container.kubectl.image" . }}
           imagePullPolicy: {{ .Values.kubectl.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.ui.securityContext | nindent 12 }}
           command:
             - /scripts/auto-discovery.sh
           env:
