@@ -9,8 +9,9 @@ metadata:
   annotations:
     {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
 data:
+  {{- $db := (include "featbit.postgresql.db" .) }}
   01_create_tables.sql: |-
-    \connect featbit
+    \connect {{ $db }}
 
     \echo 'tables will be created'
 
@@ -533,7 +534,7 @@ data:
     \echo 'tables created'
 
   02_seed_data.sql: |-
-    \connect featbit
+    \connect {{ $db }}
 
     \echo 'data will be inserted'
     -- seed started
@@ -694,5 +695,51 @@ data:
     END $$;
 
     \echo 'data inserted'
+  03_update_admin_policies_workspace_perm.sql: |-
+    \connect {{ $db }}
 
-{{- end -}}
+    UPDATE policies
+    SET statements = statements || jsonb_build_object(
+      'id', gen_random_uuid(),
+      'resourceType', 'workspace',
+      'effect', 'allow',
+      'actions', '["UpdateWorkspaceGeneralSettings", "UpdateWorkspaceLicense", "UpdateWorkspaceSSOSettings"]'::jsonb,
+      'resources', '["workspace/*"]'::jsonb
+    )
+    WHERE id = '3e961f0f-6fd4-4cf4-910f-52d356f8cc08'
+      AND NOT EXISTS (
+        SELECT 1 FROM jsonb_array_elements(statements) AS stmt
+        WHERE stmt ->> 'resourceType' = 'workspace'
+    );
+  04_update_admin_policies_new_CreateOrg_perm.sql: |-
+    \connect {{ $db }}
+
+    UPDATE policies
+    SET statements = (
+      (
+        SELECT jsonb_agg(stmt)
+        FROM jsonb_array_elements(statements) AS stmt
+        WHERE stmt ->> 'resourceType' != 'organization'
+      ) || jsonb_build_object(
+        'id', gen_random_uuid(),
+        'resourceType', 'organization',
+        'effect', 'allow',
+        'actions', '["UpdateOrgName", "UpdateOrgDefaultUserPermissions", "CreateOrg"]'::jsonb,
+        'resources', '["organization/*"]'::jsonb
+        )
+      )
+      WHERE id = '3e961f0f-6fd4-4cf4-910f-52d356f8cc08';
+  05_update_proxy_policies_auto_agents.sql: |-
+    \connect {{ $db }}
+
+    alter table relay_proxies
+        add column auto_agents JSONB default '[]'::jsonb;
+
+    update relay_proxies outer_rp
+    set scopes = (select coalesce(jsonb_agg(envId), '[]'::jsonb)
+                  from relay_proxies inner_rp,
+                       jsonb_array_elements(scopes) as scope,
+                       jsonb_array_elements_text(scope -> 'envIds') as envId
+                  where inner_rp.id = outer_rp.id)
+    where is_all_envs = false;
+    {{- end -}}

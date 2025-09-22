@@ -71,3 +71,13 @@ Return the Mongodb secret key
 {{- printf "mongodb-conn-str" -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "featbit.mongodb.db" -}}
+{{- $db := "featbit" -}}
+{{- if and .Values.mongodb.enabled .Values.mongodb.userDatabase.name -}}
+    {{- $db = .Values.mongodb.userDatabase.name -}}
+{{- else if .Values.externalMongodb.database -}}
+    {{- $db = .Values.externalMongodb.database -}}
+{{- end -}}
+{{- printf "%s" $db -}}
+{{- end -}}
