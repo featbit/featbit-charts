@@ -41,7 +41,7 @@ spec:
       securityContext:
         {{- toYaml .Values.das.podSecurityContext | nindent 8 }}
       initContainers:
-        {{- include "initContainers-wait-for-infrastructure-dependencies" . | indent 8 }}
+        {{- include "initContainers-wait-for-infrastructure-dependencies" (dict "context" . "component" "das") | indent 8 }}
       containers:
         - name: {{ .Chart.Name }}-das
           securityContext:

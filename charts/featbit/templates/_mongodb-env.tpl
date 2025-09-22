@@ -7,7 +7,7 @@
       key: {{ include "featbit.mongodb.secretKey" . }}
 
 - name: MongoDb__Database
-  value: featbit
+  value: {{ include "featbit.mongodb.db" . }}
 
 - name: DbProvider
   value: MongoDb
@@ -20,7 +20,7 @@
       key: {{ include "featbit.mongodb.secretKey" . }}
 
 - name: MONGO_INITDB_DATABASE
-  value: featbit
+  value: {{ include "featbit.mongodb.db" . }}
 
 - name: DB_PROVIDER
   value: MongoDb

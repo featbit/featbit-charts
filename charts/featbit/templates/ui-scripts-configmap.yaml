@@ -27,7 +27,7 @@ data:
   {{- if and .Values.autoDiscovery (or (eq .Values.api.service.type "LoadBalancer") (eq .Values.els.service.type "LoadBalancer")) }}
   {{- $apiSVCName := (include "api.svc.name" .) }}
   {{- $elsSVCName := (include "els.svc.name" .) }}
-    {{- $releaseNamespace := .Release.Namespace }}
+  {{- $releaseNamespace := .Release.Namespace }}
   auto-discovery.sh: |-
     #!/bin/bash
 
