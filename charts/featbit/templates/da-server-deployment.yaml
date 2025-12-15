@@ -42,6 +42,11 @@ spec:
         {{- toYaml .Values.das.podSecurityContext | nindent 8 }}
       initContainers:
         {{- include "initContainers-wait-for-infrastructure-dependencies" (dict "context" . "component" "das") | indent 8 }}
+        {{- if .Values.das.extraInitContainers }}
+        {{- with .Values.das.extraInitContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}-das
           securityContext:
@@ -78,6 +83,11 @@ spec:
             {{- with .Values.das.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}
+        {{- if .Values.das.extraContainers }}
+        {{- with .Values.das.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+        {{- end }}
       {{- with .Values.das.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
