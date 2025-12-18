@@ -8,3 +8,5 @@ venv/
 .tool-versions
 .envrc
 .direnv
+
+.copilot-commit-message-instructions.md

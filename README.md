@@ -7,6 +7,14 @@ This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) insta
 * Kubernetes >=1.23
 * Helm >= 3.7.0
 
+## ⚠️ Dependencies Notice
+
+This chart uses Bitnami Helm charts (PostgreSQL, Redis, Kafka, ClickHouse) which **discontinued free updates in August 2025**. Current pinned versions remain functional but reference legacy container images with no security updates.
+
+**For production deployments**, use external managed databases via `externalPostgresql`, `externalRedis`, `externalMongodb`, and `externalKafka` options in `values.yaml`.
+
+We may migrate to community-maintained operators ([CloudNativePG](https://cloudnative-pg.io/), [Strimzi](https://strimzi.io/), [Redis Operator](https://github.com/OT-CONTAINER-KIT/redis-operator)) in the future. **Community suggestions welcome via issues**.
+
 ## Usage 
 
 [Helm](https://helm.sh) must be installed to use the charts.  Please refer to
