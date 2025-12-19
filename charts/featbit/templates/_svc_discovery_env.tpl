@@ -58,6 +58,18 @@
 {{ include "ui.svc.name" . }}.{{ .Release.Namespace }}.svc.cluster.local
 {{- end -}}
 
+{{- define "ui.svc.basehref" -}}
+{{- .Values.uiBaseHref -}}
+{{- end -}}
+
+{{- define "ui.svc.displayapiurl" -}}
+{{- .Values.uiDisplayApiUrl -}}
+{{- end -}}
+
+{{- define "ui.svc.displayevaluationurl" -}}
+{{- .Values.uiDisplayEvaluationUrl -}}
+{{- end -}}
+
 {{- define "featbit.api.external.url" -}}
 {{- if and .Values.autoDiscovery (eq .Values.api.service.type "LoadBalancer") -}}
 {{- .Values.apiExternalUrl -}}
@@ -76,8 +88,4 @@
 
 {{- define "featbit.demo.external.url" -}}
 {{- default "https://featbit-samples.vercel.app" .Values.demoExternalUrl -}}
-{{- end -}}
-
-{{- define "featbit.base.href" -}}
-{{- default "/" .Values.baseHref -}}
 {{- end -}}

@@ -99,8 +99,18 @@ spec:
               value: {{ include "featbit.els.external.url" . }}
             - name: DEMO_URL
               value: {{ include "featbit.demo.external.url" . }}
+            {{- if include "ui.svc.basehref" . }}
             - name: BASE_HREF
-              value: {{ include "featbit.base.href" . }}
+              value: {{ include "ui.svc.basehref" . }}
+            {{- end }}
+            {{- if include "ui.svc.displayapiurl" . }}
+            - name: DISPLAY_API_URL
+              value: {{ include "ui.svc.displayapiurl" . }}
+            {{- end }}
+            {{- if include "ui.svc.displayevaluationurl" . }}
+            - name: DISPLAY_EVALUATION_URL
+              value: {{ include "ui.svc.displayevaluationurl" . }}
+            {{- end }}
             {{- if and .Values.autoDiscovery (or (eq .Values.api.service.type "LoadBalancer") (eq .Values.els.service.type "LoadBalancer")) }}
             - name: SHARED_API_URL_FILE
               value: "/shared/api_url.txt"

@@ -30,7 +30,9 @@ serviceAccount:
 apiExternalUrl: "http://localhost:5000"
 evaluationServerExternalUrl: "http://localhost:5100"
 demoExternalUrl: ""
-baseHref: "/"
+uiBaseHref: ""
+uiDisplayApiUrl: ""
+uiDisplayEvaluationUrl: ""
 # only considered in exposing LoadBalancer service
 autoDiscovery: false
 
