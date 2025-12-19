@@ -77,3 +77,7 @@
 {{- define "featbit.demo.external.url" -}}
 {{- default "https://featbit-samples.vercel.app" .Values.demoExternalUrl -}}
 {{- end -}}
+
+{{- define "featbit.base.href" -}}
+{{- default "/" .Values.baseHref -}}
+{{- end -}}

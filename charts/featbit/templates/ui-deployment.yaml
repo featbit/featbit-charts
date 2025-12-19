@@ -99,6 +99,8 @@ spec:
               value: {{ include "featbit.els.external.url" . }}
             - name: DEMO_URL
               value: {{ include "featbit.demo.external.url" . }}
+            - name: BASE_HREF
+              value: {{ include "featbit.base.href" . }}
             {{- if and .Values.autoDiscovery (or (eq .Values.api.service.type "LoadBalancer") (eq .Values.els.service.type "LoadBalancer")) }}
             - name: SHARED_API_URL_FILE
               value: "/shared/api_url.txt"
