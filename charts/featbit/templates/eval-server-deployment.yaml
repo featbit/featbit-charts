@@ -78,6 +78,14 @@ spec:
             {{- include "otel-common-env" . | indent 12 }}
             {{- include "els-otel-env" . | indent 12 }}
             {{- include "kafka-bootstrapservers" . | indent 12 }}
+            {{- if include "els.svc.streamingtrackclienthostname" . }}
+            - name: Streaming__TrackClientHostName
+              value: {{ include "els.svc.streamingtrackclienthostname" . | quote }}
+            {{- end }}
+            {{- if include "els.svc.streamingtokenexpiryseconds" . }}
+            - name: Streaming__TokenExpirySeconds
+              value: {{ include "els.svc.streamingtokenexpiryseconds" . | quote }}
+            {{- end }}
             {{- with .Values.els.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}

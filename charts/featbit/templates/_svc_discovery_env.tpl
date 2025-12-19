@@ -70,6 +70,14 @@
 {{- .Values.uiDisplayEvaluationUrl -}}
 {{- end -}}
 
+{{- define "els.svc.streamingtrackclienthostname" -}}
+{{- .Values.elsStreamingTrackClientHostName -}}
+{{- end -}}
+
+{{- define "els.svc.streamingtokenexpiryseconds" -}}
+{{- .Values.elsStreamingTokenExpirySeconds -}}
+{{- end -}}
+
 {{- define "featbit.api.external.url" -}}
 {{- if and .Values.autoDiscovery (eq .Values.api.service.type "LoadBalancer") -}}
 {{- .Values.apiExternalUrl -}}

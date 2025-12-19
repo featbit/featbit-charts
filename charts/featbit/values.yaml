@@ -33,6 +33,8 @@ demoExternalUrl: ""
 uiBaseHref: ""
 uiDisplayApiUrl: ""
 uiDisplayEvaluationUrl: ""
+elsStreamingTrackClientHostName: ""
+elsStreamingTokenExpirySeconds: ""
 # only considered in exposing LoadBalancer service
 autoDiscovery: false
 
