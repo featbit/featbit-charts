@@ -409,6 +409,10 @@ postgresql:
   enabled: true
   nameOverride: featbit-postgresql
   architecture: standalone
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
+    tag: "16.2.0-debian-11-r1"
   auth:
     username: featbit
     password: featbit
@@ -474,6 +478,8 @@ redis:
 
   image:
     registry: docker.io
+    repository: bitnamilegacy/redis
+    tag: "7.2.4-debian-11-r5"
 
   master:
     persistence:

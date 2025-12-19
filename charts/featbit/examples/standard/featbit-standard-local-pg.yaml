@@ -1,0 +1,119 @@
+# Local Docker Desktop Deployment Configuration
+# FeatBit Standard Tier with PostgreSQL
+
+# =============================================================================
+# PORT CONFIGURATION - Centralized port settings using YAML anchors
+# =============================================================================
+ports:
+  ui: &uiNodePort 30081
+  api: &apiNodePort 30000
+  els: &elsNodePort 30100
+
+# External URLs for local access (used by UI to call API/ELS)
+apiExternalUrl: "http://localhost:30000"  # Must match *apiNodePort
+evaluationServerExternalUrl: "http://localhost:30100"  # Must match *elsNodePort
+
+# Architecture configuration
+architecture:
+  tier: "standard"
+  database: "postgres"
+
+# UI Configuration
+ui:
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 8081
+    nodePort: *uiNodePort  # References &uiNodePort (30081)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# API Configuration
+api:
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 5000
+    nodePort: *apiNodePort  # References &apiNodePort (30000)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+# Evaluation Server (ELS) Configuration
+els:
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 5100
+    nodePort: *elsNodePort  # References &elsNodePort (30100)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Data Analytics Server Configuration
+das:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Enable internal PostgreSQL (for local development)
+postgresql:
+  enabled: true
+  nameOverride: featbit-postgresql
+  architecture: standalone
+  auth:
+    username: featbit
+    password: featbit
+    database: featbit
+    existingSecret: ""
+  primary:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# Enable internal Redis (for local development)
+redis:
+  enabled: true
+  nameOverride: "featbit-redis"
+  architecture: standalone
+  auth:
+    enabled: false
+    password: ""
+    existingSecret: ""
+    existingSecretPasswordKey: ""
+  master:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+    persistence:
+      enabled: true
+      size: 2Gi
