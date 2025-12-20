@@ -575,6 +575,16 @@ kafka:
   enabled: false
   nameOverride: featbit-kafka
   extraConfig: "logRetentionHours=24;logRetentionBytes=_2_000_000_000"
+  
+  # IMPORTANT: Using Bitnami Legacy images (no security updates)
+  # As of August 2025, Kafka images are only maintained in Bitnami Secure Images (paid)
+  # Legacy images should only be used temporarily for development/testing
+  # For production, use external managed Kafka services (see externalKafka below)
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/kafka
+    tag: "3.9.0-debian-12-r4"
+  
   listeners:
     client:
       protocol: "PLAINTEXT"
@@ -624,13 +634,28 @@ clickhouse:
   nameOverride: featbit-clickhouse
   shards: 1
   replicaCount: 1
+  
+  # IMPORTANT: Using Bitnami Legacy images (no security updates)
+  # As of August 2025, ClickHouse images are only maintained in Bitnami Secure Images (paid)
+  # Legacy images should only be used temporarily for development/testing
+  # For production, use external managed ClickHouse services (see externalClickhouse below)
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/clickhouse
+    tag: "25.7.5-debian-12-r0"
+  
+  keeper:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/clickhouse-keeper
+      tag: "25.7.5-debian-12-r0"
+  
   auth:
     username: "default"
     password: "featbit"
     existingSecret: ""
     existingSecretKey: ""
-  keeper:
-    enabled: true
   zookeeper:
     enabled: false
   persistence:

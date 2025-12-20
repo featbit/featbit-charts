@@ -1,0 +1,246 @@
+# Local Docker Desktop Deployment Configuration
+# FeatBit Professional Tier with PostgreSQL + Kafka + ClickHouse
+#
+# ⚠️ IMPORTANT: This configuration uses Bitnami Legacy images for Kafka and ClickHouse
+# These images receive NO security updates and are for LOCAL DEVELOPMENT/TESTING ONLY
+# For production deployments, use external managed services (see values.yaml)
+
+# =============================================================================
+# PORT CONFIGURATION - Centralized port settings using YAML anchors
+# =============================================================================
+ports:
+  ui: &uiNodePort 30081
+  api: &apiNodePort 30000
+  els: &elsNodePort 30100
+
+# External URLs for local access (used by UI to call API/ELS)
+apiExternalUrl: "http://localhost:30000"  # Must match *apiNodePort
+evaluationServerExternalUrl: "http://localhost:30100"  # Must match *elsNodePort
+
+# Architecture configuration - Professional tier with PostgreSQL
+architecture:
+  tier: "professional"
+  database: "postgres"
+
+# =============================================================================
+# FEATBIT SERVICES CONFIGURATION
+# =============================================================================
+
+# UI Configuration
+ui:
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 8081
+    nodePort: *uiNodePort  # References &uiNodePort (30081)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# API Configuration
+api:
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 5000
+    nodePort: *apiNodePort  # References &apiNodePort (30000)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+# Evaluation Server (ELS) Configuration
+els:
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 5100
+    nodePort: *elsNodePort  # References &elsNodePort (30100)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Data Analytics Server Configuration (Pro tier only)
+das:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# =============================================================================
+# DATABASE CONFIGURATION - PostgreSQL
+# =============================================================================
+
+postgresql:
+  enabled: true
+  nameOverride: featbit-postgresql
+  architecture: standalone
+  auth:
+    username: featbit
+    password: featbit
+    database: featbit
+    existingSecret: ""
+  primary:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# =============================================================================
+# CACHE CONFIGURATION - Redis
+# =============================================================================
+
+redis:
+  enabled: true
+  nameOverride: "featbit-redis"
+  architecture: standalone
+  auth:
+    enabled: false
+    password: ""
+    existingSecret: ""
+    existingSecretPasswordKey: ""
+  master:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+    persistence:
+      enabled: true
+      size: 2Gi
+
+# =============================================================================
+# MESSAGING CONFIGURATION - Kafka (Pro tier)
+# ⚠️ Using Bitnami Legacy images - NO security updates
+# For production, configure externalKafka instead
+# =============================================================================
+
+kafka:
+  enabled: true
+  nameOverride: featbit-kafka
+  extraConfig: "logRetentionHours=24;logRetentionBytes=_2_000_000_000"
+  
+  # Image configuration inherited from values.yaml (bitnamilegacy/kafka)
+  
+  replicaCount: 1
+  
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  
+  controller:
+    persistence:
+      enabled: true
+      size: 8Gi
+  
+  provisioning:
+    enabled: true
+    topics:
+      - name: "featbit-feature-flag-change"
+        partitions: 3
+        replicationFactor: 1
+      - name: "featbit-segment-change"
+        partitions: 3
+        replicationFactor: 1
+      - name: "featbit-endusers"
+        partitions: 3
+        replicationFactor: 1
+      - name: "featbit-insights"
+        partitions: 3
+        replicationFactor: 1
+
+# =============================================================================
+# ANALYTICS CONFIGURATION - ClickHouse (Pro tier)
+# ⚠️ Using Bitnami Legacy images - NO security updates
+# For production, configure externalClickhouse instead
+# =============================================================================
+
+clickhouse:
+  enabled: true
+  nameOverride: featbit-clickhouse
+  shards: 1
+  replicaCount: 1
+  
+  # Image configuration inherited from values.yaml (bitnamilegacy/clickhouse)
+  
+  auth:
+    username: "default"
+    password: "featbit"
+    existingSecret: ""
+    existingSecretKey: ""
+  
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  
+  keeper:
+    enabled: true
+    # Image configuration inherited from values.yaml (bitnamilegacy/clickhouse-keeper)
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+  
+  zookeeper:
+    enabled: false
+  
+  persistence:
+    enabled: true
+    size: 8Gi
+
+# =============================================================================
+# DEPLOYMENT NOTES
+# =============================================================================
+# 
+# To deploy this configuration:
+#   helm install featbit featbit/featbit -f featbit-pro-local-pg.yaml
+#
+# Access URLs (after deployment):
+#   UI:       http://localhost:30081
+#   API:      http://localhost:30000
+#   ELS:      http://localhost:30100
+#
+# ⚠️ SECURITY WARNING:
+# This configuration uses unmaintained legacy images for Kafka and ClickHouse
+# Suitable for local development and testing ONLY
+# Do NOT use in production environments
+#
+# For production deployments:
+# 1. Configure externalKafka with managed Kafka service
+# 2. Configure externalClickhouse with managed ClickHouse service
+# 3. See README.md for external service configuration examples
+#

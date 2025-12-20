@@ -9,13 +9,15 @@ This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) insta
 
 ## ⚠️ Dependencies Notice
 
+🚨 **CRITICAL: Bitnami Image Repository Changes (Effective August 2025)**
+
 This chart includes the following infrastructure dependencies which are **strictly for testing and development purposes**:
 
-- **PostgreSQL**: Default primary database
+- **PostgreSQL**: Default primary database *(⚠️ bitnami legacy images only, no update)*
 - **MongoDB**: Alternative primary database
-- **Redis**: Required caching layer
-- **Kafka**: Optional messaging system
-- **ClickHouse**: Optional analytics database
+- **Redis**: Required caching layer *(⚠️ bitnami legacy images only, no update)*
+- **Kafka**: Optional messaging system *(⚠️ bitnami legacy images only, no updates)*
+- **ClickHouse**: Optional analytics database *(⚠️ bitnami legacy images only, no updates)*
 
 **For local testing/development**, we provide example configurations in [`charts/featbit/examples/standard/`](./charts/featbit/examples/standard/) that use specific container images:
 - [`featbit-standard-local-pg.yaml`](./charts/featbit/examples/standard/featbit-standard-local-pg.yaml) - PostgreSQL + Redis configuration for local Docker Desktop Kubernetes
@@ -28,7 +30,8 @@ These examples leverage the default image configurations in `values.yaml`, which
 - **PostgreSQL/MongoDB**: Configure `externalPostgresql` or `externalMongodb` with managed database services (Azure Database for PostgreSQL, AWS RDS, Google Cloud SQL, etc.)
 - **Redis**: Configure `externalRedis` with managed Redis services (Azure Cache for Redis, AWS ElastiCache, Google Cloud Memorystore, etc.)
 - **Kafka**: Configure `externalKafka` with managed Kafka services (Confluent Cloud, AWS MSK, Azure Event Hubs, etc.)
-- **ClickHouse**: Configure `externalClickhouse` with managed ClickHouse services (ClickHouse Cloud, Altinity.Cloud, etc.)
+  - *Internal Kafka uses unmaintained legacy images - NOT suitable for production*
+- **ClickHouse**:  Configure `externalClickhouse` with managed ClickHouse services (ClickHouse Cloud, Altinity.Cloud, etc.)
 
 
 ## Usage 
