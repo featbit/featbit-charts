@@ -1,0 +1,221 @@
+# FeatBit Standard Deployment for Azure AKS with Azure Front Door
+# This configuration deploys FeatBit with:
+# - Internal ClusterIP services
+# - NGINX Ingress Controller for internal routing
+# - Azure Front Door for public traffic management
+# - PostgreSQL as primary database
+# - Redis for caching
+# - Managed Azure Disks for persistence
+
+# Architecture Configuration
+architecture:
+  tier: "standard"
+  database: "postgres"
+
+# ⚠️ CRITICAL: Update these URLs to match your Azure Front Door configuration
+# These MUST be the public URLs that clients will use to access FeatBit
+apiExternalUrl: "https://app-api.featbit.co"
+evaluationServerExternalUrl: "https://app-eval.featbit.co"
+
+# UI Service Configuration
+ui:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-ui
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 8081
+  
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    # Public hostname fronted by Azure Front Door (also reachable directly if DNS points to ingress LB)
+    host: "app.featbit.co"
+    path: /
+    pathType: Prefix
+    tls:
+      enabled: false
+
+# API Service Configuration
+api:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-api-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 5000
+  
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    # Public API hostname (use this as Front Door backend host header)
+    host: "app-api.featbit.co"
+    path: /
+    pathType: Prefix
+    tls:
+      enabled: false
+
+# Evaluation Server Configuration
+els:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-evaluation-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 5100
+  
+  resources:
+    requests:
+      cpu: "750m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    # Public Evaluation Server hostname
+    host: "app-eval.featbit.co"
+    path: /
+    pathType: Prefix
+    tls:
+      enabled: false
+
+# Data Analytics Server
+da-server:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-data-analytics-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  service:
+    # Keep DA server internal (ClusterIP) so only cluster services (API/ELS) can call it
+    type: ClusterIP
+    port: 80
+  
+  resources:
+    requests:
+      cpu: "750m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+# PostgreSQL Configuration - Using External Database
+# Disable internal PostgreSQL chart
+postgresql:
+  enabled: false
+
+# External PostgreSQL Connection - Using Kubernetes Secret
+# Secret created via: kubectl create secret generic featbit-postgres-secret --from-literal=password="..." -n featbit
+externalPostgresql:
+  hosts:
+    - "featbitsaas.postgres.database.azure.com:5432"
+  username: "featbitsaas"
+  database: "featbit"
+  # Reference the Kubernetes Secret created in deployment guide
+  existingSecret: "featbit-postgres-secret"
+  existingSecretPasswordKey: "password"
+
+# Redis Configuration - Using External Redis
+# Disable internal Redis chart
+redis:
+  enabled: false
+
+# External Redis Connection - Using Kubernetes Secret
+# Secret created via: kubectl create secret generic featbit-redis-secret --from-literal=redis-password="..." -n featbit
+externalRedis:
+  hosts:
+    - "featbit-saas-basic.redis.cache.windows.net:6380"
+  # Reference the Kubernetes Secret created in deployment guide
+  existingSecret: "featbit-redis-secret"
+  existingSecretPasswordKey: "redis-password"
+  ssl: true
+  db: 0
+
+# MongoDB - Disabled (using PostgreSQL)
+mongodb:
+  enabled: false
+
+# Kafka - Optional (disabled for standard tier)
+kafka:
+  enabled: false
+
+# ClickHouse - Optional (disabled for standard tier)
+clickhouse:
+  enabled: false
+
+# Auto-scaling (disabled by default)
+# To enable HPA, ensure metrics-server is installed in your cluster
+# Then set autoscaling.enabled: true for each component
+
+# UI Auto-scaling
+# ui:
+#   autoscaling:
+#     enabled: true
+#     minReplicas: 2
+#     maxReplicas: 10
+#     targetCPUUtilizationPercentage: 80
+#     targetMemoryUtilizationPercentage: 80
+
+# API Auto-scaling
+# api:
+#   autoscaling:
+#     enabled: true
+#     minReplicas: 2
+#     maxReplicas: 10
+#     targetCPUUtilizationPercentage: 80
+#     targetMemoryUtilizationPercentage: 80
+
+# ELS Auto-scaling
+# els:
+#   autoscaling:
+#     enabled: true
+#     minReplicas: 2
+#     maxReplicas: 10
+#     targetCPUUtilizationPercentage: 80
+#     targetMemoryUtilizationPercentage: 80

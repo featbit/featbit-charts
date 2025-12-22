@@ -10,3 +10,7 @@ venv/
 .direnv
 
 .copilot-commit-message-instructions.md
+
+# Deployment configuration files with sensitive data
+**/*-secrets.yaml
+*local-values.yaml
