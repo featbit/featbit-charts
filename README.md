@@ -21,6 +21,7 @@ This chart includes the following infrastructure dependencies which are **strict
 
 **For local testing/development**, we provide example configurations in [`charts/featbit/examples/standard/`](./charts/featbit/examples/standard/) that use specific container images:
 - [`featbit-standard-local-pg.yaml`](./charts/featbit/examples/standard/featbit-standard-local-pg.yaml) - PostgreSQL + Redis configuration for local Docker Desktop Kubernetes
+- [`featbit-standard-local-mongo.yaml`](./charts/featbit/examples/standard/featbit-standard-local-mongo.yaml) - MongoDB + Redis configuration for local Docker Desktop Kubernetes
 
 These examples leverage the default image configurations in `values.yaml`, which specify tested and compatible versions for local development environments.
 
@@ -30,7 +31,6 @@ These examples leverage the default image configurations in `values.yaml`, which
 - **PostgreSQL/MongoDB**: Configure `externalPostgresql` or `externalMongodb` with managed database services (Azure Database for PostgreSQL, AWS RDS, Google Cloud SQL, etc.)
 - **Redis**: Configure `externalRedis` with managed Redis services (Azure Cache for Redis, AWS ElastiCache, Google Cloud Memorystore, etc.)
 - **Kafka**: Configure `externalKafka` with managed Kafka services (Confluent Cloud, AWS MSK, Azure Event Hubs, etc.)
-  - *Internal Kafka uses unmaintained legacy images - NOT suitable for production*
 - **ClickHouse**:  Configure `externalClickhouse` with managed ClickHouse services (ClickHouse Cloud, Altinity.Cloud, etc.)
 
 
