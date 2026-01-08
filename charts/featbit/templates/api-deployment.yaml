@@ -67,7 +67,7 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             httpGet:
-              path: /health/liveness
+              path: /health/readiness
               port: http
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
