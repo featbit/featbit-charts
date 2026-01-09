@@ -1,0 +1,201 @@
+# FeatBit Standard Deployment for Azure AKS Automatic with Azure Front Door
+# This configuration deploys FeatBit with:
+# - LoadBalancer services for UI, API, and ELS (exposed to Azure Front Door)
+# - ClusterIP for DA Server (internal only)
+# - Auto-scaling enabled (min 3, max 10 pods per service)
+# - PostgreSQL as primary database
+# - Redis for caching
+# - Managed Azure Disks for persistence
+# - NO NGINX Ingress (retired) - using Azure LoadBalancer + Front Door instead
+
+# Architecture Configuration
+architecture:
+  tier: "standard"
+  database: "postgres"
+
+# ⚠️ CRITICAL: Update these URLs to match your Azure Front Door configuration
+# These MUST be the public URLs that clients will use to access FeatBit
+apiExternalUrl: "https://global-api.featbit.co"
+evaluationServerExternalUrl: "https://global-eval.featbit.co"
+
+# UI Service Configuration
+ui:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-ui
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: LoadBalancer
+    port: 8081
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/"
+  
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  
+  autoscaling:
+    enabled: false
+  
+  ingress:
+    enabled: false
+
+# API Service Configuration
+api:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-api-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: LoadBalancer
+    port: 5000
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health"
+  
+  resources:
+    requests:
+      cpu: "500m"        # 0.5 core guaranteed - sufficient for REST API requests
+      memory: "1.5Gi"    # 1.5GB guaranteed - .NET runtime + DB connections + JSON processing
+    limits:
+      cpu: "1500m"       # 1.5 cores max burst - handle traffic spikes and DB queries
+      memory: "3Gi"      # 3GB max - safe headroom for .NET GC and request processing
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  
+  ingress:
+    enabled: false
+
+# Evaluation Server Configuration
+els:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-evaluation-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: LoadBalancer
+    port: 5100
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health"
+  
+  resources:
+    requests:
+      cpu: "750m"        # 0.75 core guaranteed - good for high-traffic evaluation requests
+      memory: "1.5Gi"    # 1.5GB guaranteed - .NET runtime + feature flag cache
+    limits:
+      cpu: "1500m"       # 1.5 cores max burst - allow spikes during traffic peaks
+      memory: "3Gi"      # 3GB max - safe headroom for .NET GC and cache growth
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  
+  ingress:
+    enabled: false
+
+# Data Analytics Server
+da-server:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-data-analytics-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  service:
+    # Keep DA server internal (ClusterIP) so only cluster services (API/ELS) can call it
+    type: ClusterIP
+    port: 80
+  
+  resources:
+    requests:
+      cpu: "750m"        # 0.75 core guaranteed - Python data processing is CPU-intensive
+      memory: "2Gi"      # 2GB guaranteed - Python + pandas/numpy + data aggregation
+    limits:
+      cpu: "1500m"       # 1.5 cores max burst - handle large data processing jobs
+      memory: "4Gi"      # 4GB max - Python memory growth + data caching
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+# PostgreSQL Configuration - Using External Database
+# Disable internal PostgreSQL chart
+postgresql:
+  enabled: false
+
+# External PostgreSQL Connection - Using Kubernetes Secret
+# Secret created via: kubectl create secret generic featbit-postgres-secret --from-literal=password="..." -n featbit
+externalPostgresql:
+  hosts:
+    - "featbit-pg-wu3.postgres.database.azure.com:5432"
+  username: "featbitpgwu3"
+  database: "featbit"
+  # Reference the Kubernetes Secret created in deployment guide
+  existingSecret: "featbit-postgres-secret"
+  existingSecretPasswordKey: "password"
+
+# Redis Configuration - Using External Redis
+# Disable internal Redis chart
+redis:
+  enabled: false
+
+# External Redis Connection - Using Kubernetes Secret
+# Secret created via: kubectl create secret generic featbit-redis-secret --from-literal=redis-password="..." -n featbit
+externalRedis:
+  hosts:
+    - "featbit-saas-basic.redis.cache.windows.net:6380"
+  # Reference the Kubernetes Secret created in deployment guide
+  existingSecret: "featbit-redis-secret"
+  existingSecretPasswordKey: "redis-password"
+  ssl: true
+  db: 0
+
+# MongoDB - Disabled (using PostgreSQL)
+mongodb:
+  enabled: false
+
+# Kafka - Optional (disabled for standard tier)
+kafka:
+  enabled: false
+
+# ClickHouse - Optional (disabled for standard tier)
+clickhouse:
+  enabled: false
+
+# Auto-scaling Configuration
+# All services configured with HPA enabled:
+# - minReplicas: 3
+# - maxReplicas: 10  
+# - targetCPUUtilizationPercentage: 80
+# - targetMemoryUtilizationPercentage: 80
+# 
+# Note: Ensure metrics-server is installed in your AKS cluster:
+# kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
