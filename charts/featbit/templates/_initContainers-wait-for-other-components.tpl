@@ -9,6 +9,10 @@
   securityContext:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with (get $ctx.Values $component).initContainers.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   command:
     - /bin/sh
     - -c

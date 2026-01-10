@@ -1,0 +1,312 @@
+# FeatBit Standard Deployment for Azure AKS with LoadBalancer
+# 
+# Architecture:
+# - UI/API/ELS: Azure Load Balancer (Public, with NSG protection)
+# - DAS: ClusterIP (Internal only)
+# - PostgreSQL/Redis: Azure managed services via Key Vault
+# 
+# See README-keyvault.md for secret management setup
+
+# Architecture Configuration
+architecture:
+  tier: "standard"
+  database: "postgres"
+
+# These MUST be the public URLs that clients will use to access FeatBit
+apiExternalUrl: "<YOUR_API_EXTERNAL_URL>"
+evaluationServerExternalUrl: "<YOUR_EVALUATION_SERVER_EXTERNAL_URL>"
+
+# UI Service Configuration
+ui:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-ui
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  
+  service:
+    type: LoadBalancer
+    port: 8081
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/"
+  
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: ui
+  
+  initContainers:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+  
+  autoscaling:
+    enabled: false
+  
+  ingress:
+    enabled: false
+
+# API Service Configuration
+api:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-api-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  
+  service:
+    type: LoadBalancer
+    port: 5000
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health/liveness"
+  
+  resources:
+    requests:
+      cpu: "750m"
+      memory: "1.5Gi"
+    limits:
+      cpu: "1500m"
+      memory: "3Gi"
+  
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: api
+  
+  initContainers:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+  
+  # Azure Key Vault CSI Driver integration
+  volumeMounts:
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+  
+  volumes:
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "featbit-keyvault-secrets"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  
+  ingress:
+    enabled: false
+
+# Evaluation Server Configuration
+els:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-evaluation-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  
+  service:
+    type: LoadBalancer
+    port: 5100
+    annotations:
+      # Health probe configuration
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health/readiness"
+      # WebSocket long connections: 30min idle timeout (default 4min is too short)
+      service.beta.kubernetes.io/azure-load-balancer-tcp-idle-timeout: "30"
+  
+  resources:
+    requests:
+      cpu: "750m"
+      memory: "1.5Gi"
+    limits:
+      cpu: "1500m"
+      memory: "3Gi"
+  
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: els
+  
+  initContainers:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+  
+  # Azure Key Vault CSI Driver integration
+  volumeMounts:
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+  
+  volumes:
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "featbit-keyvault-secrets"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  
+  ingress:
+    enabled: false
+
+# Data Analytics Server
+das:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-data-analytics-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+  
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  
+  service:
+    # Keep DA server internal (ClusterIP) so only cluster services (API/ELS) can call it
+    type: ClusterIP
+    port: 80
+  
+  resources:
+    requests:
+      cpu: "750m"
+      memory: "2Gi"
+    limits:
+      cpu: "1500m"
+      memory: "4Gi"
+  
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: das
+  
+  initContainers:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+  
+  # Azure Key Vault CSI Driver integration
+  volumeMounts:
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+  
+  volumes:
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "featbit-keyvault-secrets"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: false
+
+externalPostgresql:
+  hosts:
+    - "<YOUR_POSTGRESQL_HOST>:5432"  # e.g., yourdb.postgres.database.azure.com:5432
+  username: "<YOUR_POSTGRESQL_USERNAME>"
+  database: "<YOUR_POSTGRESQL_DATABASE>"
+  # This secret name must match the secretName in keyvault-secret-provider.yaml under secretObjects for PostgreSQL
+  existingSecret: "<YOUR_PG_K8S_SECRET_NAME>"  # Must match secretName in keyvault-secret-provider.yaml
+  existingSecretPasswordKey: "password"
+
+# Redis Configuration
+redis:
+  enabled: false
+
+externalRedis:
+  hosts:
+    - "<YOUR_REDIS_HOST>:10000"  # e.g., yourredis.redis.azure.net:10000
+  # This secret name must match the secretName in keyvault-secret-provider.yaml under secretObjects for Redis
+  existingSecret: "<YOUR_REDIS_K8S_SECRET_NAME>"  # Must match secretName in keyvault-secret-provider.yaml
+  existingSecretPasswordKey: "password"
+  ssl: true
+  db: 0
+
+# MongoDB
+mongodb:
+  enabled: false
+
+# Kafka
+kafka:
+  enabled: false
+
+# ClickHouse
+clickhouse:
+  enabled: false
