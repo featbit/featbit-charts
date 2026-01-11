@@ -80,7 +80,7 @@ spec:
     keyvaultName: "<your-keyvault-name>"
 ```
 
-**Edit `featbit-aks-automatic-via-alb.yaml`:**
+**Edit `featbit-aks-automatic-via-lb.yaml`:**
 
 ```yaml
 externalPostgresql:
@@ -125,7 +125,7 @@ kubectl apply -f keyvault-secret-provider.yaml
 # Deploy FeatBit
 helm install featbit featbit/featbit \
   --namespace featbit \
-  --values featbit-aks-automatic-via-alb.yaml
+  --values featbit-aks-automatic-via-lb.yaml
 
 # Wait for pods to be ready
 kubectl get pods -n featbit -w

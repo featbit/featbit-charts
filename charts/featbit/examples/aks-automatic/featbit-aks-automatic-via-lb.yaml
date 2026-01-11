@@ -1,20 +1,11 @@
-# FeatBit Standard Deployment for Azure AKS with LoadBalancer
-# 
-# Architecture:
-# - UI/API/ELS: Azure Load Balancer (Public, with NSG protection)
-# - DAS: ClusterIP (Internal only)
-# - PostgreSQL/Redis: Azure managed services via Key Vault
-# 
-# See README-keyvault.md for secret management setup
+# FeatBit Standard Deployment with Azure Traffic Manager + Load Balancer
 
-# Architecture Configuration
 architecture:
   tier: "standard"
   database: "postgres"
 
-# These MUST be the public URLs that clients will use to access FeatBit
-apiExternalUrl: "http://4.249.121.202:5000"
-evaluationServerExternalUrl: "http://20.171.172.169:5100"  # Replace with your ALB public IP or DNS name
+apiExternalUrl: "http://global-api.featbit.co"
+evaluationServerExternalUrl: "http://global-eval.featbit.co"
 
 # UI Service Configuration
 ui:
@@ -32,7 +23,7 @@ ui:
 
   service:
     type: LoadBalancer
-    port: 8081
+    port: 80
     annotations:
       service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/"
 
@@ -83,9 +74,9 @@ api:
 
   service:
     type: LoadBalancer
-    port: 5000
+    port: 80
     annotations:
-      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health/liveness"
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health"
 
   resources:
     requests:
@@ -152,11 +143,9 @@ els:
 
   service:
     type: LoadBalancer
-    port: 5100
+    port: 80
     annotations:
-      # Health probe configuration
-      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health/readiness"
-      # WebSocket long connections: 30min idle timeout (default 4min is too short)
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health/liveness"
       service.beta.kubernetes.io/azure-load-balancer-tcp-idle-timeout: "30"
 
   resources:
@@ -164,8 +153,8 @@ els:
       cpu: "750m"
       memory: "1.5Gi"
     limits:
-      cpu: "1500m"
-      memory: "3Gi"
+      cpu: "2000m"  # 2 cores max
+      memory: "4Gi"  # Handle peak load
 
   topologySpreadConstraints:
     - maxSkew: 1
@@ -223,7 +212,6 @@ das:
       type: RuntimeDefault
 
   service:
-    # Keep DA server internal (ClusterIP) so only cluster services (API/ELS) can call it
     type: ClusterIP
     port: 80
 
