@@ -1,0 +1,283 @@
+# FeatBit Standard Deployment for Azure AKS
+# Architecture: Internet -> Traffic Manager -> Azure LB -> NGINX Ingress (TLS) -> Services
+
+architecture:
+  tier: "standard"
+  database: "postgres"
+
+# IMPORTANT: Update these URLs to match your domain
+apiExternalUrl: "https://api.example.com"
+evaluationServerExternalUrl: "https://eval.example.com"
+
+# UI Service Configuration
+ui:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-ui
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+  initContainers:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+
+  autoscaling:
+    enabled: false
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    host: "app.example.com"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    tls:
+      enabled: true
+      secretName: "featbit-ui-tls"
+
+# API Service Configuration
+api:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-api-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: "750m"
+      memory: "1.5Gi"
+    limits:
+      cpu: "1500m"
+      memory: "3Gi"
+
+  initContainers:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+
+  # Azure Key Vault CSI Driver integration
+  volumeMounts:
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+
+  volumes:
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "featbit-keyvault-secrets"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    host: "api.example.com"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    tls:
+      enabled: true
+      secretName: "featbit-api-tls"
+
+# Evaluation Server Configuration
+els:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-evaluation-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: "750m"
+      memory: "1.5Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+
+  initContainers:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+
+  # Azure Key Vault CSI Driver integration
+  volumeMounts:
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+
+  volumes:
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "featbit-keyvault-secrets"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    host: "eval.example.com"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    tls:
+      enabled: true
+      secretName: "featbit-els-tls"
+
+# Data Analytics Server
+das:
+  enabled: true
+  replicaCount: 3
+  image:
+    registry: docker.io
+    repository: featbit/featbit-data-analytics-server
+    tag: "5.1.4"
+    pullPolicy: IfNotPresent
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: "750m"
+      memory: "2Gi"
+    limits:
+      cpu: "1500m"
+      memory: "4Gi"
+
+  initContainers:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+
+  # Azure Key Vault CSI Driver integration
+  volumeMounts:
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+
+  volumes:
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "featbit-keyvault-secrets"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+postgresql:
+  enabled: false
+
+externalPostgresql:
+  hosts:
+    - "your-postgres-server.postgres.database.azure.com:5432"
+  username: "your-username"
+  database: "featbit"
+  existingSecret: "featbit-postgres-secret"
+  existingSecretPasswordKey: "password"
+
+redis:
+  enabled: false
+
+externalRedis:
+  hosts:
+    - "your-redis-server.redis.cache.windows.net:6380"
+  existingSecret: "featbit-redis-secret"
+  existingSecretPasswordKey: "password"
+  ssl: true
+  db: 0
+
+mongodb:
+  enabled: false
+
+kafka:
+  enabled: false
+
+clickhouse:
+  enabled: false

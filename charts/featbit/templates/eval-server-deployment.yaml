@@ -36,6 +36,10 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- with .Values.els.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- include "featbit.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ include "featbit.serviceAccountName" . }}
       securityContext:
@@ -89,6 +93,10 @@ spec:
             {{- with .Values.els.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}
+          {{- with .Values.els.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         {{- if .Values.els.extraContainers }}
         {{- with .Values.els.extraContainers }}
         {{- tpl . $ | nindent 8 }}
@@ -104,5 +112,9 @@ spec:
       {{- end }}
       {{- with .Values.els.tolerations }}
       tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.els.volumes }}
+      volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
