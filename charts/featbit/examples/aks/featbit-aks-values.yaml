@@ -1,11 +1,13 @@
-# FeatBit Standard Deployment with Azure Traffic Manager + Load Balancer
+# FeatBit Standard Deployment for Azure AKS
+# Architecture: Internet -> Traffic Manager -> Azure LB -> NGINX Ingress (TLS) -> Services
 
 architecture:
   tier: "standard"
   database: "postgres"
 
-apiExternalUrl: "http://global-api.featbit.co"
-evaluationServerExternalUrl: "http://global-eval.featbit.co"
+# IMPORTANT: Update these URLs to match your domain
+apiExternalUrl: "https://api.example.com"
+evaluationServerExternalUrl: "https://eval.example.com"
 
 # UI Service Configuration
 ui:
@@ -22,10 +24,8 @@ ui:
       type: RuntimeDefault
 
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 80
-    annotations:
-      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/"
 
   resources:
     requests:
@@ -34,14 +34,6 @@ ui:
     limits:
       cpu: "1000m"
       memory: "2Gi"
-
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/component: ui
 
   initContainers:
     resources:
@@ -56,7 +48,15 @@ ui:
     enabled: false
 
   ingress:
-    enabled: false
+    enabled: true
+    className: "nginx"
+    host: "app.example.com"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    tls:
+      enabled: true
+      secretName: "featbit-ui-tls"
 
 # API Service Configuration
 api:
@@ -73,10 +73,8 @@ api:
       type: RuntimeDefault
 
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 80
-    annotations:
-      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health"
 
   resources:
     requests:
@@ -85,14 +83,6 @@ api:
     limits:
       cpu: "1500m"
       memory: "3Gi"
-
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/component: api
 
   initContainers:
     resources:
@@ -125,7 +115,16 @@ api:
     targetMemoryUtilizationPercentage: 80
 
   ingress:
-    enabled: false
+    enabled: true
+    className: "nginx"
+    host: "api.example.com"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    tls:
+      enabled: true
+      secretName: "featbit-api-tls"
 
 # Evaluation Server Configuration
 els:
@@ -142,27 +141,16 @@ els:
       type: RuntimeDefault
 
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 80
-    annotations:
-      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/health/liveness"
-      service.beta.kubernetes.io/azure-load-balancer-tcp-idle-timeout: "30"
 
   resources:
     requests:
       cpu: "750m"
       memory: "1.5Gi"
     limits:
-      cpu: "2000m"  # 2 cores max
-      memory: "4Gi"  # Handle peak load
-
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/component: els
+      cpu: "2000m"
+      memory: "4Gi"
 
   initContainers:
     resources:
@@ -195,7 +183,17 @@ els:
     targetMemoryUtilizationPercentage: 80
 
   ingress:
-    enabled: false
+    enabled: true
+    className: "nginx"
+    host: "eval.example.com"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    tls:
+      enabled: true
+      secretName: "featbit-els-tls"
 
 # Data Analytics Server
 das:
@@ -222,14 +220,6 @@ das:
     limits:
       cpu: "1500m"
       memory: "4Gi"
-
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/component: das
 
   initContainers:
     resources:
@@ -261,38 +251,33 @@ das:
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
 
-# PostgreSQL Configuration
 postgresql:
   enabled: false
 
 externalPostgresql:
   hosts:
-    - "featbit-pg-wu3.postgres.database.azure.com:5432"
-  username: "featbitpgwu3"
-  database: "featbit-saas-global"
-  existingSecret: "featbit-pg-wu3-secret"
+    - "your-postgres-server.postgres.database.azure.com:5432"
+  username: "your-username"
+  database: "featbit"
+  existingSecret: "featbit-postgres-secret"
   existingSecretPasswordKey: "password"
 
-# Redis Configuration
 redis:
   enabled: false
 
 externalRedis:
   hosts:
-    - "featbit-redis-wu3.westus3.redis.azure.net:10000"
-  existingSecret: "featbit-redis-wu3-secret"
+    - "your-redis-server.redis.cache.windows.net:6380"
+  existingSecret: "featbit-redis-secret"
   existingSecretPasswordKey: "password"
   ssl: true
   db: 0
 
-# MongoDB
 mongodb:
   enabled: false
 
-# Kafka
 kafka:
   enabled: false
 
-# ClickHouse
 clickhouse:
   enabled: false
