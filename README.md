@@ -7,33 +7,6 @@ This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) insta
 * Kubernetes >=1.23
 * Helm >= 3.7.0
 
-## ⚠️ Dependencies Notice
-
-🚨 **CRITICAL: Bitnami Image Repository Changes (Effective August 2025)**
-
-This chart includes the following infrastructure dependencies which are **strictly for testing and development purposes**:
-
-- **PostgreSQL**: Default primary database *(⚠️ bitnami legacy images only, no update)*
-- **MongoDB**: Alternative primary database
-- **Redis**: Required caching layer *(⚠️ bitnami legacy images only, no update)*
-- **Kafka**: Optional messaging system *(⚠️ bitnami legacy images only, no updates)*
-- **ClickHouse**: Optional analytics database *(⚠️ bitnami legacy images only, no updates)*
-
-**For local testing/development**, we provide example configurations in [`charts/featbit/examples/standard/`](./charts/featbit/examples/standard/) that use specific container images:
-- [`featbit-standard-local-pg.yaml`](./charts/featbit/examples/standard/featbit-standard-local-pg.yaml) - PostgreSQL + Redis configuration for local Docker Desktop Kubernetes
-- [`featbit-standard-local-mongo.yaml`](./charts/featbit/examples/standard/featbit-standard-local-mongo.yaml) - MongoDB + Redis configuration for local Docker Desktop Kubernetes
-
-These examples leverage the default image configurations in `values.yaml`, which specify tested and compatible versions for local development environments.
-
-
-**For production environments**, we HIGHLY recommend that you use external managed services (your own included):
-
-- **PostgreSQL/MongoDB**: Configure `externalPostgresql` or `externalMongodb` with managed database services (Azure Database for PostgreSQL, AWS RDS, Google Cloud SQL, etc.)
-- **Redis**: Configure `externalRedis` with managed Redis services (Azure Cache for Redis, AWS ElastiCache, Google Cloud Memorystore, etc.)
-- **Kafka**: Configure `externalKafka` with managed Kafka services (Confluent Cloud, AWS MSK, Azure Event Hubs, etc.)
-- **ClickHouse**:  Configure `externalClickhouse` with managed ClickHouse services (ClickHouse Cloud, Altinity.Cloud, etc.)
-
-
 ## Usage 
 
 [Helm](https://helm.sh) must be installed to use the charts.  Please refer to
@@ -72,6 +45,30 @@ To get the more details of using helm to deploy or maintain your featbit release
 Helm's [documentation](https://helm.sh/docs)
 
 Note that if your device is based on the arm64 architecture, please use version 0.2.1 and above.
+
+## Migration and Upgrades
+
+🔄 **Starting from Helm Chart v0.9.0 (FeatBit v5.2.0)**
+
+Each release includes migration scripts in the [`migration/`](./migration/) folder. **Database migrations are NOT executed automatically by Helm** - they must be reviewed and executed manually by your DBA or database team before upgrading.
+
+**For external databases**: Always check `migration/RELEASE-v{version}.md` for required database schema changes before running `helm upgrade`.
+
+## ⚠️ Dependencies Notice
+
+🚨 **CRITICAL: Bitnami Image Repository Changes (Effective August 2025)**
+
+This chart includes infrastructure dependencies (PostgreSQL/MongoDB, Redis, Kafka, ClickHouse) which are **strictly for testing and development purposes** using bitnami legacy images with no updates.
+
+**For local testing/development**, use the provided example configurations:
+- [`featbit-standard-local-pg.yaml`](./charts/featbit/examples/standard/featbit-standard-local-pg.yaml) - PostgreSQL + Redis configuration for local Docker Desktop Kubernetes
+- [`featbit-standard-local-mongo.yaml`](./charts/featbit/examples/standard/featbit-standard-local-mongo.yaml) - MongoDB + Redis configuration for local Docker Desktop Kubernetes
+
+**For production environments**, we HIGHLY recommend external managed services:
+- **PostgreSQL/MongoDB**: Configure `externalPostgresql` or `externalMongodb` with managed database services (Azure Database for PostgreSQL, AWS RDS, Google Cloud SQL, etc.)
+- **Redis**: Configure `externalRedis` with managed Redis services (Azure Cache for Redis, AWS ElastiCache, Google Cloud Memorystore, etc.)
+- **Kafka**: Configure `externalKafka` with managed Kafka services (Confluent Cloud, AWS MSK, Azure Event Hubs, etc.)
+- **ClickHouse**: Configure `externalClickhouse` with managed ClickHouse services (ClickHouse Cloud, Altinity.Cloud, etc.)
 
 ## Expose self-hosted deployment
 
