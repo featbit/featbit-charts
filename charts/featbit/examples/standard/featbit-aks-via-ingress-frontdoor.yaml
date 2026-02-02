@@ -24,7 +24,7 @@ ui:
   image:
     registry: docker.io
     repository: featbit/featbit-ui
-    tag: "5.2.0"
+    tag: "5.2.1"
     pullPolicy: IfNotPresent
   
   service:
@@ -59,7 +59,7 @@ api:
   image:
     registry: docker.io
     repository: featbit/featbit-api-server
-    tag: "5.2.0"
+    tag: "5.2.1"
     pullPolicy: IfNotPresent
   
   service:
@@ -94,7 +94,7 @@ els:
   image:
     registry: docker.io
     repository: featbit/featbit-evaluation-server
-    tag: "5.2.0"
+    tag: "5.2.1"
     pullPolicy: IfNotPresent
   
   service:
@@ -129,7 +129,7 @@ da-server:
   image:
     registry: docker.io
     repository: featbit/featbit-data-analytics-server
-    tag: "5.2.0"
+    tag: "5.2.1"
     pullPolicy: IfNotPresent
   
   service:

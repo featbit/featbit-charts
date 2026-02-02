@@ -107,7 +107,7 @@ charts/featbit/
   image:
     registry: docker.io
     repository: featbit/<service>
-    tag: "5.2.0"
+    tag: "5.2.1"
   
   service:
     type: ClusterIP
@@ -229,4 +229,4 @@ Create in `examples/standard/` or `examples/pro/`:
 
 - Main repository: https://github.com/featbit/featbit
 - Chart repository: https://github.com/featbit/featbit-charts
-- Current version: 0.9.0 (App: 5.2.0)
+- Current version: 0.9.1 (App: 5.2.1)
