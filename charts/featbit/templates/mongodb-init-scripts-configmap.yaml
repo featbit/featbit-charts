@@ -274,6 +274,8 @@ data:
 
     db.ExperimentMetrics.createIndex({updatedAt: 1});
     db.FeatureFlags.createIndex({updatedAt: 1});
+    db.FeatureFlags.createIndex({createdAt: 1});
+    db.FeatureFlags.createIndex({key: 1});
     db.Segments.createIndex({updatedAt: 1});
     db.AccessTokens.createIndex({createdAt: 1});
     db.Policies.createIndex({createdAt: 1});
@@ -281,6 +283,7 @@ data:
     db.RelayProxies.createIndex({createdAt: 1});
     db.Webhooks.createIndex({createdAt: 1});
     db.Webhooks.createIndex({startedAt: 1});
+    db.WebhookDeliveries.createIndex({startedAt: 1});
     print('indexes added')
   02_update_admin_policies_workspace_perm.js: |-
     const dbName = "{{ $db }}";
