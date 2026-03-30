@@ -90,6 +90,28 @@ spec:
             - name: Streaming__TokenExpirySeconds
               value: {{ include "els.svc.streamingtokenexpiryseconds" . | quote }}
             {{- end }}
+            {{- if .Values.els.cors }}
+            - name: Cors__Enabled
+              value: {{ .Values.els.cors.enabled | default true | quote }}
+            {{- if .Values.els.cors.allowedOrigins }}
+            - name: Cors__AllowedOrigins
+              value: {{ .Values.els.cors.allowedOrigins | quote }}
+            {{- end }}
+            {{- if .Values.els.cors.allowedHeaders }}
+            - name: Cors__AllowedHeaders
+              value: {{ .Values.els.cors.allowedHeaders | quote }}
+            {{- end }}
+            {{- if .Values.els.cors.allowedMethods }}
+            - name: Cors__AllowedMethods
+              value: {{ .Values.els.cors.allowedMethods | quote }}
+            {{- end }}
+            - name: Cors__AllowCredentials
+              value: {{ .Values.els.cors.allowCredentials | default false | quote }}
+            {{- end }}
+            {{- if .Values.els.rateLimiting }}
+            - name: RateLimiting__Enabled
+              value: {{ .Values.els.rateLimiting.enabled | default false | quote }}
+            {{- end }}
             {{- with .Values.els.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}
