@@ -550,11 +550,6 @@ data:
     CREATE INDEX IF NOT EXISTS ix_webhooks_org_id_created_at ON webhooks (org_id, created_at);
 
 
-    CREATE INDEX IF NOT EXISTS ix_refresh_tokens_token ON refresh_tokens (token);
-
-
-    CREATE INDEX IF NOT EXISTS ix_refresh_tokens_revoked_at ON refresh_tokens (revoked_at);
-
     \echo 'tables created'
 
   02_seed_data.sql: |-
