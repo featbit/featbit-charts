@@ -127,7 +127,7 @@ ui:
 
   affinity: {}
 
-  # -- Additional env variables to inject into the da server deployment.
+  # -- Additional env variables to inject into the ui deployment.
   env: []
 
 api:
@@ -221,7 +221,7 @@ api:
 
   affinity: {}
 
-  # -- Additional env variables to inject into the da server deployment.
+  # -- Additional env variables to inject into the api server deployment.
   env: []
 
 els:
@@ -313,7 +313,7 @@ els:
 
   affinity: {}
 
-  # -- Additional env variables to inject into the da server deployment.
+  # -- Additional env variables to inject into the evaluation server deployment.
   env: []
 
   # -- CORS configuration for the evaluation server (v5.3.1+)
