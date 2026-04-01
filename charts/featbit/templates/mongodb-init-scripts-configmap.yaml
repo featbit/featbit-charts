@@ -284,11 +284,6 @@ data:
     db.Webhooks.createIndex({createdAt: 1});
     db.Webhooks.createIndex({startedAt: 1});
     db.WebhookDeliveries.createIndex({startedAt: 1});
-    db.Experiments.createIndex({createdAt: 1});
-    db.Groups.createIndex({createdAt: 1});
-    db.Users.createIndex({createdAt: 1});
-    db.RefreshTokens.createIndex({token: 1});
-    db.RefreshTokens.createIndex({revokedAt: 1});
     print('indexes added')
   02_update_admin_policies_workspace_perm.js: |-
     const dbName = "{{ $db }}";

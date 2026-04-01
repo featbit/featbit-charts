@@ -454,24 +454,6 @@ data:
     );
 
 
-    CREATE TABLE IF NOT EXISTS refresh_tokens
-    (
-    id                uuid                     NOT NULL DEFAULT gen_random_uuid(),
-    token             character varying(500)   NOT NULL,
-    user_id           uuid                     NOT NULL,
-    is_revoked        boolean                  NOT NULL DEFAULT false,
-    replaced_by_token character varying(500),
-    created_by_ip     character varying(45),
-    revoked_by_ip     character varying(45),
-    expires_at        timestamp with time zone NOT NULL,
-    revoked_at        timestamp with time zone,
-    last_used_at      timestamp with time zone,
-    created_at        timestamp with time zone NOT NULL DEFAULT now(),
-    updated_at        timestamp with time zone NOT NULL,
-    CONSTRAINT pk_refresh_tokens PRIMARY KEY (id)
-    );
-
-
     CREATE INDEX IF NOT EXISTS ix_access_tokens_organization_id ON access_tokens (organization_id);
 
 
@@ -549,11 +531,6 @@ data:
 
     CREATE INDEX IF NOT EXISTS ix_webhooks_org_id_created_at ON webhooks (org_id, created_at);
 
-
-    CREATE INDEX IF NOT EXISTS ix_refresh_tokens_token ON refresh_tokens (token);
-
-
-    CREATE INDEX IF NOT EXISTS ix_refresh_tokens_revoked_at ON refresh_tokens (revoked_at);
 
     \echo 'tables created'
 
