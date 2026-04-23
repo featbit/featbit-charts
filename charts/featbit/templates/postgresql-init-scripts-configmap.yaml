@@ -1034,4 +1034,102 @@ data:
 
     CREATE INDEX IF NOT EXISTS ix_refresh_tokens_token ON refresh_tokens (token);
     CREATE INDEX IF NOT EXISTS ix_refresh_tokens_revoked_at ON refresh_tokens (revoked_at);
+  09_v5.3.2.sql: |-
+    \connect {{ $db }}
+
+    -- https://github.com/featbit/featbit/pull/885
+    -- Replace the legacy 'ManageSegment' action with the wildcard '*' in all policy statements.
+    UPDATE policies
+    SET statements = (
+        SELECT COALESCE(
+            jsonb_agg(
+                jsonb_set(
+                    elem,
+                    '{actions}',
+                    (
+                        SELECT COALESCE(
+                            jsonb_agg(
+                                CASE
+                                    WHEN action = '"ManageSegment"'::jsonb THEN '"*"'::jsonb
+                                    ELSE action
+                                END
+                            ),
+                            '[]'::jsonb
+                        )
+                        FROM jsonb_array_elements(elem->'actions') AS action
+                    )
+                )
+            ),
+            '[]'::jsonb
+        )
+        FROM jsonb_array_elements(statements) AS elem
+    )
+    WHERE statements IS NOT NULL;
+
+    -- Append a new 'allow all' statement for the segment resource type to the built-in
+    -- admin and developer policies.
+    UPDATE policies
+    SET statements = statements || jsonb_build_array(
+        jsonb_build_object(
+            'id', gen_random_uuid(),
+            'effect', 'allow',
+            'actions', jsonb_build_array('*'),
+            'resources', jsonb_build_array('project/*:env/*:segment/*'),
+            'resourceType', 'segment'
+        )
+    )
+    WHERE id IN (
+        '3e961f0f-6fd4-4cf4-910f-52d356f8cc08', -- admin
+        '66f3687f-939d-4257-bd3f-c3553d39e1b6'  -- developer
+    );
+
+    -- Mirror the same 'ManageSegment' -> '*' action migration for access token permissions.
+    UPDATE access_tokens
+    SET permissions = (
+        SELECT COALESCE(
+            jsonb_agg(
+                jsonb_set(
+                    elem,
+                    '{actions}',
+                    (
+                        SELECT COALESCE(
+                            jsonb_agg(
+                                CASE
+                                    WHEN action = '"ManageSegment"'::jsonb THEN '"*"'::jsonb
+                                    ELSE action
+                                END
+                            ),
+                            '[]'::jsonb
+                        )
+                        FROM jsonb_array_elements(elem->'actions') AS action
+                    )
+                )
+            ),
+            '[]'::jsonb
+        )
+        FROM jsonb_array_elements(permissions) AS elem
+    )
+    WHERE permissions IS NOT NULL;
+
+    -- https://github.com/featbit/featbit/pull/888
+    -- Monthly unique end users per environment.
+    CREATE TABLE usage_end_user_stats (
+        env_id        uuid         NOT NULL,
+        year_month    integer      NOT NULL,
+        user_key      varchar(512) NOT NULL,
+        first_seen_at date         NOT NULL,
+        CONSTRAINT pk_usage_end_user_stats PRIMARY KEY (env_id, year_month, user_key)
+    );
+
+    CREATE INDEX ix_usage_end_user_stats_env_date
+        ON usage_end_user_stats (env_id, first_seen_at);
+
+    -- Daily aggregated metrics per environment.
+    CREATE TABLE usage_event_stats (
+        env_id           uuid    NOT NULL,
+        stats_date       date    NOT NULL,
+        flag_evaluations integer NOT NULL DEFAULT 0,
+        custom_metrics   integer NOT NULL DEFAULT 0,
+        CONSTRAINT pk_usage_event_stats PRIMARY KEY (env_id, stats_date)
+    );
     {{- end -}}

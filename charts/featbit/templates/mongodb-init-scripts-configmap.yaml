@@ -658,4 +658,99 @@ data:
     // added indexes for RefreshTokens collection
     db.RefreshTokens.createIndex({token: 1});
     db.RefreshTokens.createIndex({revokedAt: 1});
+  08_v5.3.2.js: |-
+    const dbName = "{{ $db }}";
+    print('use', dbName, 'database')
+    db = db.getSiblingDB(dbName)
+
+    // https://github.com/featbit/featbit/pull/885
+    // Replace the legacy 'ManageSegment' action with the wildcard '*' in all policy statements.
+    db.Policies.updateMany(
+        { "statements.actions": "ManageSegment" },
+        [{
+            $set: {
+                statements: {
+                    $map: {
+                        input: "$statements",
+                        as: "stmt",
+                        in: {
+                            $mergeObjects: [
+                                "$$stmt",
+                                {
+                                    actions: {
+                                        $map: {
+                                            input: "$$stmt.actions",
+                                            as: "action",
+                                            in: { $cond: [{ $eq: ["$$action", "ManageSegment"] }, "*", "$$action"] }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }]
+    );
+
+    // Append a new 'allow all' statement for the segment resource type to the built-in
+    // admin and developer policies.
+    db.Policies.updateMany(
+        {
+            _id: {
+                $in: [
+                    UUID("3e961f0f-6fd4-4cf4-910f-52d356f8cc08"),
+                    UUID("66f3687f-939d-4257-bd3f-c3553d39e1b6")
+                ]
+            }
+        },
+        {
+            $push: {
+                statements: {
+                    _id: UUID().toString().split('"')[1],
+                    effect: "allow",
+                    actions: ["*"],
+                    resources: ["project/*:env/*:segment/*"],
+                    resourceType: "segment"
+                }
+            }
+        }
+    );
+
+    // Mirror the same 'ManageSegment' -> '*' action migration for access token permissions.
+    db.AccessTokens.updateMany(
+        { "permissions.actions": "ManageSegment" },
+        [{
+            $set: {
+                permissions: {
+                    $map: {
+                        input: "$permissions",
+                        as: "perm",
+                        in: {
+                            $mergeObjects: [
+                                "$$perm",
+                                {
+                                    actions: {
+                                        $map: {
+                                            input: "$$perm.actions",
+                                            as: "action",
+                                            in: { $cond: [{ $eq: ["$$action", "ManageSegment"] }, "*", "$$action"] }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }]
+    );
+
+    // https://github.com/featbit/featbit/pull/888
+    // Daily aggregated metrics per environment.
+    db.UsageEventStats.createIndex({ envId: 1, statsDate: 1 }, { unique: true });
+
+    // Monthly unique end users per environment.
+    db.UsageEndUserStats.createIndex({ envId: 1, yearMonth: 1, userKey: 1 }, { unique: true });
+    db.UsageEndUserStats.createIndex({ envId: 1, firstSeenAt: 1 });
     {{- end -}}
