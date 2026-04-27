@@ -274,6 +274,8 @@ data:
 
     db.ExperimentMetrics.createIndex({updatedAt: 1});
     db.FeatureFlags.createIndex({updatedAt: 1});
+    db.FeatureFlags.createIndex({createdAt: 1});
+    db.FeatureFlags.createIndex({key: 1});
     db.Segments.createIndex({updatedAt: 1});
     db.AccessTokens.createIndex({createdAt: 1});
     db.Policies.createIndex({createdAt: 1});
@@ -281,6 +283,7 @@ data:
     db.RelayProxies.createIndex({createdAt: 1});
     db.Webhooks.createIndex({createdAt: 1});
     db.Webhooks.createIndex({startedAt: 1});
+    db.WebhookDeliveries.createIndex({startedAt: 1});
     print('indexes added')
   02_update_admin_policies_workspace_perm.js: |-
     const dbName = "{{ $db }}";
@@ -375,4 +378,379 @@ data:
     if (bulkOps.length > 0) {
         db.RelayProxies.bulkWrite(bulkOps, { ordered: false });
     }
+  05_v5.2.0.js: |-
+    const dbName = "{{ $db }}";
+    print('use', dbName, 'database')
+    db = db.getSiblingDB(dbName)
+
+    // https://github.com/featbit/featbit/pull/802
+
+    db.Segments.updateMany(
+        { tags: { $exists: false } },
+        { $set: { tags: [] } }
+    );
+
+    // https://github.com/featbit/featbit/pull/811
+
+    db.Organizations.updateMany(
+        {},
+        {
+            $set: {
+                "settings.flagSortedBy": "created_at"
+            }
+        }
+    );
+
+    db.Policies.updateOne(
+        {
+            type: "SysManaged",
+            name: "Administrator"
+        },
+        {
+            $push: {
+                "statements.$[org].actions": {
+                    $each: ["UpdateOrgSortFlagsBy"],
+                    $position: 0
+                }
+            }
+        },
+        {
+            arrayFilters: [
+                { "org.resourceType": "organization" }
+            ]
+        }
+    );
+
+    // https://github.com/featbit/featbit/pull/821
+
+    db.Policies.updateMany(
+        {
+            "statements.resourceType": "flag",
+            "statements.actions": "ManageFeatureFlag"
+        },
+        {
+            $set: {
+                "statements.$[stmt].actions": ["*"]
+            }
+        },
+        {
+            arrayFilters: [
+                {
+                    "stmt.resourceType": "flag",
+                    "stmt.actions": "ManageFeatureFlag"
+                }
+            ]
+        }
+    )
+
+    db.AccessTokens.updateMany(
+        {
+            "permissions.resourceType": "flag",
+            "permissions.actions": "ManageFeatureFlag"
+        },
+        {
+            $set: {
+                "permissions.$[perm].actions": ["*"]
+            }
+        },
+        {
+            arrayFilters: [
+                {
+                    "perm.resourceType": "flag",
+                    "perm.actions": "ManageFeatureFlag"
+                }
+            ]
+        }
+    );
+
+    // update built-in 'Administrator' and 'Developer' policies
+
+    // add access to envs for 'Developer' policy
+    db.Policies.updateOne(
+        {
+            organizationId: { $eq: null },
+            type: "SysManaged",
+            name: "Developer",
+            "statements.resourceType": { $ne: "env" }
+        },
+        {
+            $push: {
+                statements: {
+                    id: UUID().toString().split('"')[1],
+                    resourceType: "env",
+                    effect: "allow",
+                    actions: ["CanAccessEnv"],
+                    resources: ["project/*:env/*"]
+                }
+            }
+        }
+    );
+
+    // add access to envs for 'Administrator' policy
+    db.Policies.updateOne(
+        {
+            organizationId: { $eq: null },
+            type: "SysManaged",
+            name: "Administrator"
+        },
+        {
+            $set: {
+                "statements.$[stmt].actions": ["CanAccessEnv", "DeleteEnv", "UpdateEnvSettings", "CreateEnvSecret", "DeleteEnvSecret", "UpdateEnvSecret"]
+            }
+        },
+        {
+            arrayFilters: [
+                { "stmt.resourceType": "env" }
+            ]
+        }
+    );
+
+    // add full access to feature flags
+    db.Policies.updateMany(
+        {
+            organizationId: { $eq: null },
+            type: "SysManaged",
+            name: { $in: ["Administrator", "Developer"] },
+            "statements.resourceType": { $ne: "flag" }
+        },
+        {
+            $push: {
+                statements: {
+                    id: UUID(),
+                    resourceType: "flag",
+                    effect: "allow",
+                    actions: ["*"],
+                    resources: ["project/*:env/*:flag/*"]
+                }
+            }
+        }
+    );
+
+  06_v5.2.1.js: |-
+    const dbName = "{{ $db }}";
+    print('use', dbName, 'database')
+    db = db.getSiblingDB(dbName)
+
+    const slugify = str => str
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+    // https://github.com/featbit/featbit/pull/841
+    // added key to Policies collection
+
+    // fill keys if not exist
+    db.Policies.find({
+        $or: [
+            { key: { $exists: false } },
+            { key: null }
+        ]
+    }).forEach(doc => {
+        db.Policies.updateOne(
+            { _id: doc._id },
+            { $set: { key: slugify(doc.name) } }
+        );
+    });
+
+    // make sure keys are unique per organization
+    db.Policies.aggregate([
+        {
+            $group: {
+                _id: {
+                    organizationId: "$organizationId",
+                    key: "$key"
+                },
+                ids: { $push: "$_id" }
+            }
+        },
+        {
+            $match: {
+                "_id.key": { $ne: null },
+                "ids.1": { $exists: true }
+            }
+        }
+    ]).forEach(group => {
+        group.ids.forEach((id, index) => {
+            if (index === 0) return;
+
+            db.Policies.updateOne(
+                { _id: id },
+                {
+                    $set: {
+                        key: `${group._id.key}-${index + 1}`
+                    }
+                }
+            );
+        });
+    });
+
+    // https://github.com/featbit/featbit/pull/844
+    // added key to Segments collection
+    db.Segments.find({
+        $or: [
+            { key: { $exists: false } },
+            { key: null }
+        ]
+    }).forEach(doc => {
+        db.Segments.updateOne(
+            { _id: doc._id },
+            { $set: { key: slugify(doc.name) } }
+        );
+    });
+
+    // make sure keys are unique
+    db.Segments.aggregate([
+        {
+            $match: {
+                key: { $ne: null },
+                type: { $in: ["shared", "environment-specific"] }
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    type: "$type",
+                    scopeId: {
+                        $cond: [
+                            { $eq: ["$type", "shared"] },
+                            "$workspaceId",
+                            "$envId"
+                        ]
+                    },
+                    key: "$key"
+                },
+                ids: { $push: "$_id" }
+            }
+        },
+        {
+            $match: {
+                "ids.1": { $exists: true }
+            }
+        }
+    ]).forEach(group => {
+        group.ids.forEach((id, index) => {
+            if (index === 0) return;
+
+            db.Segments.updateOne(
+                { _id: id },
+                {
+                    $set: {
+                        key: `${group._id.key}-${index + 1}`
+                    }
+                }
+            );
+        });
+    });
+  07_v5.3.0.js: |-
+    const dbName = "{{ $db }}";
+    print('use', dbName, 'database')
+    db = db.getSiblingDB(dbName)
+
+    // https://github.com/featbit/featbit/pull/867
+    // added OrderBy clauses that require indexes on sorted fields
+    db.Experiments.createIndex({createdAt: 1});
+    db.Groups.createIndex({createdAt: 1});
+    db.Users.createIndex({createdAt: 1});
+
+    // https://github.com/featbit/featbit/pull/868
+    // added indexes for RefreshTokens collection
+    db.RefreshTokens.createIndex({token: 1});
+    db.RefreshTokens.createIndex({revokedAt: 1});
+  08_v5.3.2.js: |-
+    const dbName = "{{ $db }}";
+    print('use', dbName, 'database')
+    db = db.getSiblingDB(dbName)
+
+    // https://github.com/featbit/featbit/pull/885
+    // Replace the legacy 'ManageSegment' action with the wildcard '*' in all policy statements.
+    db.Policies.updateMany(
+        { "statements.actions": "ManageSegment" },
+        [{
+            $set: {
+                statements: {
+                    $map: {
+                        input: "$statements",
+                        as: "stmt",
+                        in: {
+                            $mergeObjects: [
+                                "$$stmt",
+                                {
+                                    actions: {
+                                        $map: {
+                                            input: "$$stmt.actions",
+                                            as: "action",
+                                            in: { $cond: [{ $eq: ["$$action", "ManageSegment"] }, "*", "$$action"] }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }]
+    );
+
+    // Append a new 'allow all' statement for the segment resource type to the built-in
+    // admin and developer policies.
+    db.Policies.updateMany(
+        {
+            _id: {
+                $in: [
+                    UUID("3e961f0f-6fd4-4cf4-910f-52d356f8cc08"),
+                    UUID("66f3687f-939d-4257-bd3f-c3553d39e1b6")
+                ]
+            }
+        },
+        {
+            $push: {
+                statements: {
+                    _id: UUID().toString().split('"')[1],
+                    effect: "allow",
+                    actions: ["*"],
+                    resources: ["project/*:env/*:segment/*"],
+                    resourceType: "segment"
+                }
+            }
+        }
+    );
+
+    // Mirror the same 'ManageSegment' -> '*' action migration for access token permissions.
+    db.AccessTokens.updateMany(
+        { "permissions.actions": "ManageSegment" },
+        [{
+            $set: {
+                permissions: {
+                    $map: {
+                        input: "$permissions",
+                        as: "perm",
+                        in: {
+                            $mergeObjects: [
+                                "$$perm",
+                                {
+                                    actions: {
+                                        $map: {
+                                            input: "$$perm.actions",
+                                            as: "action",
+                                            in: { $cond: [{ $eq: ["$$action", "ManageSegment"] }, "*", "$$action"] }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }]
+    );
+
+    // https://github.com/featbit/featbit/pull/888
+    // Daily aggregated metrics per environment.
+    db.UsageEventStats.createIndex({ envId: 1, statsDate: 1 }, { unique: true });
+
+    // Monthly unique end users per environment.
+    db.UsageEndUserStats.createIndex({ envId: 1, yearMonth: 1, userKey: 1 }, { unique: true });
+    db.UsageEndUserStats.createIndex({ envId: 1, firstSeenAt: 1 });
     {{- end -}}

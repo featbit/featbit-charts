@@ -14,3 +14,8 @@ venv/
 # Deployment configuration files with sensitive data
 **/*-secrets.yaml
 *local-values.yaml
+*.local.yaml
+
+# TLS certificates and private keys
+*.crt
+*.key

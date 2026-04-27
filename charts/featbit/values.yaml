@@ -46,7 +46,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.1.4
+    tag: 5.3.3
 
   imagePullSecrets: []
 
@@ -127,7 +127,7 @@ ui:
 
   affinity: {}
 
-  # -- Additional env variables to inject into the da server deployment.
+  # -- Additional env variables to inject into the ui deployment.
   env: []
 
 api:
@@ -140,7 +140,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.1.4
+    tag: 5.3.3
 
   imagePullSecrets: []
 
@@ -221,7 +221,7 @@ api:
 
   affinity: {}
 
-  # -- Additional env variables to inject into the da server deployment.
+  # -- Additional env variables to inject into the api server deployment.
   env: []
 
 controlPlane:
@@ -326,7 +326,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.1.4
+    tag: 5.3.3
 
   imagePullSecrets: []
 
@@ -407,8 +407,20 @@ els:
 
   affinity: {}
 
-  # -- Additional env variables to inject into the da server deployment.
+  # -- Additional env variables to inject into the evaluation server deployment.
   env: []
+
+  # -- CORS configuration for the evaluation server (v5.3.1+)
+  cors:
+    enabled: true
+    allowedOrigins: "*"
+    allowedHeaders: "*"
+    allowedMethods: "*"
+    allowCredentials: false
+
+  # -- Rate limiting configuration for the evaluation server (v5.3.1+)
+  rateLimiting:
+    enabled: false
 
 das:
   replicaCount: 1
@@ -418,7 +430,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.1.4
+    tag: 5.3.3
 
   imagePullSecrets: []
 
