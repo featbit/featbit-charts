@@ -96,6 +96,10 @@ Return the proper Docker Image Registry Secret Names
 {{- include "featbit.images.image" (dict "imageRoot" .Values.api.image "global" .Values.global) -}}
 {{- end -}}
 
+{{- define "featbit.controlPlane.image" -}}
+{{- include "featbit.images.image" (dict "imageRoot" .Values.controlPlane.image "global" .Values.global) -}}
+{{- end -}}
+
 {{- define "featbit.els.image" -}}
 {{- include "featbit.images.image" (dict "imageRoot" .Values.els.image "global" .Values.global) -}}
 {{- end -}}

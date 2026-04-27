@@ -1,0 +1,39 @@
+{{- if and .Values.controlPlane.enabled .Values.controlPlane.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ include "featbit.fullname" . }}-controlplane-hpa
+  labels:
+    {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+  annotations:
+    {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "featbit.fullname" . }}-controlplane
+  minReplicas: {{ .Values.controlPlane.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.controlPlane.autoscaling.maxReplicas }}
+  behavior:
+    {{- with .Values.controlPlane.autoscaling.behavior }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  metrics:
+    {{- with .Values.controlPlane.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ . }}
+    {{- end }}
+    {{- with .Values.controlPlane.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ . }}
+    {{- end }}
+{{- end }}

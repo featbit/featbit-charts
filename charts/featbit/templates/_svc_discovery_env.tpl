@@ -38,6 +38,18 @@
 {{ include "featbit.fullname" . }}-api
 {{- end -}}
 
+{{- define "controlPlane.svc.port" -}}
+{{- if .Values.controlPlane.ingress.enabled -}}
+{{- 80 -}}
+{{- else -}}
+{{- default 5200 .Values.controlPlane.service.port -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "controlPlane.svc.name" -}}
+{{ include "featbit.fullname" . }}-controlplane
+{{- end -}}
+
 {{- define "api.svc.fqdn" -}}
 {{ include "api.svc.name" . }}.{{ .Release.Namespace }}.svc.cluster.local
 {{- end -}}
