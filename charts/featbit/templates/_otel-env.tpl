@@ -19,6 +19,11 @@
 {{- end }}
 {{- end }}
 
+{{- define "controlplane-otel-env" }}
+- name: OTEL_SERVICE_NAME
+  value: {{ include "featbit.fullname" . }}-controlplane
+{{- end }}
+
 {{- define "api-otel-env" }}
 - name: OTEL_SERVICE_NAME
   value: {{ include "featbit.fullname" . }}-api

@@ -72,7 +72,7 @@ spec:
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
             {{- include "otel-common-env" . | indent 12 }}
-            {{- include "api-otel-env" . | indent 12 }}
+            {{- include "controlplane-otel-env" . | indent 12 }}
             {{- include "kafka-bootstrapservers" . | indent 12 }}
             {{- with .Values.controlPlane.env }}
             {{ toYaml . | nindent 12 }}
