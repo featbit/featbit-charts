@@ -1,3 +1,4 @@
+{{- if .Values.openTelemetry.enabled }}
 {{- define "otel-common-env" }}
 - name: ENABLE_OPENTELEMETRY
   value: {{ .Values.openTelemetry.enabled | quote }}
@@ -15,6 +16,7 @@
   value: {{ .Values.openTelemetry.timeoutInMilliseconds | quote }}
 - name: OTEL_EXPORTER_OTLP_INSECURE
   value: {{ .Values.openTelemetry.insecure | quote }}
+{{- end }}
 {{- end }}
 
 {{- define "api-otel-env" }}
