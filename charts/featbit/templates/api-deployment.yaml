@@ -77,7 +77,7 @@ spec:
             {{- toYaml .Values.api.resources | nindent 12 }}
           env:
             - name: OLAP__ServiceHost
-              value: {{ printf "http://%s:%s" (include "das.svc.name" .) (include "das.svc.port" .) }}
+              value: {{ if .Values.api.olapServiceHost }}{{ .Values.api.olapServiceHost }}{{ else }}{{ printf "http://%s:%s" (include "das.svc.name" .) (include "das.svc.port" .) }}{{ end }}
             - name: SSOEnabled
               value: {{ .Values.api.ssoEnabled | quote }}
             {{- include "postgresql-env" . | indent 12 }}

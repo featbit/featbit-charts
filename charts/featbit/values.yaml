@@ -39,6 +39,9 @@ elsStreamingTokenExpirySeconds: ""
 autoDiscovery: false
 
 ui:
+  # -- Whether to deploy the UI component. Set to false to skip ui-deployment/service/ingress/configmap (e.g. for api-only releases).
+  enabled: true
+
   replicaCount: 1
 
   image:
@@ -134,6 +137,9 @@ api:
   replicaCount: 1
 
   ssoEnabled: false
+  # -- Override OLAP__ServiceHost. Empty = auto-derive from das.svc.name (default).
+  # Set to shared DAS URL when running api-only releases (e.g. "http://featbit-das:8200").
+  olapServiceHost: ""
 
   image:
     registry: docker.io
@@ -225,6 +231,9 @@ api:
   env: []
 
 els:
+  # -- Whether to deploy the Evaluation Server component. Set to false to skip eval-server-deployment/service/ingress (e.g. for api-only releases).
+  enabled: true
+
   replicaCount: 1
 
   image:
@@ -329,6 +338,9 @@ els:
     enabled: false
 
 das:
+  # -- Whether to deploy the Data Analytics Server component. Set to false to skip da-server-deployment/service (e.g. for api-only releases).
+  enabled: true
+
   replicaCount: 1
 
   image:
