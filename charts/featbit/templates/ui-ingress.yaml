@@ -1,4 +1,4 @@
-{{- if .Values.ui.ingress.enabled -}}
+{{- if and .Values.ui.enabled .Values.ui.ingress.enabled -}}
 {{- $fullName := (include "featbit.fullname" .) -}}
 {{- $svcName := (include "ui.svc.name" .) -}}
 {{- $svcPort := 80 -}}

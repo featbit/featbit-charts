@@ -1,3 +1,4 @@
+{{- if .Values.ui.enabled -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -76,3 +77,4 @@ data:
     k8s_svc_lb_ip "{{ $releaseNamespace }}" "{{ $elsSVCName }}" | tee $SHARED_EVALUATION_URL_FILE
     {{ end }}
   {{- end }}
+{{- end }}

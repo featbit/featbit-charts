@@ -1,4 +1,4 @@
-{{- if .Values.els.ingress.enabled -}}
+{{- if and .Values.els.enabled .Values.els.ingress.enabled -}}
 {{- $fullName := (include "featbit.fullname" .) -}}
 {{- $svcName := (include "els.svc.name" .) -}}
 {{- $svcPort := 80 -}}
