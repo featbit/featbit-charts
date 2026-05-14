@@ -1,13 +1,13 @@
-{{- if .Values.openTelemetry.enabled }}
 {{- define "otel-common-env" }}
+{{- if .Values.openTelemetry.enabled }}
 - name: ENABLE_OPENTELEMETRY
   value: {{ .Values.openTelemetry.enabled | quote }}
 - name: OTEL_TRACES_EXPORTER
-  value: oltp
+  value: otlp
 - name: OTEL_METRICS_EXPORTER
-  value: oltp
+  value: otlp
 - name: OTEL_LOGS_EXPORTER
-  value: oltp
+  value: otlp
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
   value: {{ .Values.openTelemetry.endpoint }}
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
@@ -20,21 +20,29 @@
 {{- end }}
 
 {{- define "controlplane-otel-env" }}
+{{- if .Values.openTelemetry.enabled }}
 - name: OTEL_SERVICE_NAME
   value: {{ include "featbit.fullname" . }}-controlplane
 {{- end }}
+{{- end }}
 
 {{- define "api-otel-env" }}
+{{- if .Values.openTelemetry.enabled }}
 - name: OTEL_SERVICE_NAME
   value: {{ include "featbit.fullname" . }}-api
 {{- end }}
+{{- end }}
 
 {{- define "els-otel-env" }}
+{{- if .Values.openTelemetry.enabled }}
 - name: OTEL_SERVICE_NAME
   value: {{ include "featbit.fullname" . }}-els
 {{- end }}
+{{- end }}
 
 {{- define "das-otel-env" }}
+{{- if .Values.openTelemetry.enabled }}
 - name: OTEL_SERVICE_NAME
   value: {{ include "featbit.fullname" . }}-das
+{{- end }}
 {{- end }}
