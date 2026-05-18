@@ -42,7 +42,7 @@ spec:
       securityContext:
         {{- toYaml .Values.controlPlane.podSecurityContext | nindent 8 }}
       initContainers:
-        {{- include "initContainers-wait-for-infrastructure-dependencies" (dict "context" . "component" "controlplane") | indent 8 }}
+        {{- include "initContainers-wait-for-infrastructure-dependencies" (dict "context" . "component" "controlPlane") | indent 8 }}
       containers:
         - name: {{ .Chart.Name }}-controlplane
           securityContext:
@@ -71,7 +71,7 @@ spec:
             - name: Region
               value: {{ required "You must set .Values.region when controlPlane.enabled is true" .Values.region | quote }}
             {{- include "postgresql-env" . | indent 12 }}
-            {{- include "redis-env" . | indent 12 }}
+            {{- include "controlplane-redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
             {{- include "otel-common-env" . | indent 12 }}
             {{- include "controlplane-otel-env" . | indent 12 }}

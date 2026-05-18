@@ -323,8 +323,23 @@ controlPlane:
 
   affinity: {}
 
-  # -- Additional env variables to inject into the da server deployment.
+  # -- Additional env variables to inject into the controlplane deployment.
   env: []
+
+  # -- Controlplane-specific Redis instances override.
+  #    Each entry represents one Redis__Instances__N value with grouped sentinel hosts.
+  #    If set, only the controlplane uses these; other services use externalRedis.hosts.
+  #    Example:
+  #      redis:
+  #        instances:
+  #          - hosts:
+  #              - "redis1-prod1:26379"
+  #              - "redis2-prod1:26379"
+  #          - hosts:
+  #              - "redis1-prod2:26379"
+  #              - "redis2-prod2:26379"
+  redis:
+    instances: []
 
 els:
   # -- Whether to deploy the Evaluation Server component. Set to false to skip eval-server-deployment/service/ingress (e.g. for api-only releases).
