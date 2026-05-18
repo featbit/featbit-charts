@@ -8,7 +8,7 @@
 {{- $host := printf "%s-master" (include "featbit.redis.fullname" .) }}
 {{- $port := .Values.redis.master.service.ports.redis }}
 {{- $connStr := printf "%s:%v,defaultDatabase=0,abortConnect=false,ssl=false" $host $port }}
-- name: Redis__Instances__0
+- name: Redis__Instances__0__ConnectionString
   value: {{ $connStr }}
 {{- else }}
 {{- $db := include "featbit.redis.db" . }}
@@ -30,8 +30,15 @@
 {{- if $user }}
 {{- $connStr = printf "%s,user=%s" $connStr $user }}
 {{- end }}
-- name: Redis__Instances__{{ $i }}
+- name: Redis__Instances__{{ $i }}__ConnectionString
   value: {{ $connStr }}
+{{- if (include "featbit.redis.auth.enabled" $) }}
+- name: Redis__Instances__{{ $i }}__Password
+  valueFrom:
+    secretKeyRef:
+      name: {{ $instance.secretName | default (include "featbit.redis.secretName" $) }}
+      key: {{ $instance.secretKey | default (include "featbit.redis.secretPasswordKey" $) }}
+{{- end }}
 {{- end }}
 {{- else }}
 {{- $hostStr := join "," .Values.externalRedis.hosts }}
@@ -46,17 +53,16 @@
 {{- if $user }}
 {{- $connStr = printf "%s,user=%s" $connStr $user }}
 {{- end }}
-- name: Redis__Instances__0
+- name: Redis__Instances__0__ConnectionString
   value: {{ $connStr }}
-{{- end }}
-{{- end }}
-
 {{- if (include "featbit.redis.auth.enabled" .) }}
-- name: Redis__Password
+- name: Redis__Instances__0__Password
   valueFrom:
     secretKeyRef:
       name: {{ include "featbit.redis.secretName" . }}
       key: {{ include "featbit.redis.secretPasswordKey" . }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- if eq "standard" (include "featbit.tier" .) }}

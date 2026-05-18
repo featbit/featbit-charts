@@ -329,15 +329,20 @@ controlPlane:
   # -- Controlplane-specific Redis instances override.
   #    Each entry represents one Redis__Instances__N value with grouped sentinel hosts.
   #    If set, only the controlplane uses these; other services use externalRedis.hosts.
+  #    Each instance can specify its own secret for the password.
   #    Example:
   #      redis:
   #        instances:
   #          - hosts:
   #              - "redis1-prod1:26379"
   #              - "redis2-prod1:26379"
+  #            secretName: "redis-prod1-password"
+  #            secretKey: "password"
   #          - hosts:
   #              - "redis1-prod2:26379"
   #              - "redis2-prod2:26379"
+  #            secretName: "redis-prod2-password"
+  #            secretKey: "password"
   redis:
     instances: []
 
