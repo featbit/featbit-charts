@@ -51,7 +51,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.3.3
+    tag: 5.3.5
 
   imagePullSecrets: []
 
@@ -148,7 +148,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.3.3
+    tag: 5.3.5
 
   imagePullSecrets: []
 
@@ -230,7 +230,19 @@ api:
   affinity: {}
 
   # -- Additional env variables to inject into the api server deployment.
-  env: []
+  # REQUIRED (v5.3.4+): Jwt__Key must be set to a unique secret. Generate with: openssl rand -hex 32
+  # The API will refuse to start if Jwt__Key is empty or set to the old known default.
+  # To load Jwt__Key from a Kubernetes secret instead, replace the Jwt__Key entry with:
+  #   - name: Jwt__Key
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: featbit-jwt-secret
+  #         key: jwt-key
+  env:
+    - name: Jwt__Algorithm
+      value: "HS256"
+    - name: Jwt__Key
+      value: "please_change_me_to_a_secure_secret_key"
 
 controlPlane:
   enabled: false
@@ -357,7 +369,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.3.3
+    tag: 5.3.5
 
   imagePullSecrets: []
 
@@ -464,7 +476,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.3.3
+    tag: 5.3.5
 
   imagePullSecrets: []
 
