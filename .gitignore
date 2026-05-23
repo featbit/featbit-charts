@@ -15,6 +15,7 @@ venv/
 **/*-secrets.yaml
 *local-values.yaml
 *local-values.backup.yaml
+featbit-local-without-das-values.yaml
 *.local.yaml
 *local.backup.yaml
 

@@ -31,7 +31,7 @@
         done
         {{ end }}
 
-        {{ if (include "das.svc.fqdn" $ctx) }}
+        {{ if and $ctx.Values.das.enabled (include "das.svc.fqdn" $ctx) }}
         until (nc -vz -w 1 {{ include "das.svc.fqdn" $ctx }} {{ include "das.svc.port" $ctx }});
         do
           echo "waiting for DA Server"; sleep 1;
