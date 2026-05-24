@@ -1,13 +1,22 @@
 # FeatBit Standard Deployment for Azure AKS
 # Architecture: Internet -> Traffic Manager -> Azure LB -> NGINX Ingress (TLS) -> Services
+# 
+# Deployment Options:
+# 1. Traffic Manager + NGINX Ingress (Production Multi-Region) - Recommended
+# 2. Single-Region NGINX Ingress with HTTPS
+# 3. LoadBalancer (Legacy)
 
 architecture:
   tier: "standard"
   database: "postgres"
 
-# IMPORTANT: Update these URLs to match your domain
+# IMPORTANT: Update these URLs based on your deployment:
+# - For Traffic Manager + Ingress: https://<your-domain> (e.g., https://api.featbit.co)
+# - For Single-Region Ingress: https://<your-domain>
+# - For LoadBalancer: http://<lb-ip> or http://<dns-name>
 apiExternalUrl: "https://api.example.com"
 evaluationServerExternalUrl: "https://eval.example.com"
+elsStreamingTokenExpirySeconds: 300
 
 # UI Service Configuration
 ui:
@@ -67,6 +76,8 @@ api:
     repository: featbit/featbit-api-server
     tag: "5.3.6"
     pullPolicy: IfNotPresent
+  # Set to true only when OAuth providers are configured through api.env.
+  ssoEnabled: false
 
   podSecurityContext:
     seccompProfile:
@@ -113,6 +124,18 @@ api:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
+
+  # Custom environment variables for API service
+  env:
+    # REQUIRED (v5.3.4+): Jwt__Key is loaded from Azure Key Vault via the CSI driver (featbit-keyvault-secrets).
+    # The referenced Kubernetes secret is created by keyvault-secret-provider.yaml.
+    - name: Jwt__Algorithm
+      value: "HS256"
+    - name: Jwt__Key
+      valueFrom:
+        secretKeyRef:
+          name: featbit-jwt-key-secret
+          key: jwt-key
 
   ingress:
     enabled: true
