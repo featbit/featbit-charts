@@ -140,7 +140,7 @@ Install FeatBit:
 helm install featbit featbit/featbit \
   -f featbit-aks-values.local.yaml \
   --namespace featbit \
-  --version 0.9.9
+  --version 0.9.10
 ```
 
 ### 7. Verify Deployment
