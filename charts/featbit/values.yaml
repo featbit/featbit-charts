@@ -37,6 +37,8 @@ elsStreamingTrackClientHostName: ""
 elsStreamingTokenExpirySeconds: ""
 # only considered in exposing LoadBalancer service
 autoDiscovery: false
+# a string used to identify the region of the deployment (ex. "us-east-1"). Only required when controlPlane.enabled is true.
+region: ""
 
 ui:
   # -- Whether to deploy the UI component. Set to false to skip ui-deployment/service/ingress/configmap (e.g. for api-only releases).

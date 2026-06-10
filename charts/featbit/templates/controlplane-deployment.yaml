@@ -68,6 +68,8 @@ spec:
           resources:
             {{- toYaml .Values.controlPlane.resources | nindent 12 }}
           env:
+            - name: Region
+              value: {{ required "You must set .Values.region when controlPlane.enabled is true" .Values.region | quote }}
             {{- include "postgresql-env" . | indent 12 }}
             {{- include "controlplane-redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}
