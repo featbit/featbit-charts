@@ -82,10 +82,6 @@ spec:
               value: {{ .Values.api.ssoEnabled | quote }}
             - name: UseControlPlane
               value: {{ .Values.controlPlane.enabled | quote }}
-            {{- if .Values.controlPlane.enabled }}
-            - name: Region
-              value: {{ required "You must set .Values.region when controlPlane.enabled is true" .Values.region | quote }}
-            {{- end }}
             {{- include "postgresql-env" . | indent 12 }}
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}

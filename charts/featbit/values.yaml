@@ -37,8 +37,6 @@ elsStreamingTrackClientHostName: ""
 elsStreamingTokenExpirySeconds: ""
 # only considered in exposing LoadBalancer service
 autoDiscovery: false
-# a string used to identify the region of the deployment (ex. "us-east-1"). Only required when controlPlane.enabled is true.
-region: ""
 
 ui:
   # -- Whether to deploy the UI component. Set to false to skip ui-deployment/service/ingress/configmap (e.g. for api-only releases).
@@ -358,6 +356,30 @@ controlPlane:
   redis:
     instances: []
 
+  # -- Controlplane-specific Kafka brokers override.
+  #    If set (non-empty), the controlplane uses these as
+  #    Kafka__Producer__bootstrap.servers / Kafka__Consumer__bootstrap.servers
+  #    instead of .Values.externalKafka.brokers.{producer,consumer}.hosts.
+  #    Other services (api, els) continue to use externalKafka.brokers.*.hosts.
+  #    Only applies when externalKafka is in use (not the in-chart kafka dependency)
+  #    and the deployment is running in the "pro" tier.
+  #    Producer and consumer can be overridden independently.
+  #    Example:
+  #      kafka:
+  #        producer:
+  #          hosts:
+  #            - "kafka-cp-1:9092"
+  #            - "kafka-cp-2:9092"
+  #        consumer:
+  #          hosts:
+  #            - "kafka-cp-1:9092"
+  #            - "kafka-cp-2:9092"
+  kafka:
+    producer:
+      hosts: []
+    consumer:
+      hosts: []
+
 els:
   # -- Whether to deploy the Evaluation Server component. Set to false to skip eval-server-deployment/service/ingress (e.g. for api-only releases).
   enabled: true
@@ -571,6 +593,9 @@ postgresql:
     database: featbit
     existingSecret: ""
   primary:
+    service:
+      ports:
+        postgresql: 5432
     persistence:
       enabled: true
       size: 8Gi

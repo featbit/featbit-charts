@@ -29,6 +29,34 @@
 {{- end }}
 {{- end }}
 
+{{/*
+Return the Kafka consumer brokers for the control plane.
+If .Values.controlPlane.kafka.consumer.hosts is set, it overrides
+.Values.externalKafka.brokers.consumer.hosts for the controlplane only.
+Otherwise falls back to the shared featbit.kafka.consumer.brokers helper.
+*/}}
+{{- define "featbit.kafka.controlplane.consumer.brokers" -}}
+{{- if and (not .Values.kafka.enabled) (include "featbit.isPro" .) (.Values.controlPlane.kafka).consumer (.Values.controlPlane.kafka.consumer.hosts) -}}
+    {{- join "," .Values.controlPlane.kafka.consumer.hosts | printf "%s" -}}
+{{- else -}}
+    {{- include "featbit.kafka.consumer.brokers" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Kafka producer brokers for the control plane.
+If .Values.controlPlane.kafka.producer.hosts is set, it overrides
+.Values.externalKafka.brokers.producer.hosts for the controlplane only.
+Otherwise falls back to the shared featbit.kafka.producer.brokers helper.
+*/}}
+{{- define "featbit.kafka.controlplane.producer.brokers" -}}
+{{- if and (not .Values.kafka.enabled) (include "featbit.isPro" .) (.Values.controlPlane.kafka).producer (.Values.controlPlane.kafka.producer.hosts) -}}
+    {{- join "," .Values.controlPlane.kafka.producer.hosts | printf "%s" -}}
+{{- else -}}
+    {{- include "featbit.kafka.producer.brokers" . -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "featbit.kafka.producer.auth.enabled" -}}
 {{- if .Values.kafka.enabled -}}
 {{- if ne "PLAINTEXT" (upper .Values.kafka.listeners.client.protocol) -}}
