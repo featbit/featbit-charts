@@ -367,7 +367,7 @@ Each release includes migration scripts in the [`migration/`](./migration/) fold
 
 **For external databases**: Always check `migration/RELEASE-v{version}.md` for required database schema changes before running `helm upgrade`.
 
-**Latest release**: Helm Chart v0.9.10 / FeatBit v5.4.0. Review [`migration/RELEASE-v0.9.10.md`](./migration/RELEASE-v0.9.10.md) before upgrading.
+**Latest release**: Helm Chart v0.9.11 / FeatBit v5.4.2. Review [`migration/RELEASE-v0.9.11.md`](./migration/RELEASE-v0.9.11.md) before upgrading.
 
 ## ⚠️ Dependencies Notice
 
