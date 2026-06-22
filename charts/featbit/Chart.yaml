@@ -1,5 +1,5 @@
 apiVersion: v2
-name: featbit
+name: helm-chart
 description: A Helm chart for FeatBit feature flags service
 
 # A chart can be either an 'application' or a 'library' chart.
