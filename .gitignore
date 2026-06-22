@@ -22,3 +22,6 @@ featbit-local-without-das-values.yaml
 # TLS certificates and private keys
 *.crt
 *.key
+
+# Agents skills
+.agents/skills/
