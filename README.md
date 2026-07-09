@@ -367,8 +367,6 @@ Each release includes migration scripts in the [`migration/`](./migration/) fold
 
 **For external databases**: Always check `migration/RELEASE-v{version}.md` for required database schema changes before running `helm upgrade`.
 
-**Latest release**: Helm Chart v0.9.11 / FeatBit v5.4.2. Review [`migration/RELEASE-v0.9.11.md`](./migration/RELEASE-v0.9.11.md) before upgrading.
-
 ## ⚠️ Dependencies Notice
 
 🚨 **CRITICAL: Bitnami Image Repository Changes (Effective August 2025)**
