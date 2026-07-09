@@ -48,13 +48,13 @@ Determine version numbers following semantic versioning:
 
 **Examples:**
 ```
-Chart 0.9.1 → 0.9.2 (patch: bug fix in chart templates)
-Chart 0.9.1 → 0.10.0 (minor: new configuration options)
-Chart 0.9.1 → 1.0.0 (major: breaking changes in values structure)
+Chart <current> → <patch>  (patch: bug fix in chart templates)
+Chart <current> → <minor>  (minor: new configuration options)
+Chart <current> → <major>  (major: breaking changes in values structure)
 
-App 5.2.1 → 5.2.2 (patch: FeatBit bug fixes)
-App 5.2.1 → 5.3.0 (minor: new FeatBit features)
-App 5.2.1 → 6.0.0 (major: breaking API changes)
+App <current> → <patch>  (patch: FeatBit bug fixes)
+App <current> → <minor>  (minor: new FeatBit features)
+App <current> → <major>  (major: breaking API changes)
 ```
 
 ## Step 2: Update Chart.yaml
@@ -63,10 +63,10 @@ Update version information in `charts/featbit/Chart.yaml`:
 
 ```yaml
 # Chart version - increment based on changes
-version: 0.9.2  # Was 0.9.1
+version: <chart-version>  # Was <previous-chart-version>
 
 # FeatBit application version
-appVersion: "5.3.0"  # Was "5.2.1"
+appVersion: "<app-version>"  # Was "<previous-app-version>"
 ```
 
 **Version Update Commands:**
@@ -84,10 +84,10 @@ git diff Chart.yaml
 **Chart Version Decision Tree:**
 ```
 Chart Changes?
-├─ Breaking changes in values.yaml structure? → MAJOR (1.0.0)
-├─ New optional configuration options? → MINOR (0.10.0)
-├─ Bug fixes in templates? → PATCH (0.9.2)
-└─ Only appVersion update? → PATCH (0.9.2)
+├─ Breaking changes in values.yaml structure? → MAJOR (<major>)
+├─ New optional configuration options? → MINOR (<minor>)
+├─ Bug fixes in templates? → PATCH (<patch>)
+└─ Only appVersion update? → PATCH (<patch>)
 ```
 
 ## Step 3: Update Image Tags in values.yaml
