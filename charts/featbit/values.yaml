@@ -49,7 +49,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.4.2
+    tag: 5.4.3
 
   imagePullSecrets: []
 
@@ -146,7 +146,7 @@ api:
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.4.2
+    tag: 5.4.3
 
   imagePullSecrets: []
 
@@ -253,7 +253,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.4.2
+    tag: 5.4.3
 
   imagePullSecrets: []
 
@@ -360,7 +360,7 @@ das:
     repository: featbit/featbit-data-analytics-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.4.2
+    tag: 5.4.3
 
   imagePullSecrets: []
 
