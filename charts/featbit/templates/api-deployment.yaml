@@ -87,7 +87,7 @@ spec:
             {{- include "api-otel-env" . | indent 12 }}
             {{- include "kafka-bootstrapservers" . | indent 12 }}
             - name: VERSION
-              value: {{ .Chart.AppVersion | quote }}
+              value: {{ default .Chart.AppVersion .Values.api.image.tag | quote }}
             {{- with .Values.api.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}

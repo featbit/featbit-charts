@@ -124,7 +124,7 @@ spec:
               value: "/shared/evaluation_url.txt"
             {{- end }}
             - name: VERSION
-              value: {{ .Chart.AppVersion | quote }}
+              value: {{ default .Chart.AppVersion .Values.ui.image.tag | quote }}
             {{- with .Values.ui.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}
