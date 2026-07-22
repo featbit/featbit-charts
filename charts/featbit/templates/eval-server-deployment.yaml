@@ -93,6 +93,8 @@ spec:
             - name: Streaming__TokenExpirySeconds
               value: {{ include "els.svc.streamingtokenexpiryseconds" . | quote }}
             {{- end }}
+            - name: VERSION
+              value: {{ default .Chart.AppVersion .Values.els.image.tag | quote }}
             {{- with .Values.els.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}

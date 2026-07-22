@@ -123,6 +123,8 @@ spec:
             - name: SHARED_EVALUATION_URL_FILE
               value: "/shared/evaluation_url.txt"
             {{- end }}
+            - name: VERSION
+              value: {{ default .Chart.AppVersion .Values.ui.image.tag | quote }}
             {{- with .Values.ui.env }}
             {{ toYaml . | nindent 12 }}
             {{- end }}
