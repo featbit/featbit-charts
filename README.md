@@ -58,6 +58,34 @@ els:
       value: "some-value"
 ```
 
+### Required JWT Configuration
+
+FeatBit v5.3.4 and later require an explicit JWT signing key. The API will refuse to start when `Jwt__Key` is missing or still set to the chart's placeholder value.
+
+For production, create a Kubernetes Secret in the FeatBit namespace:
+
+```bash
+kubectl create secret generic featbit-jwt-secret \
+  --from-literal=jwt-key="$(openssl rand -hex 32)" \
+  --namespace <your-featbit-namespace>
+```
+
+Then reference it in your values file:
+
+```yaml
+api:
+  env:
+    - name: Jwt__Algorithm
+      value: "HS256"
+    - name: Jwt__Key
+      valueFrom:
+        secretKeyRef:
+          name: featbit-jwt-secret
+          key: jwt-key
+```
+
+> **Important:** Helm replaces lists instead of merging them. If you set any additional `api.env` entries, keep the required JWT entries in the same list.
+
 ### Example: CORS for Evaluation Server
 
 **Problem**: Your frontend app is hosted on a different domain than the evaluation server, and the browser blocks SDK requests due to CORS policy.

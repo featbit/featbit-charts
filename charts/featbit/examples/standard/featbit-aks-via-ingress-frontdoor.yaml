@@ -73,6 +73,17 @@ api:
     limits:
       cpu: "1000m"
       memory: "2Gi"
+
+  # REQUIRED (v5.3.4+): create this secret before installing the chart:
+  # kubectl create secret generic featbit-jwt-secret --from-literal=jwt-key="$(openssl rand -hex 32)" -n featbit
+  env:
+    - name: Jwt__Algorithm
+      value: "HS256"
+    - name: Jwt__Key
+      valueFrom:
+        secretKeyRef:
+          name: featbit-jwt-secret
+          key: jwt-key
   
   ingress:
     enabled: true
