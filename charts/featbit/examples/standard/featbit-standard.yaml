@@ -16,6 +16,15 @@ ui:
 
 
 api:
+  # REQUIRED (v5.3.4+): create this secret in the FeatBit namespace before installation.
+  env:
+    - name: Jwt__Algorithm
+      value: "HS256"
+    - name: Jwt__Key
+      valueFrom:
+        secretKeyRef:
+          name: featbit-jwt-secret
+          key: jwt-key
   ingress:
     enabled: true
     host: {API host name, ex: api.featbit.com}

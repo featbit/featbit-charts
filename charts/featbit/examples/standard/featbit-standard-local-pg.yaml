@@ -36,6 +36,12 @@ ui:
 # API Configuration
 api:
   replicaCount: 1
+  # Fixed development key for local use only. Use a Kubernetes Secret in production.
+  env:
+    - name: Jwt__Algorithm
+      value: "HS256"
+    - name: Jwt__Key
+      value: "local-development-only-jwt-key-change-before-production"
   service:
     type: NodePort
     port: 5000
