@@ -81,7 +81,7 @@ helm.sh/chart: {{ include "featbit.chart" . }}
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "featbit.imagePullSecrets" -}}
-{{- include "featbit.images.pullSecrets" (dict "images" (list .Values.ui .Values.api .Values.els .Values.das .Values.busybox .Values.kubectl) "global" .Values.global) -}}
+{{- include "featbit.images.pullSecrets" (dict "images" (list .Values.ui .Values.api .Values.els .Values.das .Values.controlPlane .Values.busybox .Values.kubectl) "global" .Values.global) -}}
 {{- end -}}
 
 {{- define "featbit.init-container.busybox.image" -}}

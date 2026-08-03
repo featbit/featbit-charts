@@ -32,7 +32,7 @@
 {{- end }}
 - name: Redis__Instances__{{ $i }}__ConnectionString
   value: {{ $connStr }}
-{{- if (include "featbit.redis.auth.enabled" $) }}
+{{- if or $instance.secretName (include "featbit.redis.auth.enabled" $) }}
 - name: Redis__Instances__{{ $i }}__Password
   valueFrom:
     secretKeyRef:
