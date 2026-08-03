@@ -275,7 +275,7 @@ controlPlane:
   service:
     type: ClusterIP
     port: 5200
-    nodePort: 30050
+    nodePort: 30052
     annotations: {}
     staticIP:
 
