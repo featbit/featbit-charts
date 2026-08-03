@@ -32,11 +32,17 @@
 {{- end }}
 - name: Redis__Instances__{{ $i }}__ConnectionString
   value: {{ $connStr }}
-{{- if or $instance.secretName (include "featbit.redis.auth.enabled" $) }}
+{{- if $instance.secretName }}
 - name: Redis__Instances__{{ $i }}__Password
   valueFrom:
     secretKeyRef:
-      name: {{ $instance.secretName | default (include "featbit.redis.secretName" $) }}
+      name: {{ $instance.secretName }}
+      key: {{ $instance.secretKey | default "redis-password" }}
+{{- else if (include "featbit.redis.auth.enabled" $) }}
+- name: Redis__Instances__{{ $i }}__Password
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "featbit.redis.secretName" $ }}
       key: {{ $instance.secretKey | default (include "featbit.redis.secretPasswordKey" $) }}
 {{- end }}
 {{- end }}

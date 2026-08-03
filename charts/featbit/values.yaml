@@ -342,6 +342,9 @@ controlPlane:
   #    Each entry represents one Redis__Instances__N value with grouped sentinel hosts.
   #    If set, only the controlplane uses these; other services use externalRedis.hosts.
   #    Each instance can specify its own secret for the password.
+  #    When secretName is set, secretKey defaults to "redis-password" if omitted.
+  #    When secretName is omitted, the shared externalRedis secret is used
+  #    (only if externalRedis.password or externalRedis.existingSecret is set).
   #    Example:
   #      redis:
   #        instances:
