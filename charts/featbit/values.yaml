@@ -468,7 +468,10 @@ externalPostgresql:
   database: "featbit"
   # -- External PostgreSQL service user.
   username: ""
-  # -- External PostgreSQL service password. Either this or `externalPostgresql.existingSecret` must be set.
+  # -- External PostgreSQL service password. Either this or `externalPostgresql.existingSecret` must
+  # be set, unless the password is supplied to the application by other means (for example a secret
+  # manager writing it into the application configuration). When both are empty, no password
+  # environment variable is rendered.
   password: ""
   # -- Name of an existing Kubernetes secret object containing the PostgreSQL password
   existingSecret: ""

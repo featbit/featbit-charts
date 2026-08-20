@@ -4,11 +4,13 @@
   value: Postgres
 - name: Postgres__ConnectionString
   value: {{ include "featbit.postgresql.config" . }}
+{{- if (include "featbit.postgresql.auth.enabled" .) }}
 - name: Postgres__Password
   valueFrom:
     secretKeyRef:
       name: {{ include "featbit.postgresql.secretName" . }}
       key: {{ include "featbit.postgresql.secretPasswordKey" . }}
+{{- end }}
 
 {{- if eq "standalone" (include "featbit.tier" .) }}
 - name: MqProvider
@@ -26,11 +28,13 @@
   value: {{ include "featbit.postgresql.db" . }}
 - name: POSTGRES_USER
   value: {{ include "featbit.postgresql.user" . }}
+{{- if (include "featbit.postgresql.auth.enabled" .) }}
 - name: POSTGRES_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "featbit.postgresql.secretName" . }}
       key: {{ include "featbit.postgresql.secretPasswordKey" . }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end -}}
