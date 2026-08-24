@@ -80,6 +80,24 @@
 {{- end -}}
 
 
+{{/*
+Return true if a postgresql password is available from a Kubernetes secret.
+
+When the bundled postgresql sub-chart is enabled it always provisions a secret. When an
+external postgresql is used, a secret only exists if a password is supplied inline or an
+existingSecret is referenced. Deployments that source the password some other way (for
+example a secret manager writing it into the application's own configuration) leave both
+unset, in which case no password environment variable should be rendered.
+*/}}
+{{- define "featbit.postgresql.auth.enabled" -}}
+{{- if .Values.postgresql.enabled -}}
+    {{- true -}}
+{{- else if or .Values.externalPostgresql.password .Values.externalPostgresql.existingSecret -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+
 {{/*Return the postgresql secret name*/}}
 {{- define "featbit.postgresql.secretName" -}}
 {{- if .Values.postgresql.enabled }}
