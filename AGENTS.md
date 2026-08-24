@@ -6,7 +6,7 @@ applyTo: "**"
 ## Tech Stack
 - Kubernetes >= 1.23
 - Helm >= 3.7.0
-- App Version: 5.4.7 (Chart: 0.9.14)
+- App Version: 5.4.7 (Chart: 0.9.15)
 
 ## Architecture
 
