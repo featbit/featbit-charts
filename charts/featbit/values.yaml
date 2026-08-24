@@ -37,6 +37,8 @@ elsStreamingTrackClientHostName: ""
 elsStreamingTokenExpirySeconds: ""
 # only considered in exposing LoadBalancer service
 autoDiscovery: false
+# a string used to identify the region of the deployment (ex. "us-east-1"). Only required when controlPlane.enabled is true.
+region: ""
 
 ui:
   # -- Whether to deploy the UI component. Set to false to skip ui-deployment/service/ingress/configmap (e.g. for api-only releases).
@@ -241,6 +243,147 @@ api:
       value: "HS256"
     - name: Jwt__Key
       value: "please_change_me_to_a_secure_secret_key"
+
+controlPlane:
+  enabled: false
+
+  replicaCount: 1
+
+  image:
+    registry: docker.io
+    repository: featbit/featbit-control-plane
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: 5.1.4
+
+  imagePullSecrets: []
+
+  podAnnotations: {}
+  podLabels: {}
+
+  podSecurityContext: {}
+  # fsGroup: 2000
+
+  securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    port: 5200
+    nodePort: 30052
+    annotations: {}
+    staticIP:
+
+  ingress:
+    enabled: false
+    annotations: {}
+    tls:
+      enabled: false
+      secretName: ""
+    path: "/"
+    pathType: "ImplementationSpecific"
+    host: ""
+
+  rollout:
+    # The max surge in pods during a rollout
+    maxSurge: 25%
+    # The max unavailable during a rollout
+    maxUnavailable: 25%
+
+  resources:
+    requests: {}
+    # cpu: 250m
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+    behavior:
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+          - type: Percent
+            value: 10
+            periodSeconds: 60
+      scaleUp:
+        stabilizationWindowSeconds: 60
+        policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 10
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  # -- Additional env variables to inject into the controlplane deployment.
+  env: []
+
+  # -- Controlplane-specific Redis instances override.
+  #    Each entry represents one Redis__Instances__N value with grouped sentinel hosts.
+  #    If set, only the controlplane uses these; other services use externalRedis.hosts.
+  #    Each instance can specify its own secret for the password.
+  #    When secretName is set, secretKey defaults to "redis-password" if omitted.
+  #    When secretName is omitted, the shared externalRedis secret is used
+  #    (only if externalRedis.password or externalRedis.existingSecret is set).
+  #    Example:
+  #      redis:
+  #        instances:
+  #          - hosts:
+  #              - "redis1-prod1:26379"
+  #              - "redis2-prod1:26379"
+  #            secretName: "redis-prod1-password"
+  #            secretKey: "password"
+  #          - hosts:
+  #              - "redis1-prod2:26379"
+  #              - "redis2-prod2:26379"
+  #            secretName: "redis-prod2-password"
+  #            secretKey: "password"
+  redis:
+    instances: []
+
+  # -- Controlplane-specific Kafka brokers override.
+  #    If set (non-empty), the controlplane uses these as
+  #    Kafka__Producer__bootstrap.servers / Kafka__Consumer__bootstrap.servers
+  #    instead of .Values.externalKafka.brokers.{producer,consumer}.hosts.
+  #    Other services (api, els) continue to use externalKafka.brokers.*.hosts.
+  #    Only applies when externalKafka is in use (not the in-chart kafka dependency)
+  #    and the deployment is running in the "pro" tier.
+  #    Producer and consumer can be overridden independently.
+  #    Example:
+  #      kafka:
+  #        producer:
+  #          hosts:
+  #            - "kafka-cp-1:9092"
+  #            - "kafka-cp-2:9092"
+  #        consumer:
+  #          hosts:
+  #            - "kafka-cp-1:9092"
+  #            - "kafka-cp-2:9092"
+  kafka:
+    producer:
+      hosts: []
+    consumer:
+      hosts: []
 
 els:
   # -- Whether to deploy the Evaluation Server component. Set to false to skip eval-server-deployment/service/ingress (e.g. for api-only releases).
@@ -459,6 +602,9 @@ postgresql:
     database: featbit
     existingSecret: ""
   primary:
+    service:
+      ports:
+        postgresql: 5432
     persistence:
       enabled: true
       size: 8Gi
