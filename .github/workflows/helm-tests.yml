@@ -1,29 +1,28 @@
-name: Release Charts
+name: Helm Tests
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    paths:
+      - "charts/featbit/**"
+      - "tests/helm/**"
+      - ".github/workflows/helm-tests.yml"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Install Helm
         uses: azure/setup-helm@v5
 
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          
-      - name: Add helm repositories
+      - name: Add Helm repositories
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add groundhog2k https://groundhog2k.github.io/helm-charts/
@@ -36,8 +35,3 @@ jobs:
 
       - name: Test PostgreSQL password rendering
         run: bash tests/helm/postgresql-password-env.sh
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

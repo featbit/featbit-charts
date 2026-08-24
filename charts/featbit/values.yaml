@@ -442,6 +442,10 @@ das:
 ###
 ###
 postgresql:
+  # -- Deploy the bundled Bitnami PostgreSQL dependency. It is intended for development and
+  # testing only. FeatBit supports the default authentication behavior and the settings exposed
+  # in this section. Advanced Bitnami overrides such as `global.postgresql.auth.*`, passwordless
+  # authentication, and custom `pg_hba.conf` configurations are not supported.
   enabled: true
   nameOverride: featbit-postgresql
   architecture: standalone
@@ -469,9 +473,8 @@ externalPostgresql:
   # -- External PostgreSQL service user.
   username: ""
   # -- External PostgreSQL service password. Either this or `externalPostgresql.existingSecret` must
-  # be set, unless the password is supplied to the application by other means (for example a secret
-  # manager writing it into the application configuration). When both are empty, no password
-  # environment variable is rendered.
+  # be set unless the password is supplied outside this chart. When both are empty, the chart does
+  # not render PostgreSQL password environment variables.
   password: ""
   # -- Name of an existing Kubernetes secret object containing the PostgreSQL password
   existingSecret: ""

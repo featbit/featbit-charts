@@ -401,6 +401,8 @@ Each release includes migration scripts in the [`migration/`](./migration/) fold
 
 This chart includes infrastructure dependencies (PostgreSQL/MongoDB, Redis, Kafka, ClickHouse) which are **strictly for testing and development purposes** using bitnami legacy images with no updates.
 
+The bundled PostgreSQL dependency is supported with its default authentication behavior and the settings exposed in [`charts/featbit/values.yaml`](./charts/featbit/values.yaml). Advanced Bitnami authentication overrides such as `global.postgresql.auth.*`, passwordless authentication, and custom `pg_hba.conf` configurations are outside the supported scope. Use `externalPostgresql` for non-standard or production PostgreSQL deployments.
+
 **For local testing/development**, use the provided example configurations:
 - [`featbit-standard-local-pg.yaml`](./charts/featbit/examples/standard/featbit-standard-local-pg.yaml) - PostgreSQL + Redis configuration for local Docker Desktop Kubernetes
 - [`featbit-standard-local-mongo.yaml`](./charts/featbit/examples/standard/featbit-standard-local-mongo.yaml) - MongoDB + Redis configuration for local Docker Desktop Kubernetes
