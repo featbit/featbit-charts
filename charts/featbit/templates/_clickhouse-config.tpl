@@ -68,6 +68,23 @@ Return true if a secret object for ClickHouse should be created
 {{- end -}}
 
 {{/*
+Return true if a ClickHouse password is available from a Kubernetes secret.
+
+When the bundled clickhouse sub-chart is enabled it always provisions a secret. When an
+external ClickHouse is used, a secret only exists if a password is supplied inline or an
+existingSecret is referenced. Deployments that source the password some other way (for
+example a secret manager writing it into the container at runtime) leave both unset, in
+which case no password environment variable should be rendered.
+*/}}
+{{- define "featbit.clickhouse.auth.enabled" -}}
+{{- if .Values.clickhouse.enabled -}}
+    {{- true -}}
+{{- else if or .Values.externalClickhouse.password .Values.externalClickhouse.existingSecret -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the ClickHouse secret name
 */}}
 {{- define "featbit.clickhouse.secretName" -}}
