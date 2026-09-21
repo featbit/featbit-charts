@@ -139,8 +139,24 @@ els:
 
 You can also override limits per endpoint (e.g. `RateLimiting__Endpoints__Sdk__PermitLimit`). See full options: [evaluation-server README — Rate Limiting](https://github.com/featbit/featbit/tree/main/modules/evaluation-server#rate-limiting)
 
+### Example: Hide Environment Secrets in the UI Header
+
+FeatBit v5.4.9 adds `SHOW_ENV_SECRETS_IN_HEADER`, which defaults to `true`. To hide the
+header's environment secrets popover, configure the UI environment variable:
+
+```yaml
+ui:
+  env:
+    - name: SHOW_ENV_SECRETS_IN_HEADER
+      value: "false"
+```
+
+Use the quoted string `"false"` and retain any other `ui.env` entries in the same list.
+Environment switching and access permissions are unchanged.
+
 ### Full Environment Variable Reference
 
+- **UI** (`ui.env`): [modules/front-end/README.md](https://github.com/featbit/featbit/blob/5.4.9/modules/front-end/README.md) - UI runtime settings
 - **API Server** (`api.env`): [modules/back-end/README.md](https://github.com/featbit/featbit/blob/main/modules/back-end/README.md) — JWT, Logging, OLAP, and more
 - **Evaluation Server** (`els.env`): [modules/evaluation-server/README.md](https://github.com/featbit/featbit/blob/main/modules/evaluation-server/README.md) — Streaming, CORS, Rate Limiting, and more
 
@@ -388,6 +404,9 @@ kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space
 ```
 
 ## Migration and Upgrades
+
+**Chart v0.9.16 / FeatBit v5.4.9**: See the [upgrade guide](./migration/RELEASE-v0.9.16.md)
+for the changes since v5.4.7 and the optional UI setting. No new database migration is required.
 
 🔄 **Starting from Helm Chart v0.9.0 (FeatBit v5.2.0)**
 
