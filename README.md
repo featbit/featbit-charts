@@ -156,7 +156,7 @@ Environment switching and access permissions are unchanged.
 
 ### Full Environment Variable Reference
 
-- **UI** (`ui.env`): [modules/front-end/README.md](https://github.com/featbit/featbit/blob/5.4.9/modules/front-end/README.md) - UI runtime settings
+- **UI** (`ui.env`): [modules/front-end/README.md](https://github.com/featbit/featbit/blob/5.4.10/modules/front-end/README.md) - UI runtime settings
 - **API Server** (`api.env`): [modules/back-end/README.md](https://github.com/featbit/featbit/blob/main/modules/back-end/README.md) — JWT, Logging, OLAP, and more
 - **Evaluation Server** (`els.env`): [modules/evaluation-server/README.md](https://github.com/featbit/featbit/blob/main/modules/evaluation-server/README.md) — Streaming, CORS, Rate Limiting, and more
 
@@ -405,8 +405,10 @@ kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space
 
 ## Migration and Upgrades
 
-**Chart v0.9.16 / FeatBit v5.4.9**: See the [upgrade guide](./migration/RELEASE-v0.9.16.md)
-for the changes since v5.4.7 and the optional UI setting. No new database migration is required.
+**Chart v0.9.17 / FeatBit v5.4.10**: See the [upgrade guide](./migration/RELEASE-v0.9.17.md).
+This release aligns the chart and example image tags with the upstream deployment and
+documentation release. Application code and database schemas are unchanged from v5.4.9;
+no new database migration or environment variable changes are required.
 
 🔄 **Starting from Helm Chart v0.9.0 (FeatBit v5.2.0)**
 
