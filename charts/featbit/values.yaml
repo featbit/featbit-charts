@@ -856,7 +856,10 @@ externalClickhouse:
   database: "featbit"
   # -- User name for the external cluster to connect to the external cluster as
   user: "default"
-  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  # -- Password for the cluster. Ignored if `externalClickhouse.existingSecret` is set. Either this
+  # or `externalClickhouse.existingSecret` must be set unless the password is supplied outside this
+  # chart. When both are empty, the chart does not render the ClickHouse password environment
+  # variable.
   password: ""
   # -- Name of an existing Kubernetes secret object containing the password
   existingSecret: ""
