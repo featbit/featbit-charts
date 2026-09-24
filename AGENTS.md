@@ -14,6 +14,7 @@ applyTo: "**"
 - `ui` (8081) - Frontend
 - `api` (5000) - API server  
 - `els` (5100) - Evaluation server
+- `control-plane` (5200) - Control plane
 - `da-server` - Analytics
 
 **Infrastructure:**

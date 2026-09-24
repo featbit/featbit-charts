@@ -77,6 +77,8 @@ spec:
           resources:
             {{- toYaml .Values.els.resources | nindent 12 }}
           env:
+            - name: ControlPlane__Enabled
+              value: {{ .Values.controlPlane.enabled | quote }}
             {{- include "postgresql-env" . | indent 12 }}
             {{- include "redis-env" . | indent 12 }}
             {{- include "mongodb-env" . | indent 12 }}

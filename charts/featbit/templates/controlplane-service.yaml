@@ -1,0 +1,30 @@
+{{- if .Values.controlPlane.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ include "controlPlane.svc.name" . }}
+  labels:
+    {{- include "featbit-metadata-labels-common" . | nindent 4 }}
+    app.kubernetes.io/component: controlplane
+  annotations:
+    {{- include "featbit-metadata-annotations-common" . | nindent 4 }}
+    {{- with .Values.controlPlane.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.controlPlane.service.type }}
+  {{ if and (eq .Values.controlPlane.service.type "LoadBalancer") .Values.controlPlane.service.staticIP }}
+  loadBalancerIP: {{ .Values.controlPlane.service.staticIP }}
+  {{ end }}
+  ports:
+    - targetPort: 5200
+      port: {{ include "controlPlane.svc.port" . }}
+      protocol: TCP
+      {{- if and (.Values.controlPlane.service.nodePort) (eq .Values.controlPlane.service.type "NodePort") }}
+      nodePort: {{ .Values.controlPlane.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "featbit.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: controlplane
+{{- end }}
