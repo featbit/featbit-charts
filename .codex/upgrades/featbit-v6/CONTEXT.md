@@ -6,12 +6,13 @@ Recorded: 2026-10-08 (Asia/Shanghai). This file contains decisions and diagnosti
 
 - Repository: `featbit/featbit-charts`.
 - Diagnostic baseline commit: `a36c72dfea52e00c235efa3eb6d7ef06fa6a475b`; the branch was `main` and the working tree was clean at diagnosis.
-- Upgrade branch: `v6`, created from that commit on 2026-10-08. Verify the current branch before continuing.
+- Upgrade branch: `v6`, initially created from the diagnostic baseline on 2026-10-08, then rebased onto published chart commit `f78ba88a96eefa485517c7fb54bd2bc8395ab907` before publication. The private local AKS setup commit was excluded after GitHub push protection rejected its credentials; the original local `main` branch was preserved. Verify the current branch before continuing.
 - Chart baseline: `0.9.17`; application baseline: `5.4.10`; target application: `6.0.0`.
 - Upstream application tag `5.4.10`: `100d585e481fca3413468cbc6a9c70eb5246cc60`.
 - Upstream application tag `6.0.0`: `21b2af4feb3658a88b82349e1b31fff78ab0966c`.
 - The target chart version is undecided. Determine it from final values compatibility rather than assuming the application major version dictates the chart major version.
 - Local AKS values currently use `standard + postgres`. This records configuration structure only; the deployed environment has not been verified.
+- The two local AKS `.local.yaml` files remain on disk and are ignored by the upstream `.gitignore`. Keep them private and do not reintroduce commit `a36c72dfea52e00c235efa3eb6d7ef06fa6a475b` into the published upgrade history.
 
 ## User-confirmed decisions
 

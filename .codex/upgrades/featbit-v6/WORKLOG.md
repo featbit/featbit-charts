@@ -62,3 +62,13 @@ Next step: V6-01, remove DA and its associated configuration.
 - Publication commands: stage the four files, commit as `chore: persist FeatBit v6 upgrade plan`, then `git push --set-upstream origin v6`.
 - At entry preparation the setup files are uncommitted. Use Git history and the remote branch to recover the resulting commit and publication status before resuming.
 - Next session: invoke `$featbit-v6-upgrade`, implement V6-01 only, validate Standard / Professional / api-only rendering and update the saved records. Preserve the exclusions and leave AGENTS.md unchanged.
+
+## 2026-10-08 · R006 · Separate private local settings from published history
+
+- GitHub rejected the first push because ancestor commit `a36c72dfea52e00c235efa3eb6d7ef06fa6a475b` contained OAuth configuration in the local AKS values file. The four new upgrade records were not the source of the rejection.
+- That ancestor contained two local AKS configuration files and changes disabling their ignore rules. Preserved the original `main` branch, backed up both private files and restored them locally with matching SHA256 hashes.
+- Rebased the unpublished `v6` branch onto `f78ba88a96eefa485517c7fb54bd2bc8395ab907`, verified to be in published `origin/main` history. The upgrade setup commit became `3dfa859ac9f1d914ddce83dcd22d55a3a97df71a`.
+- The upstream ignore rules are active on `v6`; both private files are ignored. Verified that the credential-containing ancestor is absent from `v6` and that the original `main` branch is unchanged.
+- Updated TODO and CONTEXT with the published branch base and private-file handling. AGENTS.md still matches its original SHA256. Chart upgrade phases remain unstarted.
+- Next operation: commit this checkpoint, retry `git push --set-upstream origin v6` and verify the remote tip. At entry preparation this checkpoint is uncommitted; recover final commit and publication status from Git.
+- Next implementation step: V6-01 only.

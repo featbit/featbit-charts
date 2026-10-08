@@ -6,7 +6,7 @@ Last updated: 2026-10-08 (Asia/Shanghai)
 
 - Baseline: Chart `0.9.17` / FeatBit `5.4.10`.
 - Target: FeatBit `6.0.0`; determine the target chart version in phase 4.
-- Upgrade branch: `v6`, created from `a36c72dfea52e00c235efa3eb6d7ef06fa6a475b`.
+- Upgrade branch: `v6`, based on published chart commit `f78ba88a96eefa485517c7fb54bd2bc8395ab907`; the private local AKS setup commit is excluded from its history.
 - Status: diagnosis and scope confirmation are complete; phases 1–6 have not started.
 - Next step: V6-01, remove the DA service and its associated configuration.
 - Latest request: commit and push the setup records, then provide a prompt for implementing V6-01 in the next session.
