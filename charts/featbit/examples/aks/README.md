@@ -5,7 +5,7 @@ Deploy FeatBit to Azure AKS with Traffic Manager, NGINX Ingress, and automatic T
 ## Architecture
 
 ```
-Internet → Traffic Manager → Azure LB → NGINX Ingress (TLS) → FeatBit Services
+Internet → Traffic Manager → Azure LB → NGINX Ingress (TLS) → FeatBit UI/API/ELS
                                                               ↓
                                            Azure Key Vault ← PostgreSQL/Redis
 ```

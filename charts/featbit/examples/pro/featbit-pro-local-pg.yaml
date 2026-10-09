@@ -77,17 +77,6 @@ els:
       cpu: "500m"
       memory: "512Mi"
 
-# Data Analytics Server Configuration (Pro tier only)
-das:
-  replicaCount: 1
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "128Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-
 # =============================================================================
 # DATABASE CONFIGURATION - PostgreSQL
 # =============================================================================

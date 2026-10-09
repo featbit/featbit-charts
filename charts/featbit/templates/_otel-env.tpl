@@ -26,8 +26,3 @@
 - name: OTEL_SERVICE_NAME
   value: {{ include "featbit.fullname" . }}-els
 {{- end }}
-
-{{- define "das-otel-env" }}
-- name: OTEL_SERVICE_NAME
-  value: {{ include "featbit.fullname" . }}-das
-{{- end }}

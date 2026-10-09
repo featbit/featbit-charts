@@ -218,62 +218,6 @@ els:
       enabled: true
       secretName: "featbit-els-tls"
 
-# Data Analytics Server
-das:
-  enabled: true
-  replicaCount: 3
-  image:
-    registry: docker.io
-    repository: featbit/featbit-data-analytics-server
-    tag: "5.4.10"
-    pullPolicy: IfNotPresent
-
-  podSecurityContext:
-    seccompProfile:
-      type: RuntimeDefault
-
-  service:
-    type: ClusterIP
-    port: 80
-
-  resources:
-    requests:
-      cpu: "750m"
-      memory: "2Gi"
-    limits:
-      cpu: "1500m"
-      memory: "4Gi"
-
-  initContainers:
-    resources:
-      requests:
-        cpu: "100m"
-        memory: "128Mi"
-      limits:
-        cpu: "200m"
-        memory: "256Mi"
-
-  # Azure Key Vault CSI Driver integration
-  volumeMounts:
-    - name: secrets-store
-      mountPath: "/mnt/secrets-store"
-      readOnly: true
-
-  volumes:
-    - name: secrets-store
-      csi:
-        driver: secrets-store.csi.k8s.io
-        readOnly: true
-        volumeAttributes:
-          secretProviderClass: "featbit-keyvault-secrets"
-
-  autoscaling:
-    enabled: true
-    minReplicas: 3
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 80
-    targetMemoryUtilizationPercentage: 80
-
 postgresql:
   enabled: false
 

@@ -3,6 +3,11 @@
 [FeatBit](https://github.com/featbit/featbit) is an open-source feature flags management tool, which supported self-hosted deployment.
 This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) installation on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm](https://helm.sh/) package manager.
 
+## Architecture
+
+The chart defines three core application services: UI, API Server, and Evaluation Server (ELS).
+PostgreSQL or MongoDB and Redis provide application infrastructure; the Professional tier also uses Kafka and ClickHouse.
+
 ## Prerequisites
 * Kubernetes >=1.23
 * Helm >= 3.7.0
