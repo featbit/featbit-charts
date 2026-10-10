@@ -1,15 +1,22 @@
 # FeatBit v6.0.0 Upgrade TODO
 
-Last updated: 2026-10-10 (Asia/Shanghai)
+Last updated: 2026-10-11 (Asia/Shanghai)
 
 ## Current checkpoint
 
+- R032: the user requests hiding the three .local.yaml files again and replacing/squashing the two unpublished local commits so neither the files nor their private-config commit can be pushed from v6. Restore the existing *.local.yaml ignore rule, remove the three files from Git tracking while preserving their exact local bytes, and create one replacement V6-04 commit directly on a418afd94b82b6497d4d710090601fbb15356f06. The withdrawn commits are df7bf7735f87e44a28117a1d325741d45e4d2128 and 666a90bc46f35a1bba1c792138a6dff4b8da4a9f; they must not be ancestors of the replacement. Include only the five public implementation/test files and these three records, retaining the R031 audit. Resolve the replacement SHA from Git history. Preserve AGENTS.md, the NEXT_SESSION_PROMPT.md deletion and all other private settings. No push. V6-03 runtime/manual migration remains pending; V6-05/V6-06 remain unstarted.
+- Historical R031 (superseded by R032): audited the active AKS local values against all changes from published baseline `f78ba88` through current `666a90bc46f35a1bba1c792138a6dff4b8da4a9f`. Standard with external PostgreSQL/Redis needs no further values changes: DAS/OLAP host removals and UI/API/ELS 6.0.0 tags are already applied; Professional-only ClickHouse/Kafka changes are inactive. Targeted lint/template passed (13 objects), with Postgres database provider, Redis cache/message provider, matching password Secret references and Redis SSL. External PG v6 schema migration still requires manual confirmation/execution against the configured non-default database; the vendored SQL's initial connect target must be adapted. No database/runtime inspection or config edit occurred. Only these records are updated, uncommitted.
+- Historical R030 (superseded by R032): the user explicitly requests committing the three current `.local.yaml` files locally, with no push. This supersedes their exclusion in R029. Include active AKS values, the local Key Vault SecretProviderClass and the smoke override unchanged, plus these three updated records, in `chore: commit local deployment configurations`. The parent is the verified V6-04 commit `df7bf7735f87e44a28117a1d325741d45e4d2128`; resolve this local-config commit's SHA from Git history. Keep .gitignore/AGENTS.md edits, the NEXT_SESSION_PROMPT.md deletion and other ignored local/backup files outside the commit. V6-03 runtime remains pending; V6-05/V6-06 are unstarted.
+- Historical R029 (superseded by R032): the user authorizes a local commit of the completed V6-04 work. This record is included in `chore(helm): bump chart to 0.10.0 and FeatBit to 6.0.0 (V6-04)`, with parent `a418afd94b82b6497d4d710090601fbb15356f06`; resolve the resulting SHA from Git history rather than embedding its own hash. Include only the five V6-04 public implementation/test files and these three records. Preserve AGENTS.md, the existing NEXT_SESSION_PROMPT.md deletion, the newly observed .gitignore edit and all private/local files outside the commit. No push is requested. The current .gitignore comments out `*.local.yaml`, so three local files are untracked rather than ignored; preserve that user edit and exclude them explicitly. V6-03 runtime is pending; V6-05/V6-06 remain unstarted.
+- R028: at the user's explicit follow-up request, updated only UI/API/ELS image tags in ignored `charts/featbit/examples/aks/featbit-aks-values.local.yaml` from `5.4.10` to `6.0.0`. Targeted Helm lint/template passed: all three images and VERSION are `6.0.0`, parent chart labels are `featbit-0.10.0`. All other private values and the backup file remain unchanged. V6-04 stays complete/uncommitted; V6-03 runtime remains pending and V6-05/V6-06 are unstarted.
+- R027: V6-04 is complete in uncommitted changes on `v6` at `a418afd94b82b6497d4d710090601fbb15356f06`. Chart `0.10.0` / app `6.0.0`; UI/API/ELS defaults and the two public YAML examples with explicit application tags now use `6.0.0`. Sixteen offline Helm lint/template cases passed, including private-override and retained-default image checks. Existing private pins remain unchanged. V6-03 runtime acceptance is still pending; V6-05/V6-06 are not started.
+- R026: the user cancels V6-03A/V6-03B organization and naming work to prioritize completing the release. Chart source, Pro README and both skills are restored to latest commit `a418afd94b82b6497d4d710090601fbb15356f06` on `v6`. No infrastructure subdirectories, file renames, helper split or helper renames remain. Preserve the separate AGENTS.md edit, existing NEXT_SESSION_PROMPT.md deletion and private settings. Older organization entries in WORKLOG are superseded.
 - R021 publication/sequence: the user authorizes committing current V6-03 work and pushing v6 to origin. This record is included in `feat(helm): integrate v6 database initialization (V6-03)`; resolve its SHA and verify the remote after publication. V6-03 runtime evidence remains pending. Insert V6-03A, a template-directory-only task, before the next upgrade work; it is queued, not implemented in this publication session.
 - R020 follow-up: removed standalone INITIALIZATION.md and TEMPLATES.md per the project documentation preference. Essential initialization/manual migration usage is in the existing Professional README; active references are cleared. Targeted Helm/document checks passed; V6-03 runtime remains pending.
 - R019 follow-up: removed the redundant parent clickhouse.initdbScripts empty default; the dependency already supplies it. Three targeted lint/template cases and pre/post initialization Secret/StatefulSet hash comparisons passed unchanged. V6-03 runtime remains pending.
 - R018 checkpoint: verified local HEAD, origin/v6 tracking ref and actual remote at `90a11d9e2e57970e52bb8b70b510b15e691af9f7` (`feat(helm): configure Professional ClickHouse for v6 (V6-02)`). This session implements V6-03 only and performs offline checks; no deployment, SQL/broker operation, commit or push is authorized. The user reaffirmed minimal Docker Desktop trial infrastructure: keep working behavior and change only missing/broken functionality.
 - Baseline: Chart `0.9.17` / FeatBit `5.4.10`.
-- Target: FeatBit `6.0.0`; determine the target chart version in phase 4.
+- Target: FeatBit `6.0.0` / Chart `0.10.0`, selected in V6-04 for the incompatible values changes within the repository's existing `0.x` version series.
 - Upgrade branch: `v6`, based on published chart commit `f78ba88a96eefa485517c7fb54bd2bc8395ab907`; the private local AKS setup commit is excluded from its history.
 - Initial restored Git state (R007): clean `v6` at `a4185bfe67898f6b4907bf8c85944d6389bb112b`, matching the local `origin/v6` tracking ref at that checkpoint.
 - R008 follow-up state: an existing AGENTS.md architecture edit was present at the start of the follow-up and was left untouched. The requested local AKS values cleanup remains ignored by Git.
@@ -21,8 +28,8 @@ Last updated: 2026-10-10 (Asia/Shanghai)
 - R014 follow-up checkpoint: retained that branch/HEAD and all prior work. V6-02 now uses one ClickHouse endpoint helper for API and bundled startup wait. External `httpEndpoint` is required; host/httpPort/secure fallback is removed. HTTPS waits require curl and trusted CAs in an image override; the default BusyBox image is unchanged. Follow-up checks passed; changes remain uncommitted and unstaged.
 - R016 simplification checkpoint: the user approved keeping bundled dependencies simple for local development/test. The bundled Professional wait now uses wget with HTTP only and rejects bundled TLS during rendering. The shared endpoint, separate authentication, original SQL/node count and other waits remain; external API HTTP/HTTPS is unchanged. This supersedes R014's bundled HTTPS/curl wait path. All new offline checks passed; branch/HEAD/index and prior work are preserved.
 - R017 publication/handoff checkpoint: this record is included in `feat(helm): configure Professional ClickHouse for v6 (V6-02)`, with the V6-01 commit above as parent. The user authorizes committing current V6-02 work and pushing `v6` to origin, including V6-01. Resolve the completion SHA from Git history and verify actual remote state on resume; this record cannot embed its own commit hash or predict a push result. AGENTS.md remains outside the commit and private/local files remain ignored.
-- Status (R021): V6-01/V6-02 complete. V6-03 implementation/offline checks are included in the authorized publication; actual initialization/startup/ingestion evidence is pending. V6-03A is queued; V6-04-V6-06 remain unstarted.
-- Next step: V6-03A template organization, followed by the pending V6-03 Docker Desktop initialization/runtime checks when separately authorized. Do not begin V6-04 or change versions/images as part of the directory task.
+- Status (R032): V6-01/V6-02 complete. V6-03 implementation/offline checks are published in a418afd94b82b6497d4d710090601fbb15356f06; actual initialization/startup/ingestion evidence remains pending. V6-03A/V6-03B are cancelled and their implementation is withdrawn. V6-04 is complete in the R032 replacement/squashed local commit; all .local.yaml files are untracked and ignored. V6-05/V6-06 remain unstarted.
+- Next step under a future authorized scope: V6-05 documentation/release-skill updates, followed by remaining verification. V6-03 actual initialization/startup/ingestion and existing-database migration acceptance remains pending; V6-04 rendering does not complete it. Do not resume cancelled directory, file-name or helper-naming work. No deployment, database operation, commit or push is included in R027.
 - Prior publication request (R017): commit and push the completed current task, preserve the separate AGENTS.md edit/private settings/smoke resources, and prepare the V6-03 prompt with automatic bundled ClickHouse initialization explicitly included. This session does not implement V6-03 or execute a deployment/database operation. Metadata/images/repositories and all other exclusions remain unchanged.
 - Record-maintenance follow-up (2026-10-10, WORKLOG R015): explicitly track Kafka topic creation strategy in V6-03, temporary V6-02 comment cleanup in V6-05, and verification in V6-06. These are pending tasks; this request updates records only and does not start a later phase.
 - On each continuation, reconcile the saved checkpoint with the actual files, branch and Git status, then follow the user's current request.
@@ -97,24 +104,21 @@ Acceptance: new installations receive the schema required by v6, including autom
 
 Implementation/offline checkpoint (2026-10-10, R018): use the existing Kafka provisioning hook with seven topics and the selected ClickHouse image's first-boot `.sh` mechanism. Local default PLAINTEXT/single-node only; custom authentication/layouts use a custom init Secret or independent services. The extra topic Job, custom provisioning controls, SASL adapter, PostgreSQL guard and schema wait prototype were withdrawn after the user's simplification instruction. Existing working configuration is preserved. Actual execution remains unverified; this phase is not marked complete. R015's V6-05 cleanup audit and V6-06 live/auto-creation-disabled checks remain unchecked.
 
-## V6-03A: Separate bundled infrastructure templates
+## V6-03A / V6-03B: Infrastructure organization and naming — cancelled
 
-- [ ] Create `charts/featbit/templates/builtin-infra/` for templates/helpers used exclusively by bundled development/test infrastructure.
-- [ ] Move bundled PostgreSQL/MongoDB initialization ConfigMaps, the ClickHouse initialization Secret/helper and the bundled infrastructure wait helper into that directory, preserving file contents and named-template identifiers.
-- [ ] Keep UI/API/ELS resources and connection/environment/Secret helpers shared by internal and external services in their current locations. Keep schema source files under `charts/featbit/files/`; do not split or optimize working helpers for this task.
-- [ ] Update explicit file-path references or test selectors if needed. Verify Standard PostgreSQL/MongoDB and Professional internal/external rendering against a pre-move baseline, comparing parsed Kubernetes objects without source-path comments.
-
-Acceptance: the bundled-only files are visibly grouped; generated Kubernetes resources, names, conditions, credentials, initialization scripts and hook behavior are unchanged. Use Helm lint/template and focused comparisons only; no new runtime deployment or standalone explanation document. This task precedes the next upgrade work and does not mark V6-03 runtime complete.
+Cancelled and withdrawn on 2026-10-10 (R026). The user requests the latest committed implementation without new folders, file renames or helper refactoring. Keep templates at their committed paths/names. Do not restart this work unless the user explicitly requests it.
 
 ## V6-04: Update versions and images
 
-- [ ] Determine the chart version based on final values compatibility.
-- [ ] Update `Chart.yaml` appVersion and chart version.
-- [ ] Update the three UI/API/ELS application images to `6.0.0`.
-- [ ] Update explicitly pinned application versions in current examples; check local overrides and the effect of `--reuse-values`.
-- [ ] Verify image references and version metadata.
+- [x] Determine the chart version based on final values compatibility.
+- [x] Update `Chart.yaml` appVersion and chart version.
+- [x] Update the three UI/API/ELS application images to `6.0.0`.
+- [x] Update explicitly pinned application versions in current examples; check local overrides and the effect of `--reuse-values`.
+- [x] Verify image references and version metadata.
 
 Acceptance: the final configuration references the three v6.0.0 core images, and chart metadata is consistent.
+
+Acceptance passed on 2026-10-10 (R027): Chart `0.10.0` / app `6.0.0`; sixteen Helm 3.13.1 lint/template cases verified exact application repositories/tags, container VERSION and parent chart labels, plus `helm show chart` metadata. The two explicitly pinned public YAMLs use `6.0.0`; the existing regression image assertion is synchronized. The R028 follow-up explicitly updates the active private AKS file to `6.0.0` and passes targeted lint/template; its backup remains pinned to `5.4.9`. A source-backed offline retained-default simulation confirms `--reuse-values` can keep `5.4.10` even when the old tag was only a chart default; explicit UI/API/ELS tag overrides select `6.0.0`. Infrastructure images/dependencies and private files are unchanged. See WORKLOG R027 for coverage and limits; no v6 runtime evidence was added.
 
 ## V6-05: Update upgrade documentation and the release skill
 
@@ -130,7 +134,7 @@ Acceptance: installation and upgrade documentation matches the final chart, and 
 ## V6-06: Validate the complete upgrade
 
 - [ ] Run Helm lint/template for Standard PostgreSQL, Standard MongoDB, Professional and built-in/external infrastructure.
-- [ ] Check non-default database names, existing Secrets, HTTP(S) endpoints and component switches.
+- [ ] Check non-default database names, existing Secrets, HTTP(S) endpoints and component switches. Retain the R025 finding for investigation: with all bundled dependencies disabled, inline external ClickHouse credentials can reach an unavailable common.names.dependency.fullname helper. The rollback does not fix that existing render gap.
 - [ ] In a development environment, verify initialization, startup, login, evaluation with existing SDK keys and real-time updates.
 - [ ] In a Professional development environment, verify ClickHouse ingestion and queries without historical experiment data conversion.
 - [ ] Verify that all seven required Kafka topics and producer/consumer/group ACLs are ready with Control Plane disabled, including an auto-creation-disabled case when development runtime testing is authorized. Check bundled provisioning manifests and current examples against the V6-03 creation strategy.
@@ -148,7 +152,8 @@ When a phase is complete, update this table, the checkpoint above and WORKLOG. C
 | V6-01 | Complete | 2026-10-08 | [WORKLOG R007](WORKLOG.md) |
 | V6-02 | Complete, including follow-ups | 2026-10-10 | [WORKLOG R013/R014/R016](WORKLOG.md) |
 | V6-03 | Implemented; runtime pending | — | [WORKLOG R018/R021](WORKLOG.md) |
-| V6-03A | Queued next | — | [WORKLOG R021](WORKLOG.md) |
-| V6-04 | Not started | — | — |
+| V6-03A | Cancelled; implementation withdrawn | 2026-10-10 | [WORKLOG R026](WORKLOG.md) |
+| V6-03B | Cancelled; implementation withdrawn | 2026-10-10 | [WORKLOG R026](WORKLOG.md) |
+| V6-04 | Complete; replacement local commit (R032) | 2026-10-11 | [WORKLOG R027-R032](WORKLOG.md) |
 | V6-05 | Not started | — | — |
 | V6-06 | Not started | — | — |

@@ -193,7 +193,7 @@ def check(case, docs):
         pod = deployment["spec"]["template"]["spec"]
         container = pod["containers"][0]
         assert "data-analytics" not in container["image"], "DAS image"
-        assert container["image"].endswith(":5.4.10"), "application image changed"
+        assert container["image"].endswith(":6.0.0"), "application image changed"
         if component in {"api", "els"}:
             wait = pod["initContainers"][0]
             command = wait["command"][2]
