@@ -53,6 +53,9 @@ Note that if your device is based on the arm64 architecture, please use version 
 
 ## Configuration
 
+See the [template layout guide](charts/featbit/TEMPLATES.md) for the distinction
+between bundled infrastructure settings, application connection settings and shared helpers.
+
 Beyond the chart's `values.yaml` parameters (architecture, external URLs, infrastructure, replicas, etc.), FeatBit services have many application-level settings that are **not** exposed in the chart by default. You can activate these capabilities by injecting environment variables via the `env` field on each service in your values file — for example `api.env` for the API server or `els.env` for the evaluation server:
 
 ```yaml
@@ -164,6 +167,37 @@ Environment switching and access permissions are unchanged.
 - **UI** (`ui.env`): [modules/front-end/README.md](https://github.com/featbit/featbit/blob/5.4.10/modules/front-end/README.md) - UI runtime settings
 - **API Server** (`api.env`): [modules/back-end/README.md](https://github.com/featbit/featbit/blob/main/modules/back-end/README.md) — JWT, Logging, OLAP, and more
 - **Evaluation Server** (`els.env`): [modules/evaluation-server/README.md](https://github.com/featbit/featbit/blob/main/modules/evaluation-server/README.md) — Streaming, CORS, Rate Limiting, and more
+
+### Professional ClickHouse configuration for v6
+
+The `v6` branch is an intermediate upgrade: chart/app versions and images remain
+`0.9.17` / `5.4.10` until the later version phase. The following configuration
+prepares the Professional API for FeatBit `6.0.0`; rendering it does not verify v6
+startup or initialize its schema.
+
+For `architecture.tier: professional`, the chart generates `OLAPProvider=ClickHouse`
+and `ClickHouse__HttpEndpoint`, `ClickHouse__Database`, `ClickHouse__User` and
+`ClickHouse__Password` on the API. Both API and ELS retain `MqProvider=Kafka` and
+their existing business database and Redis settings. Standard leaves `OLAPProvider`
+unset, so v6 Insights uses its selected `DbProvider` (Postgres or MongoDb), with
+`MqProvider=Redis` on both backends. See the [official v6 provider configuration](https://github.com/featbit/featbit/blob/21b2af4feb3658a88b82349e1b31fff78ab0966c/modules/back-end/src/Infrastructure/ConfigurationExtensions.cs).
+
+Bundled ClickHouse's API and startup wait share its HTTP Service endpoint and use
+`clickhouse.database` and `clickhouse.auth.*`. The local development/test wait keeps
+wget and supports HTTP only; Professional bundled TLS is rejected during rendering.
+Keep `clickhouse.tls.enabled=false`. The default BusyBox image is unchanged.
+External ClickHouse requires `externalClickhouse.httpEndpoint`, plus `database`, `user`,
+and either `password` or `existingSecret` / `existingSecretKey`. An existing Secret
+takes precedence; an inline password is placed in a chart-generated Secret.
+An empty external password without a Secret generates an empty password value.
+External HTTPS remains supported by the API with normal .NET certificate validation.
+Old `host` / `httpPort` / `secure` settings must migrate to an absolute HTTP(S)
+`httpEndpoint`; a missing endpoint fails rendering. No legacy fallback remains.
+
+See [Professional configuration and Kafka requirements](charts/featbit/examples/pro/README.md)
+for endpoint examples, legacy values migration and the default v6 consumer
+topics/ACLs with Control Plane disabled. Use the chart values for generated
+ClickHouse settings and avoid duplicating them in `api.env`.
 
 ## Expose self-hosted deployment
 

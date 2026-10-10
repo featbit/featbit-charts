@@ -30,5 +30,8 @@ els:
 
 kafka:
   enabled: true
+  # Review README.md here for v6 topics/ACLs if Kafka auto-creation is disabled.
 clickhouse:
   enabled: true
+  # API query target only; database creation and v6 initialization are separate.
+  database: "featbit"

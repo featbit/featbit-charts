@@ -157,6 +157,8 @@ kafka:
   
   provisioning:
     enabled: true
+    # This existing list is unchanged during V6-02. With auto-creation disabled,
+    # also arrange v6 usage/web-hooks/health-check topics; see README.md here.
     topics:
       - name: "featbit-feature-flag-change"
         partitions: 3
@@ -180,6 +182,8 @@ kafka:
 clickhouse:
   enabled: true
   nameOverride: featbit-clickhouse
+  # Query target only. Setting this does not initialize/migrate the database.
+  database: "featbit"
   shards: 1
   replicaCount: 1
   

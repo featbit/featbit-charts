@@ -13,7 +13,7 @@
   resources:
     {{- toYaml (get $ctx.Values $component).initContainers.resources | nindent 4 }}
   {{- end }}
-  {{- if (include "featbit.isPro" $ctx) }}
+  {{- if and $ctx.Values.clickhouse.enabled (include "featbit.isPro" $ctx) }}
   env:
     {{- include "clickhouse-usr-pass" $ctx | nindent 4 }}
   {{- end }}
@@ -56,12 +56,17 @@
         {{ end }}
 
         {{ if and $ctx.Values.clickhouse.enabled (include "featbit.isPro" $ctx) }}
+        {{ if $ctx.Values.clickhouse.tls.enabled }}
+        {{ fail "Bundled ClickHouse startup wait supports HTTP only; set clickhouse.tls.enabled=false or use external ClickHouse with externalClickhouse.httpEndpoint." }}
+        {{ end }}
+        CLICKHOUSE_HTTP_ENDPOINT={{ include "featbit.clickhouse.httpEndpoint" $ctx | quote }};
+        CLICKHOUSE_AUTH=$(printf '%s:%s' "$CLICKHOUSE_USER" "$CLICKHOUSE_PASSWORD" | base64 | tr -d '\n');
         until (
-            NODES_COUNT=$(wget -qO- \
-                "http://$CLICKHOUSE_USER:$CLICKHOUSE_PASSWORD@{{ include "featbit.clickhouse.host" $ctx }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local:8123" \
+            NODES_COUNT=$(wget -qO- "$CLICKHOUSE_HTTP_ENDPOINT" \
+                --header "Authorization: Basic $CLICKHOUSE_AUTH" \
                 --post-data "SELECT count() FROM clusterAllReplicas('featbit_ch_cluster', system, one)"
-            )
-            test ! -z $NODES_COUNT && test $NODES_COUNT -eq {{ mul $ctx.Values.clickhouse.shards $ctx.Values.clickhouse.replicaCount }}
+            ) &&
+            test -n "$NODES_COUNT" && test "$NODES_COUNT" -eq {{ mul $ctx.Values.clickhouse.shards $ctx.Values.clickhouse.replicaCount }}
         );
         do
             echo "waiting for all ClickHouse nodes to be available"; sleep 1;

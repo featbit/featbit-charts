@@ -549,6 +549,8 @@ kafka:
 
   provisioning:
     enabled: true
+    # v6 also needs usage, web-hooks and health-check topics when auto-creation is off.
+    # Review README's Professional Kafka requirements; this list is unchanged in V6-02.
     topics:
       - name: "featbit-feature-flag-change"
       - name: "featbit-segment-change"
@@ -583,7 +585,11 @@ externalKafka:
 
 clickhouse:
   enabled: false
+  # Bundled Professional startup waiting is HTTP-only for local development/test.
+  # Keep clickhouse.tls.enabled=false; use externalClickhouse for HTTPS connections.
   nameOverride: featbit-clickhouse
+  # -- Professional API query database. This does not create or migrate the database.
+  database: "featbit"
   shards: 1
   replicaCount: 1
   
@@ -752,30 +758,23 @@ clickhouse:
       <max_concurrent_queries>1000</max_concurrent_queries>
     </clickhouse>
 externalClickhouse:
-  # -- Host of the external clickhouse. This is required when clickhouse.enabled is false
-  host: ""
-  # -- TCP(security) port of the external clickhouse. This is required when clickhouse.enabled is false
-  tcpPort: 9000
-  # -- HTTP(s) port of the external clickhouse. This is required when clickhouse.enabled is false
-  httpPort: 8123
-  # -- if the external clickhouse has more than one shard, set a list of clickhouse extra shards in host:tcp.
-  altHosts: []
-  # -- Name of the external cluster to run DDL queries on. This is required when clickhouse.enabled is false
-  cluster: ""
-  # -- Database name for the external cluster
+  # -- Required absolute HTTP(S) endpoint for Professional when bundled ClickHouse is disabled.
+  # Use the HTTP interface, e.g. https://clickhouse.example.com:8443 (no credentials/query/fragment).
+  # Migrate legacy host/httpPort/secure settings into this URL; no fallback is generated.
+  httpEndpoint: ""
+  # -- Query database; API settings do not create/migrate ClickHouse objects.
   database: "featbit"
-  # -- User name for the external cluster to connect to the external cluster as
+  # -- ClickHouse HTTP user
   user: "default"
-  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  # -- Inline password, stored in a chart-generated Secret. Ignored if existingSecret is set.
+  # Empty without an existingSecret means passwordless HTTP authentication.
   password: ""
   # -- Name of an existing Kubernetes secret object containing the password
   existingSecret: ""
   # -- Name of the key pointing to the password in your Kubernetes secret
   existingSecretKey: ""
-  # -- Whether to use TLS connection connecting to ClickHouse
-  secure: false
-  # -- Whether to verify TLS connection connecting to ClickHouse
-  verify: false
+  # Removed host/httpPort/secure and DAS-only tcpPort/altHosts/cluster/verify values are ignored.
+  # Use an HTTP endpoint for topology routing; HTTPS uses normal .NET certificate validation.
 
 openTelemetry:
   enabled: false
