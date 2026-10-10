@@ -4,6 +4,10 @@ Last updated: 2026-10-10 (Asia/Shanghai)
 
 ## Current checkpoint
 
+- R021 publication/sequence: the user authorizes committing current V6-03 work and pushing v6 to origin. This record is included in `feat(helm): integrate v6 database initialization (V6-03)`; resolve its SHA and verify the remote after publication. V6-03 runtime evidence remains pending. Insert V6-03A, a template-directory-only task, before the next upgrade work; it is queued, not implemented in this publication session.
+- R020 follow-up: removed standalone INITIALIZATION.md and TEMPLATES.md per the project documentation preference. Essential initialization/manual migration usage is in the existing Professional README; active references are cleared. Targeted Helm/document checks passed; V6-03 runtime remains pending.
+- R019 follow-up: removed the redundant parent clickhouse.initdbScripts empty default; the dependency already supplies it. Three targeted lint/template cases and pre/post initialization Secret/StatefulSet hash comparisons passed unchanged. V6-03 runtime remains pending.
+- R018 checkpoint: verified local HEAD, origin/v6 tracking ref and actual remote at `90a11d9e2e57970e52bb8b70b510b15e691af9f7` (`feat(helm): configure Professional ClickHouse for v6 (V6-02)`). This session implements V6-03 only and performs offline checks; no deployment, SQL/broker operation, commit or push is authorized. The user reaffirmed minimal Docker Desktop trial infrastructure: keep working behavior and change only missing/broken functionality.
 - Baseline: Chart `0.9.17` / FeatBit `5.4.10`.
 - Target: FeatBit `6.0.0`; determine the target chart version in phase 4.
 - Upgrade branch: `v6`, based on published chart commit `f78ba88a96eefa485517c7fb54bd2bc8395ab907`; the private local AKS setup commit is excluded from its history.
@@ -17,9 +21,9 @@ Last updated: 2026-10-10 (Asia/Shanghai)
 - R014 follow-up checkpoint: retained that branch/HEAD and all prior work. V6-02 now uses one ClickHouse endpoint helper for API and bundled startup wait. External `httpEndpoint` is required; host/httpPort/secure fallback is removed. HTTPS waits require curl and trusted CAs in an image override; the default BusyBox image is unchanged. Follow-up checks passed; changes remain uncommitted and unstaged.
 - R016 simplification checkpoint: the user approved keeping bundled dependencies simple for local development/test. The bundled Professional wait now uses wget with HTTP only and rejects bundled TLS during rendering. The shared endpoint, separate authentication, original SQL/node count and other waits remain; external API HTTP/HTTPS is unchanged. This supersedes R014's bundled HTTPS/curl wait path. All new offline checks passed; branch/HEAD/index and prior work are preserved.
 - R017 publication/handoff checkpoint: this record is included in `feat(helm): configure Professional ClickHouse for v6 (V6-02)`, with the V6-01 commit above as parent. The user authorizes committing current V6-02 work and pushing `v6` to origin, including V6-01. Resolve the completion SHA from Git history and verify actual remote state on resume; this record cannot embed its own commit hash or predict a push result. AGENTS.md remains outside the commit and private/local files remain ignored.
-- Status: V6-01 and V6-02 are complete; phases V6-03–V6-06 have not started.
-- Next session: V6-03, integrate official v6 initialization schemas, including automatic FeatBit ClickHouse table creation for fresh bundled installs through the chart. Keep existing/external database migration manual. Follow [NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md); do not treat rendering as runtime verification.
-- Latest request (R017): commit and push the completed current task, preserve the separate AGENTS.md edit/private settings/smoke resources, and prepare the V6-03 prompt with automatic bundled ClickHouse initialization explicitly included. This session does not implement V6-03 or execute a deployment/database operation. Metadata/images/repositories and all other exclusions remain unchanged.
+- Status (R021): V6-01/V6-02 complete. V6-03 implementation/offline checks are included in the authorized publication; actual initialization/startup/ingestion evidence is pending. V6-03A is queued; V6-04-V6-06 remain unstarted.
+- Next step: V6-03A template organization, followed by the pending V6-03 Docker Desktop initialization/runtime checks when separately authorized. Do not begin V6-04 or change versions/images as part of the directory task.
+- Prior publication request (R017): commit and push the completed current task, preserve the separate AGENTS.md edit/private settings/smoke resources, and prepare the V6-03 prompt with automatic bundled ClickHouse initialization explicitly included. This session does not implement V6-03 or execute a deployment/database operation. Metadata/images/repositories and all other exclusions remain unchanged.
 - Record-maintenance follow-up (2026-10-10, WORKLOG R015): explicitly track Kafka topic creation strategy in V6-03, temporary V6-02 comment cleanup in V6-05, and verification in V6-06. These are pending tasks; this request updates records only and does not start a later phase.
 - On each continuation, reconcile the saved checkpoint with the actual files, branch and Git status, then follow the user's current request.
 - Context: [CONTEXT.md](CONTEXT.md); worklog: [WORKLOG.md](WORKLOG.md).
@@ -81,15 +85,26 @@ Simplification acceptance passed on 2026-10-10 (WORKLOG R016): 25 positive lint/
 
 ## V6-03: Integrate v6 database initialization scripts
 
-- [ ] Update PostgreSQL and MongoDB initialization ConfigMaps with the official v6 schema.
-- [ ] Use the configured database name in initialization scripts instead of copying a fixed `featbit` target.
-- [ ] Integrate the official FeatBit ClickHouse v6 schema into the Helm chart so a fresh bundled local installation automatically creates the database, event tables, Kafka queue and materialized views without manual SQL. Prefer the dependency's existing first-boot init-script mechanism after verifying actual image behavior; keep the local HTTP setup simple and preserve custom initialization settings/order.
-- [ ] Complete the Professional ClickHouse initialization/migration integration plan for the actual Kafka address, authentication and ClickHouse layout.
-- [ ] Finalize Kafka topic creation for all seven v6-required topics with Control Plane disabled, explicitly covering `featbit-usage`, `featbit-control-plane-web-hooks` and `healthchecks-topic`. Reconcile bundled `kafka.provisioning.topics`, current Professional examples and external Kafka guidance: either provision all required topics explicitly or document and verify the broker/client auto-creation prerequisites and ACLs. Broker auto-creation being enabled alone is not proof that all topics will exist.
-- [ ] Document manual migration steps for existing external databases; do not introduce a Helm hook that automatically executes migrations.
-- [ ] Verify script order for new installations and the upgrade path for existing databases; record actual execution results.
+- [x] Update PostgreSQL and MongoDB initialization ConfigMaps with the official v6 schema.
+- [x] Use the configured database name in initialization scripts instead of copying a fixed `featbit` target.
+- [x] Integrate the official FeatBit ClickHouse v6 schema into the Helm chart so a fresh bundled local installation automatically creates the database, event tables, Kafka queue and materialized views without manual SQL. Prefer the dependency's existing first-boot init-script mechanism after verifying actual image behavior; keep the local HTTP setup simple and preserve custom initialization settings/order.
+- [x] Complete the Professional ClickHouse initialization/migration integration plan for the actual Kafka address, authentication and ClickHouse layout.
+- [x] Finalize Kafka topic creation for all seven v6-required topics with Control Plane disabled, explicitly covering `featbit-usage`, `featbit-control-plane-web-hooks` and `healthchecks-topic`. Reconcile bundled `kafka.provisioning.topics`, current Professional examples and external Kafka guidance: either provision all required topics explicitly or document and verify the broker/client auto-creation prerequisites and ACLs. Broker auto-creation being enabled alone is not proof that all topics will exist.
+- [x] Document manual migration steps for existing external databases; do not introduce a Helm hook that automatically executes migrations.
+- [ ] Execute and verify initialization/startup on fresh databases and the manual upgrade path on existing databases; record real SQL/topic/ingestion results. Script ordering, mounts, Bash/JavaScript syntax and mocked first-boot behavior passed offline in R018.
 
 Acceptance: new installations receive the schema required by v6, including automatic FeatBit schema initialization for fresh bundled ClickHouse with matching database/Kafka settings and startup order. Existing persistent/external database migration remains a separate manual procedure. Historical experiment data conversion is outside this phase. Record actual execution evidence or clearly identify runtime verification still pending; manifests alone are not execution evidence.
+
+Implementation/offline checkpoint (2026-10-10, R018): use the existing Kafka provisioning hook with seven topics and the selected ClickHouse image's first-boot `.sh` mechanism. Local default PLAINTEXT/single-node only; custom authentication/layouts use a custom init Secret or independent services. The extra topic Job, custom provisioning controls, SASL adapter, PostgreSQL guard and schema wait prototype were withdrawn after the user's simplification instruction. Existing working configuration is preserved. Actual execution remains unverified; this phase is not marked complete. R015's V6-05 cleanup audit and V6-06 live/auto-creation-disabled checks remain unchecked.
+
+## V6-03A: Separate bundled infrastructure templates
+
+- [ ] Create `charts/featbit/templates/builtin-infra/` for templates/helpers used exclusively by bundled development/test infrastructure.
+- [ ] Move bundled PostgreSQL/MongoDB initialization ConfigMaps, the ClickHouse initialization Secret/helper and the bundled infrastructure wait helper into that directory, preserving file contents and named-template identifiers.
+- [ ] Keep UI/API/ELS resources and connection/environment/Secret helpers shared by internal and external services in their current locations. Keep schema source files under `charts/featbit/files/`; do not split or optimize working helpers for this task.
+- [ ] Update explicit file-path references or test selectors if needed. Verify Standard PostgreSQL/MongoDB and Professional internal/external rendering against a pre-move baseline, comparing parsed Kubernetes objects without source-path comments.
+
+Acceptance: the bundled-only files are visibly grouped; generated Kubernetes resources, names, conditions, credentials, initialization scripts and hook behavior are unchanged. Use Helm lint/template and focused comparisons only; no new runtime deployment or standalone explanation document. This task precedes the next upgrade work and does not mark V6-03 runtime complete.
 
 ## V6-04: Update versions and images
 
@@ -132,7 +147,8 @@ When a phase is complete, update this table, the checkpoint above and WORKLOG. C
 | --- | --- | --- | --- |
 | V6-01 | Complete | 2026-10-08 | [WORKLOG R007](WORKLOG.md) |
 | V6-02 | Complete, including follow-ups | 2026-10-10 | [WORKLOG R013/R014/R016](WORKLOG.md) |
-| V6-03 | Not started | — | — |
+| V6-03 | Implemented; runtime pending | — | [WORKLOG R018/R021](WORKLOG.md) |
+| V6-03A | Queued next | — | [WORKLOG R021](WORKLOG.md) |
 | V6-04 | Not started | — | — |
 | V6-05 | Not started | — | — |
 | V6-06 | Not started | — | — |

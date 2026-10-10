@@ -1,8 +1,8 @@
 # Professional ClickHouse configuration
 
-This is the V6-02 configuration checkpoint on the `v6` branch. Chart/app versions
-and images remain `0.9.17` / `5.4.10`. v6 schema integration and runtime validation
-are pending; these examples are not evidence of a working v6 installation.
+The `v6` branch includes API configuration and fresh-database initialization.
+Chart/app versions and images remain `0.9.17` / `5.4.10`; runtime validation with
+v6 images is pending. See [initialization and manual migration](#database-initialization).
 Bundled dependencies are for development/test. Production uses managed external
 infrastructure and explicit API/ELS external URLs.
 
@@ -57,9 +57,7 @@ a separate Basic-auth header rather than putting them in the URL. Quoted shell
 expansions preserve password punctuation and newlines.
 Bundled wait credentials come from `clickhouse-usr-pass` in `_pro-env.tpl`, included
 only when the bundled ClickHouse wait is enabled. API connection settings remain
-in `_clickhouse-env.tpl`. See the
-[template layout guide](../../TEMPLATES.md) for the application, bundled dependency
-and shared-helper boundaries across all five infrastructure services.
+in `_clickhouse-env.tpl`.
 Generated host/Secret names follow the subchart's naming rules, including an empty
 or release-matching `nameOverride`; explicit existing Secret names are unchanged.
 
@@ -83,9 +81,42 @@ ClickHouse startup wait. For HTTPS, the API must trust the server's certificate
 chain and hostname through normal .NET validation. Rendering does not verify an
 actual TLS handshake. Default image values and tags are unchanged.
 
-These settings do not create databases, change Kafka ingestion or rewrite SQL.
-Non-default database names and clustered ClickHouse layouts require matching,
-manually adapted schema scripts in V6-03. See the [official ClickHouse upgrade guidance](https://docs.featbit.co/installation/upgrade/upgrade-to-v6#clickhouse-changes).
+## Database initialization
+
+Fresh bundled PostgreSQL and MongoDB run the official v6 schema after the existing
+ordered scripts, using `postgresql.auth.database` or `mongodb.userDatabase.name`.
+Professional's bundled single-node ClickHouse initializes its v6 database, event
+tables, Kafka queue and materialized views using `clickhouse.database` and the
+Kafka Service/client port (or external consumer brokers). This local trial uses
+HTTP ClickHouse and PLAINTEXT Kafka. Runtime validation with v6 images is pending.
+
+The selected ClickHouse image executes `.sh` files at first initialization.
+The default init Secret includes `20_featbit-v6.sh`; add custom scripts under
+`clickhouse.initdbScripts` as `30_*.sh` to run afterwards. Earlier scripts must
+leave the target database empty; raw `.sql` files are ignored by this image.
+An alternate `clickhouse.initdbScriptsSecret` overrides chart-managed scripts;
+setting it to `""` disables managed initialization and restores dependency inline
+scripts. Custom Kafka authentication/layouts require a tailored init Secret or
+independent services. PostgreSQL/MongoDB custom init overrides retain their
+existing precedence and must include the v6 schema themselves.
+
+Existing persistent and external databases are migrated manually:
+
+1. Back up the databases, confirm prior migrations through 5.4.10, and review the
+   [official v6 upgrade guide](https://docs.featbit.co/installation/upgrade/upgrade-to-v6).
+2. Adapt the database name in the applicable [PostgreSQL SQL](../../files/featbit-v6/postgresql-v6.0.0.sql)
+   or [MongoDB script](../../files/featbit-v6/mongodb-v6.0.0.js), then run it once with
+   an authenticated client. For Professional, prepare the seven Kafka topics and
+   adapt/run the [ClickHouse SQL](../../files/featbit-v6/clickhouse-v6.0.0.sql) for the
+   database, brokers, authentication and layout. Stop on errors; inspect partial
+   state before retrying. Keep `ch_group` offsets.
+3. For a manually migrated bundled ClickHouse PVC, set `clickhouse.initdbScriptsSecret: ""`.
+   Normal restarts retain the image's successful-init marker; an older volume
+   without it is refused when the target database contains tables. Retain existing
+   PostgreSQL initialization markers/MongoDB data files and verify v6 startup and
+   ingestion after migration. Helm does not run database migration hooks.
+
+Legacy data is preserved under legacy names; historical conversion is separate.
 
 ## Legacy externalClickhouse values
 
@@ -148,10 +179,11 @@ need WRITE/DESCRIBE there, even if the consumer otherwise only reads.
 [ELS health-check source](https://github.com/featbit/featbit/blob/21b2af4feb3658a88b82349e1b31fff78ab0966c/modules/evaluation-server/src/Infrastructure/MQ/Kafka/KafkaHealthCheckBuilderExtensions.cs),
 [9.0.0 health-check implementation](https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks/blob/release-all-9.0.0/src/HealthChecks.Kafka/KafkaHealthCheck.cs).
 
-If broker/topic auto-creation is disabled, arrange all seven listed topic names
-(including `healthchecks-topic`) before v6 startup. The existing bundled
-`kafka.provisioning.topics` list has four of them; it is unchanged in V6-02.
-Auto-creation, when allowed, also needs the relevant CREATE permission. Missing
-topics/ACLs can cause consumption or readiness errors; rendering cannot verify
-them. This phase records requirements only and does not provision Kafka resources
-or enable Control Plane.
+The bundled `kafka.provisioning.topics` list now includes all seven topics and
+uses the dependency's existing provisioning hook. With auto-creation disabled on a
+fresh install, omit `--wait` so topic provisioning can run before application
+readiness, or create topics beforehand.
+For external Kafka, provision all seven before v6 startup. Broker auto-creation
+alone does not guarantee every topic exists; consumers disable it by default,
+and unused topics may have no producer. Topic creation needs CREATE/DESCRIBE
+permissions. Rendering does not verify live topics/ACLs. Control Plane stays disabled.

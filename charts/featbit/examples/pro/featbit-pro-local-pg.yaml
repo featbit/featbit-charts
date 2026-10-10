@@ -157,8 +157,7 @@ kafka:
   
   provisioning:
     enabled: true
-    # This existing list is unchanged during V6-02. With auto-creation disabled,
-    # also arrange v6 usage/web-hooks/health-check topics; see README.md here.
+    # Provision all seven required topics through the existing Kafka dependency hook.
     topics:
       - name: "featbit-feature-flag-change"
         partitions: 3
@@ -172,6 +171,15 @@ kafka:
       - name: "featbit-insights"
         partitions: 3
         replicationFactor: 1
+      - name: "featbit-usage"
+        partitions: 3
+        replicationFactor: 1
+      - name: "featbit-control-plane-web-hooks"
+        partitions: 3
+        replicationFactor: 1
+      - name: "healthchecks-topic"
+        partitions: 3
+        replicationFactor: 1
 
 # =============================================================================
 # ANALYTICS CONFIGURATION - ClickHouse (Pro tier)
@@ -182,7 +190,7 @@ kafka:
 clickhouse:
   enabled: true
   nameOverride: featbit-clickhouse
-  # Query target only. Setting this does not initialize/migrate the database.
+  # Fresh bundled single-node initialization and API query database; existing data is migrated manually.
   database: "featbit"
   shards: 1
   replicaCount: 1

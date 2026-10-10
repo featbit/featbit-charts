@@ -53,9 +53,6 @@ Note that if your device is based on the arm64 architecture, please use version 
 
 ## Configuration
 
-See the [template layout guide](charts/featbit/TEMPLATES.md) for the distinction
-between bundled infrastructure settings, application connection settings and shared helpers.
-
 Beyond the chart's `values.yaml` parameters (architecture, external URLs, infrastructure, replicas, etc.), FeatBit services have many application-level settings that are **not** exposed in the chart by default. You can activate these capabilities by injecting environment variables via the `env` field on each service in your values file — for example `api.env` for the API server or `els.env` for the evaluation server:
 
 ```yaml
@@ -173,7 +170,8 @@ Environment switching and access permissions are unchanged.
 The `v6` branch is an intermediate upgrade: chart/app versions and images remain
 `0.9.17` / `5.4.10` until the later version phase. The following configuration
 prepares the Professional API for FeatBit `6.0.0`; rendering it does not verify v6
-startup or initialize its schema.
+startup. Fresh bundled database initialization and manual migration are described
+in the [database initialization instructions](charts/featbit/examples/pro/README.md#database-initialization).
 
 For `architecture.tier: professional`, the chart generates `OLAPProvider=ClickHouse`
 and `ClickHouse__HttpEndpoint`, `ClickHouse__Database`, `ClickHouse__User` and

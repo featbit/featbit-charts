@@ -30,8 +30,8 @@ els:
 
 kafka:
   enabled: true
-  # Review README.md here for v6 topics/ACLs if Kafka auto-creation is disabled.
+  # The existing Kafka provisioning hook creates all seven required topics.
 clickhouse:
   enabled: true
-  # API query target only; database creation and v6 initialization are separate.
+  # Fresh bundled single-node initialization and API query database; existing data is migrated manually.
   database: "featbit"

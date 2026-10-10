@@ -549,13 +549,15 @@ kafka:
 
   provisioning:
     enabled: true
-    # v6 also needs usage, web-hooks and health-check topics when auto-creation is off.
-    # Review README's Professional Kafka requirements; this list is unchanged in V6-02.
+    # All seven are explicitly prepared; broker/client auto-creation is not required.
     topics:
       - name: "featbit-feature-flag-change"
       - name: "featbit-segment-change"
       - name: "featbit-endusers"
       - name: "featbit-insights"
+      - name: "featbit-usage"
+      - name: "featbit-control-plane-web-hooks"
+      - name: "healthchecks-topic"
 
   controller:
     persistence:
@@ -588,8 +590,11 @@ clickhouse:
   # Bundled Professional startup waiting is HTTP-only for local development/test.
   # Keep clickhouse.tls.enabled=false; use externalClickhouse for HTTPS connections.
   nameOverride: featbit-clickhouse
-  # -- Professional API query database. This does not create or migrate the database.
+  # -- Professional API and fresh bundled initialization database. Existing data is migrated manually.
   database: "featbit"
+  # The chart merges initdbScripts with its reserved 20_featbit-v6.sh in this managed Secret.
+  # An alternate Secret (or an empty value) opts out of chart-managed FeatBit initialization.
+  initdbScriptsSecret: '{{ include "common.names.fullname" . }}-featbit-initdb'
   shards: 1
   replicaCount: 1
   
@@ -644,6 +649,8 @@ clickhouse:
               <replica>
                   <host>{{ printf "%s-shard%d-%d.%s.%s.svc.%s" (include "common.names.fullname" $ ) $shard $i (include "clickhouse.headlessServiceName" $) (include "common.names.namespace" $) $.Values.clusterDomain }}</host>
                   <port>{{ $.Values.service.ports.tcp }}</port>
+                  <user from_env="CLICKHOUSE_ADMIN_USER"></user>
+                  <password from_env="CLICKHOUSE_ADMIN_PASSWORD"></password>
               </replica>
               {{- end }}
           </shard>
