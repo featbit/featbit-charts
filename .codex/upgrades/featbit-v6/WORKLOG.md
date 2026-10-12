@@ -666,3 +666,116 @@ Date: 2026-10-11 (Asia/Shanghai). Explicit request: hide the .local.yaml files a
 - Public implementation/test and private configuration bytes match their prior verified state. Existing V6-04 16-case Helm lint/template and R028/R031 targeted local checks remain applicable; no source change requires another Helm run. No private values, credentials or rendered payload are printed or copied into records. No push, unrelated branch rewrite, deployment, database/runtime operation, infrastructure change or later-phase implementation is included.
 
 Result/checkpoint: V6-04 is complete in the replacement/squashed local commit, with .local.yaml files restored to ignored and untracked local-only state. V6-03 actual initialization/startup/ingestion/manual migration acceptance remains pending. V6-05/V6-06 remain unstarted and V6-03A/V6-03B remain cancelled. Inspect Git for the replacement SHA and final verification results.
+
+
+## R033: Publish V6-04 and prepare the V6-05 handoff
+
+Date: 2026-10-11 (Asia/Shanghai). Scope: user-authorized v6 push and an inline next-session prompt; do not implement V6-05 here.
+
+- Restored the upgrade skill, TODO/CONTEXT/recent WORKLOG and actual Git. Confirmed v6 at 6cadd0eea485a145b6a2c4f9f8f54b069ae71d25, with an empty index and only the preserved AGENTS.md edit/NEXT_SESSION_PROMPT.md deletion. Captured 150 file states and the exact WORKLOG byte prefix. The public V6-04 commit's whitespace check passed; existing Helm evidence remains valid for unchanged source.
+- Verified no reachable .local.yaml path in v6, no withdrawn df7bf77/666a90b ancestor and no branch/tag ref retaining those commits. All three .local.yaml files exist, are ignored and untracked, and their bytes are preserved. Private values/rendered payloads were not printed or saved.
+- git ls-remote --heads origin refs/heads/v6 first returned a418afd94b82b6497d4d710090601fbb15356f06. Ran git -c push.followTags=false push origin refs/heads/v6:refs/heads/v6; the normal fast-forward succeeded (a418afd..6cadd0e). Post-push ls-remote returned 6cadd0eea485a145b6a2c4f9f8f54b069ae71d25, matching HEAD and origin/v6. No force push, tags, unrelated branch or private configuration publication occurred.
+- Read the exact V6-05 TODO, current V6-03 initialization/Kafka decisions and the general release skill to prepare a self-contained prompt returned inline. Scope: existing architecture/version/install/example documentation, migration/RELEASE-v0.10.0.md, three-core-service release workflow, removed values/ClickHouse/reuse-values migration guidance and stage-comment cleanup after confirming the implemented Kafka decision. Preserve historical documents and private files; do not recreate NEXT_SESSION_PROMPT.md, deploy, run databases, change dependency/image/configuration behavior, auto-commit/push or start V6-06.
+- Updated only TODO/CONTEXT and appended this English entry after confirmed publication. These record changes remain uncommitted. Verify record consistency, prior WORKLOG byte prefix, all other file hashes, local ignore/tracking status and the empty index. V6-03 actual fresh initialization/startup/ingestion and existing-database manual migration acceptance remains pending; no new runtime evidence is claimed.
+
+Result/checkpoint: V6-04 is published at 6cadd0e. V6-05 is queued for the user's new session, with a prompt supplied in the response; V6-05/V6-06 are not started here. V6-03A/V6-03B remain cancelled. Preserve the three uncommitted publication records and the original unrelated working changes on continuation.
+
+
+## R034: V6-05 upgrade documentation and release skill
+
+Date: 2026-10-11 (Asia/Shanghai). Scope: complete V6-05 only; no V6-03 runtime acceptance or V6-06 work.
+
+- Restored the invoked skill, TODO/CONTEXT/recent WORKLOG and AGENTS.md before checking actual Git. Confirmed `v6` at `6cadd0eea485a145b6a2c4f9f8f54b069ae71d25`, matching the existing local origin/v6 ref, with an empty index. The three R033 records have uncommitted publication updates; the separate AGENTS.md edit and NEXT_SESSION_PROMPT.md deletion are present. Captured hashes for 149 initial file states and the exact WORKLOG byte prefix. All three .local.yaml files are present, ignored and untracked; no private content was printed or copied.
+- Updated `README.md`, `charts/featbit/examples/pro/README.md` and `charts/featbit/examples/aks/README.md` for Chart 0.10.0 / FeatBit 6.0.0, UI/API/ELS architecture/ports/providers, source versus available-package installation, explicit production external URLs/infrastructure, manual upgrades and retained old values/images. Fixed the root TLS example reference/API URL typo and the AKS UI Traffic Manager health route to `/health`. Preserved the explicitly excluded UI-header section exactly.
+- Added `migration/RELEASE-v0.10.0.md`: removed das.*/api.olapServiceHost/OLAP__ServiceHost; required externalClickhouse.httpEndpoint and separate Secret authentication; Professional API OLAPProvider/ClickHouse__*; actual database names, Kafka brokers/authentication/group/layout and seven-topic/ACL preparation; required manual PostgreSQL/MongoDB and applicable ClickHouse incremental schema migration; fresh bundled first-boot/empty-database integration versus persistent/external migration; configured PostgreSQL SQL \connect and MongoDB dbName adaptation; ClickHouse marker/opt-out and partial-state/recovery limits. No full bootstrap replay, automatic migration claim, Control Plane deployment or historical experiment conversion procedure is introduced.
+- Rewrote `.agents/skills/upgrade-featbit-chart/SKILL.md` around exactly three application images, synchronized checklists/examples/verification and the actual direct image.tag/VERSION behavior. Kept app/chart version selection independent, documented pre-1.0 minor compatibility boundaries, replaced global tag edits/speculative schema/SDK claims with actual-source review, and aligned dependency/publication guidance with the existing lockfile/main/chart-releaser workflow. Corrected one stale four-image reference in `.agents/skills/featbit-v6-upgrade/SKILL.md`. Applied the system skill-creator's focused edit/validation guidance; no extra skill resources or explanation documents were created. The protected .agents directory required a narrowly scoped sandbox escalation to write the prepared skill drafts; automatic review allowed it.
+- Audited actual Kafka values and packaged `kafka-26.8.5.tgz` provisioning Job: all seven topics, post-install/post-upgrade hooks and --if-not-exists are implemented. V6-03 had already replaced both requested temporary V6-02 comments with permanent provisioning guidance; `charts/featbit/values.yaml` and `examples/pro/featbit-pro-local-pg.yaml` remain byte-identical. All current public examples were scanned; no equivalent stage note remains. No topic list/provisioning behavior was changed.
+
+Verification:
+
+- `python -X utf8 C:/Users/hu-be/AppData/Local/Temp/featbit-v6-05-i69mka38/verify.py` passed **8 targeted Helm lint/template cases**, 16 Helm invocations / **219 parsed objects**, plus `helm show chart`. Cases: Standard PostgreSQL and MongoDB; bundled Professional local PostgreSQL and internal LoadBalancer skeleton; external Professional with synthetic hosts/existing Secrets; public AKS; non-default PostgreSQL/ClickHouse database names with Kafka Service/client-port override; non-default MongoDB name. Verified exact UI/API/ELS 6.0.0 images/VERSION, chart labels, provider mapping, external ClickHouse Secret reference, configured initialization targets and seven-topic hooks. Rendered manifests remained in memory; temporary fixtures contain synthetic settings only.
+- The same audit passed **48 local Markdown file/anchor references across six documents**, all **14 public values examples**, both unchanged requested YAML byte comparisons, metadata/current image pins, absence of retired active values/stage notes and exact preservation of the excluded UI-header section. Existing PostgreSQL/Redis architecture merge warnings remain. No source change required rerunning the broader previously passed implementation regressions.
+- Both skills passed `python -X utf8 C:/Users/hu-be/.codex/skills/.system/skill-creator/scripts/quick_validate.py <skill-directory>`. Rechecked actual `_images.tpl`, VERSION/probe templates, configured database helpers, initialization scripts and dependency hook; the pinned Helm 3.13.1 reuseValues source confirms old coalesced default retention. The official upgrade-guide fetch was unavailable, so schema guidance uses actual vendored scripts and the already recorded pinned evidence. No fresh migration execution/compatibility result is invented.
+- Final checks: updated TODO/CONTEXT in English and appended this entry without replacing prior WORKLOG bytes; verify local record references, changed-file scope, whitespace, unchanged protected hashes, ignored/untracked private files, absent prompt, unchanged branch/HEAD and empty index. Historical migration documents and every chart value/template/schema/dependency/version/image file are preserved. No deployment, SQL/broker operation, runtime inspection, staging, commit or push occurs.
+
+Result/checkpoint: **V6-05 complete**, uncommitted. V6-01/V6-02 remain complete; V6-04 remains published at 6cadd0e. V6-03 actual fresh initialization/restart/startup/ingestion/live topic/ACL and manual existing-database migration acceptance remains pending. V6-06 is not started; the known all-external inline ClickHouse helper render gap remains for future investigation, with existing Secret configuration documented. Cancelled V6-03A/V6-03B work stays withdrawn. The next task is complete-upgrade verification only under a future authorized scope. Offline Helm checks are not runtime evidence.
+
+Final audit follow-up: the extended record-reference check found a pre-existing historical hyperlink to the deleted NEXT_SESSION_PROMPT.md in CONTEXT. Converted only that hyperlink to historical text noting the later deletion; the prompt remains absent. `python -X utf8 C:/Users/hu-be/AppData/Local/Temp/featbit-v6-05-i69mka38/final_audit.py` then passed all 48 document and 13 current record paths/anchors, exactly nine intended changed/added files (only the release migration guide is new), 141 unchanged initial file states, the exact original WORKLOG byte prefix, R033 retention, unchanged V6-06 checklist and branch/HEAD/tracking ref/empty index, private ignore/tracking state and whitespace checks. No additional Helm run was needed after record/prose-only edits; the eight passed cases remain valid.
+
+
+## R035: Simplify the customer migration note
+
+Date: 2026-10-11 (Asia/Shanghai). User follow-up to V6-05.
+
+- Simplified `migration/RELEASE-v0.10.0.md` from 254 lines / 1,756 words to 108 lines / 549 words. Retained required removed-value/ClickHouse authentication changes, manual PostgreSQL/MongoDB/ClickHouse migration and actual database targets, fresh-versus-existing database distinction, seven Kafka topics/ACLs, old values/image retention, upgrade command and customer checks. Removed internal implementation explanations, source-code details, publication history and verification narrative.
+- Recorded the customer-facing writing preference in CONTEXT and the checkpoint in TODO. Local-reference/anchor audit passes (47 document and 13 current record references), whitespace checks pass, and the follow-up initially changes only the migration note. No chart/configuration/skill/private file changed, so the existing eight-case Helm evidence remains valid without repeating Helm.
+- Final scope check permits only this note and the three records; preserve the exact pre-follow-up WORKLOG prefix and all other file bytes, branch/HEAD/index and private ignore/tracking state. V6-05 remains complete/uncommitted; V6-03 runtime/manual migration remains pending and V6-06 is not started. No deployment, database/Kafka operation, staging, commit or push.
+
+
+## R036: Clarify bundled and external ClickHouse guidance
+
+Date: 2026-10-12 (Asia/Shanghai). User follow-ups to V6-05.
+
+- Added the requested bold opening sentence: thoroughly test in an isolated environment before production and recommend blue-green deployment with a tested rollback plan.
+- Clarified that Professional requires ClickHouse. Local bundled development uses `clickhouse.enabled: true`, `clickhouse.database` and `clickhouse.auth.*`, with bundled TLS disabled; the existing `enabled: false` YAML is explicitly an external ClickHouse example. Removed the duplicate bundled TLS reminder. No chart/example configuration changed.
+- Confirmed both paths against `_clickhouse-config.tpl`, the bundled local PostgreSQL example and the Professional README. Local references, whitespace, preserved WORKLOG prefix and changed-file scope checks pass. Prior Helm evidence remains applicable to unchanged configuration; no Helm/runtime/database/Kafka operation was repeated.
+
+Result/checkpoint: V6-05 remains complete/uncommitted; V6-03 runtime/manual migration remains pending and V6-06 is not started. Existing publication records, private files, AGENTS.md and the prompt deletion are preserved. No staging, commit or push.
+
+
+## R037: Preserve existing PostgreSQL/Redis deployment settings
+
+Date: 2026-10-12 (Asia/Shanghai). User clarification to V6-05.
+
+- Reworded the migration note to start from existing custom values and retain JWT, database/Redis credentials or Secret references, persistence and API/ELS URLs. The upgrade does not require changing these settings. Clarified that --reset-values requires all desired custom overrides, without copying all chart defaults; removed the duplicate reminder below the command.
+- Compared parsed defaults against the published 0.9.17 baseline f78ba88: architecture, PostgreSQL/externalPostgresql, Redis/externalRedis, api.env (including JWT) and both external URLs match. PostgreSQL/Redis connection/authentication helpers are unchanged; inspected API/PostgreSQL environment diffs and the v6 PostgreSQL schema script. Local helm upgrade --help confirms the reset-values behavior.
+- Documentation references, whitespace, changed-file scope and prior WORKLOG prefix checks pass. Prior Helm evidence remains valid for unchanged configuration; no new Helm render/runtime/database/Kafka operation was needed.
+
+Result/checkpoint: V6-05 remains complete/uncommitted, V6-03 runtime/manual migration remains pending and V6-06 is not started. Preserve all prior publication records, AGENTS.md, private files and the prompt deletion. No staging, commit or push.
+
+
+## R038: Keep the migration note focused on release changes
+
+Date: 2026-10-12 (Asia/Shanghai). User clarification to V6-05.
+
+- Removed the generic Helm upgrade command, reset-values procedure and migrated-values preparation instructions from `migration/RELEASE-v0.10.0.md`. State that current defaults already select all three 6.0.0 images; old custom pins and retained reuse-values defaults require review. Explicit image flags/reset-values are not mandatory v6 steps.
+- Retained existing JWT/credentials/Secrets/persistence/URLs, appVersion and old-values compatibility caveats, required schema migrations and the Helm rollback limitation. This supersedes the migration-note procedure in R037; generic upgrade usage remains in README.
+- Local reference/whitespace and changed-file preservation checks pass. Chart/templates/values/private files and prior WORKLOG bytes are preserved; no new Helm/runtime/database/Kafka operation is needed for prose-only edits.
+
+Result/checkpoint: V6-05 remains complete/uncommitted; V6-03 runtime/manual migration remains pending and V6-06 is not started. No deployment, staging, commit or push.
+
+
+## R039: Simplify current example READMEs
+
+Date: 2026-10-12 (Asia/Shanghai). User clarification to V6-05.
+
+- Simplified `charts/featbit/examples/pro/README.md` and `charts/featbit/examples/aks/README.md` to current installation/configuration. Removed chart/app version positioning, package availability/branch publication discussion, image/reuse-values upgrade instructions, legacy ClickHouse value migration tables and old-database upgrade tutorials. Removed session runtime-status prose; pending acceptance remains recorded here.
+- Retained three core services, local versus external infrastructure settings, the Professional sample table, source-chart install commands, correct bundled ClickHouse enabled/HTTP settings, external Secret configuration, empty-database initialization/script precedence and all seven Kafka topics/group/ACL requirements. AKS deployment/health-check/Traffic Manager guidance remains. The release migration guide and root README retain release-specific upgrade instructions unchanged.
+- Current Markdown references/anchors, absence of version-positioning/upgrade narratives, sample/settings consistency, whitespace, exact prior WORKLOG prefix and changed-file preservation checks pass. No chart/configuration changes require repeating prior Helm evidence; no new runtime evidence is claimed.
+
+Result/checkpoint: V6-05 remains complete/uncommitted; V6-03 runtime/manual migration remains pending and V6-06 is not started. Preserve earlier publication records, AGENTS.md, private files and the prompt deletion. No deployment, database/Kafka operation, staging, commit or push.
+
+
+## R040: Restore minimal example documentation changes
+
+Date: 2026-10-12 (Asia/Shanghai). User correction to V6-05; supersedes R039.
+
+- The previous response rewrote example documentation instead of minimizing changes against the released 5.x chart. Checked `git ls-tree`/`git show` at f78ba88a96eefa485517c7fb54bd2bc8395ab907 (Chart 0.9.17 / FeatBit 5.4.10): AKS README exists; Professional README is absent.
+- Removed `charts/featbit/examples/pro/README.md` as explicitly requested. Restored `charts/featbit/examples/aks/README.md` to the published baseline, changing only the existing install version to 0.10.0 and the UI Traffic Manager probe to /health. No rewritten example sections remain.
+- Fixed the removed file's current references in README, migration/RELEASE-v0.10.0.md, the general release skill and CONTEXT's key-file index. Point to the existing Professional YAML/release note/root README and the Kafka ACL reference; do not relocate the removed tutorial or add explanation documents. Preserved historical WORKLOG entries as evidence of earlier decisions.
+- Baseline-exact AKS comparison, active local references/anchors, skill validation, whitespace, intended scope and exact prior WORKLOG-prefix checks pass. Protected source/private/history files and branch/HEAD/index remain unchanged. Prior Helm evidence remains applicable to unchanged chart configuration; no new runtime evidence is claimed.
+
+Result/checkpoint: V6-05 remains complete/uncommitted; V6-03 runtime/manual migration remains pending and V6-06 is not started. AGENTS.md, R033 publication records, private files and the prompt deletion are preserved. No deployment, database/Kafka operation, staging, commit or push.
+
+
+## R041: Commit and publish V6-05
+
+Date: 2026-10-12 (Asia/Shanghai). User explicitly requests commit and push, and asks what comes next.
+
+- This entry is included in `docs(helm): update v6 migration docs and release skill (V6-05)`, whose verified parent is 6cadd0eea485a145b6a2c4f9f8f54b069ae71d25. Resolve the completion SHA from Git history rather than embedding the containing commit's own hash. Publication is user-authorized; actual origin/v6 is the source of truth for its result.
+- Restored the skill/records and actual Git. The index is empty and branch v6/HEAD/local origin-v6 match that parent. `git ls-remote --heads origin refs/heads/v6` confirms the actual remote at the same SHA. Captured current file hashes and the exact prior WORKLOG prefix.
+- Include exactly nine V6-05 paths: README.md, the AKS README, the Professional README deletion, migration/RELEASE-v0.10.0.md, both upgrade/release skills and TODO/CONTEXT/WORKLOG. R033 publication entries are retained. Exclude the pre-existing AGENTS.md edit, NEXT_SESSION_PROMPT.md deletion and all private files. Private .local.yaml files are ignored/untracked; no private contents were printed or copied.
+- Final baseline/reference audit passes: AKS differs from released 5.x in only two lines; the absent-in-5.x Professional README is removed; current references/anchors, whitespace, original WORKLOG prefix and all protected file hashes pass. Both skills have passed validation. Prior eight-case Helm evidence (219 objects) remains applicable to unchanged chart/templates/values/dependencies; no unnecessary Helm or runtime test is repeated.
+- Publication procedure: stage the explicit nine paths, verify cached file names and `git diff --cached --check`, create the named commit, then normal-push only refs/heads/v6 with push.followTags=false. Verify HEAD, origin/v6 and `git ls-remote` agree, the index is empty, all working file bytes remain intact and only the two excluded pre-existing changes remain. No force push, tags, unrelated branch or chart-package publication is requested.
+
+Result/checkpoint: V6-05 is complete and recorded by the commit containing this entry; publication is explicitly authorized and verified through Git refs. The next task is V6-06 complete-upgrade verification under a future scope: targeted offline provider/infrastructure checks and the known all-external inline ClickHouse helper gap, followed by authorized independent-environment runtime, manual-schema migration, SDK/live-update and Professional Kafka/ClickHouse acceptance. V6-03 runtime/manual migration remains pending; V6-06 is not started here. No deployment or database/Kafka operation.

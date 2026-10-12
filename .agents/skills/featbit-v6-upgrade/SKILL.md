@@ -33,7 +33,7 @@ Follow subsequent user changes and update the records accordingly.
 
 ## Implementation details to preserve
 
-- v6 has three core application images: UI/API/ELS. The [general release skill](../upgrade-featbit-chart/SKILL.md) still describes four images; use its applicable release guidance, but do not upgrade or retain the DAS image for this release.
+- v6 has three core application images: UI/API/ELS. The [general release skill](../upgrade-featbit-chart/SKILL.md) uses this three-service workflow; do not restore the retired DAS image for this release.
 - When removing `das-pro-env`, retain Kafka helpers and ClickHouse wait credentials that still have callers. Do not delete the entire `_pro-env.tpl`.
 - Remove `OLAP__ServiceHost`. Put Professional's new `OLAPProvider` / `ClickHouse__*` configuration in the API. The business `DbProvider` remains PostgreSQL/MongoDB.
 - API environment variables do not change the database, Kafka or topology settings in ClickHouse SQL. Adapt SQL to the actual environment using the evidence in CONTEXT.
