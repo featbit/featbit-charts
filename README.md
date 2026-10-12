@@ -7,21 +7,6 @@ Current source: **Chart 0.10.0 / FeatBit 6.0.0**. The default UI/API/ELS image t
 are all `6.0.0`. Review the [0.10.0 migration guide](migration/RELEASE-v0.10.0.md)
 before upgrading an existing installation.
 
-## Architecture
-
-The chart defines three core application services:
-
-| Service | Container port | Purpose |
-| --- | --- | --- |
-| UI (`ui`) | 8081 | Management frontend |
-| API Server (`api`) | 5000 | Management API and Insights queries |
-| Evaluation Server (`els`) | 5100 | SDK synchronization, evaluation and event collection |
-
-Use `architecture.tier: standard` or `professional`. Both use PostgreSQL (default)
-or MongoDB for business data and Redis for caching. Standard uses the business
-database for Insights and Redis for messaging. Professional adds Kafka for
-messaging and ClickHouse for Insights; the API connects directly to ClickHouse.
-
 ## Prerequisites
 
 * Kubernetes >=1.23
@@ -45,55 +30,23 @@ If you had already added this repo earlier, run `helm repo update` to retrieve
 the latest versions of the packages.  You can then run `helm search repo
 featbit` to see the charts.
 
-From this repository root, install the current source for local development with
-the bundled PostgreSQL/Redis example:
-
-```bash
-helm install featbit ./charts/featbit \
-  --namespace featbit --create-namespace \
-  -f charts/featbit/examples/standard/featbit-standard-local-pg.yaml
+To install the featbit chart:
+```
+helm install <your-release-name> featbit/featbit [-f <your-values-file>]
 ```
 
-The local examples include a development-only JWT key. For MongoDB, use
-[`featbit-standard-local-mongo.yaml`](charts/featbit/examples/standard/featbit-standard-local-mongo.yaml).
-For Kafka/ClickHouse, use the [Professional example](charts/featbit/examples/pro/featbit-pro.yaml).
-For production with external PostgreSQL/Redis, start from the
-[AKS example](charts/featbit/examples/aks/README.md) and configure your own endpoints,
-credentials and JWT Secret.
+To simply upgrade your current release to the latest version of featbit chart:
 
-To install a packaged release, first check `helm search repo featbit/featbit --versions`
-for availability. Git branch publication alone does not publish a chart package.
-When `0.10.0` is available:
-
-```bash
-helm install featbit featbit/featbit --version 0.10.0 \
-  --namespace featbit --create-namespace -f your-values.yaml
 ```
+helm repo update [featbit]
 
-For an existing release, complete the manual schema migrations and values review
-in the [0.10.0 migration guide](migration/RELEASE-v0.10.0.md) first. Prepare a complete
-`migrated-values.yaml` with the desired external URLs, credentials, JWT, storage
-and other overrides, then upgrade the current source:
-
-```bash
-helm upgrade featbit ./charts/featbit --namespace featbit \
-  --reset-values -f migrated-values.yaml \
-  --set-string ui.image.tag=6.0.0 \
-  --set-string api.image.tag=6.0.0 \
-  --set-string els.image.tag=6.0.0
+helm upgrade <your-release-name> featbit/featbit [-f <your-values-file>]
 ```
-
-For an available package, replace `./charts/featbit` with
-`featbit/featbit --version 0.10.0`. Local overrides and `--reuse-values` can retain
-old image tags and old defaults, including tags originally supplied by the old
-chart. `appVersion` does not select these images. Explicitly updating all three
-tags still requires reviewing removed values, new defaults and database migration;
-it does not establish full compatibility of reused values.
 
 To uninstall the chart:
 
 ```
-helm uninstall <your-release-name> --namespace <your-namespace>
+helm delete <your-realease-name>
 ```
 
 To get the more details of using helm to deploy or maintain your featbit release in the k8s, please refer to
@@ -214,36 +167,6 @@ Environment switching and access permissions are unchanged.
 - **UI** (`ui.env`): [modules/front-end/README.md](https://github.com/featbit/featbit/blob/6.0.0/modules/front-end/README.md) - UI runtime settings
 - **API Server** (`api.env`): [modules/back-end/README.md](https://github.com/featbit/featbit/blob/6.0.0/modules/back-end/README.md) — JWT, Logging, OLAP, and more
 - **Evaluation Server** (`els.env`): [modules/evaluation-server/README.md](https://github.com/featbit/featbit/blob/6.0.0/modules/evaluation-server/README.md) — Streaming, CORS, Rate Limiting, and more
-
-### Professional ClickHouse configuration for v6
-
-Chart `0.10.0` selects FeatBit `6.0.0` for UI/API/ELS. Fresh bundled initialization
-is integrated; existing persistent/external databases require manual migration.
-See the [release migration guide](migration/RELEASE-v0.10.0.md).
-Offline rendering does not verify v6 startup or migration execution.
-
-For `architecture.tier: professional`, the chart generates `OLAPProvider=ClickHouse`
-and `ClickHouse__HttpEndpoint`, `ClickHouse__Database`, `ClickHouse__User` and
-`ClickHouse__Password` on the API. Both API and ELS retain `MqProvider=Kafka` and
-their existing business database and Redis settings. Standard leaves `OLAPProvider`
-unset, so v6 Insights uses its selected `DbProvider` (Postgres or MongoDb), with
-`MqProvider=Redis` on both backends. See the [official v6 provider configuration](https://github.com/featbit/featbit/blob/21b2af4feb3658a88b82349e1b31fff78ab0966c/modules/back-end/src/Infrastructure/ConfigurationExtensions.cs).
-
-Bundled ClickHouse's API and startup wait share its HTTP Service endpoint and use
-`clickhouse.database` and `clickhouse.auth.*`. The local development/test wait keeps
-wget and supports HTTP only; Professional bundled TLS is rejected during rendering.
-Keep `clickhouse.tls.enabled=false`. The default BusyBox image is unchanged.
-External ClickHouse requires `externalClickhouse.httpEndpoint`, plus `database`, `user`,
-and either `password` or `existingSecret` / `existingSecretKey`. An existing Secret
-takes precedence; an inline password is placed in a chart-generated Secret.
-An empty external password without a Secret generates an empty password value.
-External HTTPS remains supported by the API with normal .NET certificate validation.
-Old `host` / `httpPort` / `secure` settings must migrate to an absolute HTTP(S)
-`httpEndpoint`; a missing endpoint fails rendering. No legacy fallback remains.
-
-See the [release migration guide](migration/RELEASE-v0.10.0.md) for endpoint
-examples, values changes and required Kafka topics. Use the chart values for generated
-ClickHouse settings and avoid duplicating them in `api.env`.
 
 ## Expose self-hosted deployment
 
