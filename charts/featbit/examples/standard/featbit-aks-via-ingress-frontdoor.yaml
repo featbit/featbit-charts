@@ -24,7 +24,7 @@ ui:
   image:
     registry: docker.io
     repository: featbit/featbit-ui
-    tag: "5.4.10"
+    tag: "6.0.0"
     pullPolicy: IfNotPresent
   
   service:
@@ -59,7 +59,7 @@ api:
   image:
     registry: docker.io
     repository: featbit/featbit-api-server
-    tag: "5.4.10"
+    tag: "6.0.0"
     pullPolicy: IfNotPresent
   
   service:
@@ -105,7 +105,7 @@ els:
   image:
     registry: docker.io
     repository: featbit/featbit-evaluation-server
-    tag: "5.4.10"
+    tag: "6.0.0"
     pullPolicy: IfNotPresent
   
   service:
@@ -132,29 +132,6 @@ els:
     pathType: Prefix
     tls:
       enabled: false
-
-# Data Analytics Server
-das:
-  enabled: true
-  replicaCount: 3
-  image:
-    registry: docker.io
-    repository: featbit/featbit-data-analytics-server
-    tag: "5.4.10"
-    pullPolicy: IfNotPresent
-  
-  service:
-    # Keep DA server internal (ClusterIP) so only cluster services (API/ELS) can call it
-    type: ClusterIP
-    port: 80
-  
-  resources:
-    requests:
-      cpu: "750m"
-      memory: "1Gi"
-    limits:
-      cpu: "1000m"
-      memory: "2Gi"
 
 # PostgreSQL Configuration - Using External Database
 # Disable internal PostgreSQL chart

@@ -77,17 +77,6 @@ els:
       cpu: "500m"
       memory: "512Mi"
 
-# Data Analytics Server Configuration (Pro tier only)
-das:
-  replicaCount: 1
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "128Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-
 # =============================================================================
 # DATABASE CONFIGURATION - PostgreSQL
 # =============================================================================
@@ -168,6 +157,7 @@ kafka:
   
   provisioning:
     enabled: true
+    # Provision all seven required topics through the existing Kafka dependency hook.
     topics:
       - name: "featbit-feature-flag-change"
         partitions: 3
@@ -181,6 +171,15 @@ kafka:
       - name: "featbit-insights"
         partitions: 3
         replicationFactor: 1
+      - name: "featbit-usage"
+        partitions: 3
+        replicationFactor: 1
+      - name: "featbit-control-plane-web-hooks"
+        partitions: 3
+        replicationFactor: 1
+      - name: "healthchecks-topic"
+        partitions: 3
+        replicationFactor: 1
 
 # =============================================================================
 # ANALYTICS CONFIGURATION - ClickHouse (Pro tier)
@@ -191,6 +190,8 @@ kafka:
 clickhouse:
   enabled: true
   nameOverride: featbit-clickhouse
+  # Fresh bundled single-node initialization and API query database; existing data is migrated manually.
+  database: "featbit"
   shards: 1
   replicaCount: 1
   

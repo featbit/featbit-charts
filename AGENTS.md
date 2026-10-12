@@ -10,11 +10,10 @@ applyTo: "**"
 
 ## Architecture
 
-**4 Core Services:**
+**3 Core Services:**
 - `ui` (8081) - Frontend
 - `api` (5000) - API server  
 - `els` (5100) - Evaluation server
-- `da-server` - Analytics
 
 **Infrastructure:**
 - DB: PostgreSQL (default) or MongoDB

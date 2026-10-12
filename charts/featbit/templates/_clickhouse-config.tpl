@@ -1,44 +1,29 @@
 {{/*------ CLICKHOUSE ------*/}}
 {{/*Return clickhouse fullname*/}}
 {{- define "featbit.clickhouse.fullname" -}}
-{{- if .Values.clickhouse.fullnameOverride -}}
-{{- .Values.clickhouse.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else if .Values.clickhouse.nameOverride }}
-{{- printf "%s-%s" .Release.Name .Values.clickhouse.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-{{- printf "%s-%s" "clickhouse" .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
+{{- include "common.names.dependency.fullname" (dict "chartName" "clickhouse" "chartValues" .Values.clickhouse "context" .) -}}
 {{- end -}}
 
-{{/*Return the clickhouse host*/}}
-{{- define "featbit.clickhouse.host" -}}
+{{/* The sole HTTP(S) connection address for the API and bundled startup wait. */}}
+{{- define "featbit.clickhouse.httpEndpoint" -}}
+{{- $endpoint := "" -}}
 {{- if .Values.clickhouse.enabled -}}
-    {{- printf "%s" (include "featbit.clickhouse.fullname" .) -}}
+    {{- if .Values.clickhouse.tls.enabled -}}
+        {{- $endpoint = printf "https://%s:%d" (include "featbit.clickhouse.fullname" .) (.Values.clickhouse.service.ports.https | int) -}}
+    {{- else -}}
+        {{- $endpoint = printf "http://%s:%d" (include "featbit.clickhouse.fullname" .) (.Values.clickhouse.service.ports.http | int) -}}
+    {{- end -}}
 {{- else if (include "featbit.isPro" .) -}}
-    {{- required "You need to provide a host when using external Clickhouse" .Values.externalClickhouse.host | printf "%s" -}}
+    {{- $endpoint = required "externalClickhouse.httpEndpoint is required for Professional with bundled ClickHouse disabled; migrate legacy host/httpPort/secure values to an absolute HTTP(S) URL" .Values.externalClickhouse.httpEndpoint -}}
 {{- end -}}
+{{- if not (regexMatch "^https?://[^/?#[:space:]]+(/[^?#[:space:]]*)?$" $endpoint) -}}
+    {{- fail "ClickHouse requires an absolute HTTP(S) endpoint with a host, without credentials, query or fragment" -}}
 {{- end -}}
-
-{{- define "featbit.clickhouse.altHosts" -}}
-{{- if and (not .Values.clickhouse.enabled) (include "featbit.isPro" .) .Values.externalClickhouse.altHosts  -}}
-    {{- print "%s" (join "," .Values.externalClickhouse.altHosts) -}}
+{{- $url := urlParse $endpoint -}}
+{{- if or (not $url.host) $url.userinfo -}}
+    {{- fail "ClickHouse requires an absolute HTTP(S) endpoint with a host, without credentials, query or fragment" -}}
 {{- end -}}
-{{- end -}}
-
-{{- define "featbit.clickhouse.port" -}}
-{{- if .Values.clickhouse.enabled -}}
-    {{- printf "%d" (.Values.clickhouse.containerPorts.tcp | int) -}}
-{{- else if (include "featbit.isPro" .) -}}
-    {{- required "You need to provide a host port when using external Clickhouse" (.Values.externalClickhouse.tcpPort | int) | printf "%d" -}}
-{{- end -}}
-{{- end -}}
-
-{{- define "featbit.clickhouse.httpPort" -}}
-{{- if .Values.clickhouse.enabled -}}
-    {{- printf "%d" (.Values.clickhouse.containerPorts.http | int) -}}
-{{- else if (include "featbit.isPro" .) -}}
-    {{- required "You need to provide a host http port when using external Clickhouse" (.Values.externalClickhouse.httpPort | int) | printf "%d" -}}
-{{- end -}}
+{{- $endpoint -}}
 {{- end -}}
 
 {{- define "featbit.clickhouse.user" -}}
@@ -51,12 +36,11 @@
 
 {{- define "featbit.clickhouse.database" -}}
 {{- if .Values.clickhouse.enabled }}
-    {{- "featbit" -}}
+    {{- default "featbit" .Values.clickhouse.database -}}
 {{- else if (include "featbit.isPro" .) -}}
     {{- default "featbit" .Values.externalClickhouse.database -}}
 {{- end -}}
 {{- end -}}
-
 
 {{/*
 Return true if a secret object for ClickHouse should be created
@@ -89,9 +73,9 @@ Return the ClickHouse secret key
 */}}
 {{- define "featbit.clickhouse.secretPasswordKey" -}}
 {{- if and .Values.clickhouse.enabled .Values.clickhouse.auth.existingSecret -}}
-    {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in Clickhouse" .Values.clickhouse.auth.existingSecretKey | printf "%s" -}}
+    {{- required "You need to provide clickhouse.auth.existingSecretKey when an existingSecret is specified" .Values.clickhouse.auth.existingSecretKey | printf "%s" -}}
 {{- else if and (not .Values.clickhouse.enabled) .Values.externalClickhouse.existingSecret -}}
-    {{- required "You need to provide existingSecretPasswordKey when an existingSecret is specified in external Clickhouse" .Values.externalClickhouse.existingSecretKey | printf "%s" -}}
+    {{- required "You need to provide externalClickhouse.existingSecretKey when an existingSecret is specified" .Values.externalClickhouse.existingSecretKey | printf "%s" -}}
 {{- else -}}
     {{- printf "admin-password" -}}
 {{- end -}}
