@@ -9,7 +9,6 @@ release_name="postgresql-password-test"
 deployment_templates=(
   --show-only templates/api-deployment.yaml
   --show-only templates/eval-server-deployment.yaml
-  --show-only templates/da-server-deployment.yaml
 )
 
 external_postgresql_values=(
@@ -49,8 +48,8 @@ assert_line_count() {
 }
 
 assert_password_environment_present() {
-  assert_line_count 3 "- name: Postgres__Password"
-  assert_line_count 3 "- name: POSTGRES_PASSWORD"
+  assert_line_count 2 "- name: Postgres__Password"
+  assert_line_count 0 "- name: POSTGRES_PASSWORD"
 }
 
 assert_password_environment_absent() {
@@ -62,9 +61,9 @@ assert_password_secret_reference() {
   local secret_name="$1"
   local secret_key="$2"
 
-  # API, ELS, and DAS each render the .NET and uppercase password variables.
-  assert_line_count 6 "name: ${secret_name}"
-  assert_line_count 6 "key: ${secret_key}"
+  # API and ELS each render the .NET password variable.
+  assert_line_count 2 "name: ${secret_name}"
+  assert_line_count 2 "key: ${secret_key}"
 }
 
 render_case "bundled PostgreSQL with default authentication"
@@ -92,8 +91,8 @@ assert_password_secret_reference "external-postgresql-secret" "application-passw
 render_case "external PostgreSQL with credentials supplied outside the chart" \
   "${external_postgresql_values[@]}"
 assert_password_environment_absent
-assert_line_count 3 "- name: Postgres__ConnectionString"
-assert_line_count 3 "- name: POSTGRES_USER"
+assert_line_count 2 "- name: Postgres__ConnectionString"
+assert_line_count 0 "- name: POSTGRES_USER"
 assert_line_count 0 "name: ${release_name}-featbit-postgresql-external"
 
 echo "All PostgreSQL password rendering tests passed."

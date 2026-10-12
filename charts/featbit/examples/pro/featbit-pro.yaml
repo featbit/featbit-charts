@@ -43,6 +43,10 @@ postgresql:
   enabled: false
 redis:
   enabled: false
+kafka:
+  enabled: false
+clickhouse:
+  enabled: false
 
 
 externalRedis:
@@ -73,7 +77,7 @@ externalPostgresql:
 externalKafka:
   # - External Kafka brokers. Multiple brokers can be provided as array/list.
   brokers:
-    producers:
+    producer:
       hosts: []
       # - infra-featbit-kafka:9092
       # if you enable kafka auth, set auth config as below
@@ -82,7 +86,7 @@ externalKafka:
       existingSecretPasswordKey: ""
       mechanism: "PLAIN"
       protocol: "PLAINTEXT"
-    consumers:
+    consumer:
         hosts: []
         # - infra-featbit-kafka:9092
         # if you enable kafka auth, set auth config as below
@@ -93,17 +97,14 @@ externalKafka:
         protocol: "PLAINTEXT"
 
 externalClickhouse:
-  # -- Host of the external cluster.
-  host: {ClickHouse host name, ex: "infra-featbit-clickhouse"}
-  # -- Name of the external cluster to run DDL queries on.
-  cluster: {ClickHouse cluster name, ex: "featbit_ch_cluster"}
-  # -- Database name for the external cluster
-  database: {ClickHouse database, ex: "featbit"}
-  # -- Username for the external cluster to connect to the external cluster as
-  user: {ClickHouse username, ex: "default"}
-  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
-  password: {ClickHouse password, ex: "supersecret"}
-  # -- Whether to use TLS connection connecting to ClickHouse
-  secure: false
-  # -- Whether to verify TLS connection connecting to ClickHouse
-  verify: false
+  # Replace with the reachable HTTP interface, not the native TCP endpoint.
+  httpEndpoint: "https://clickhouse.example.com:8443"
+  # Must match the database in your manually adapted ClickHouse schema.
+  database: "featbit"
+  user: "default"
+  # Create this Secret in the FeatBit namespace before installation.
+  existingSecret: "featbit-clickhouse-password"
+  existingSecretKey: "password"
+  # Alternatively set password inline; existingSecret takes precedence.
+
+# See README.md here for v6 Kafka topic/ACL requirements, even without Control Plane.

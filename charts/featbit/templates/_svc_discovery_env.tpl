@@ -1,15 +1,3 @@
-{{- define "das.svc.port" -}}
-{{- default 8200 .Values.das.service.port -}}
-{{- end -}}
-
-{{- define "das.svc.name" -}}
-{{ include "featbit.fullname" . }}-das
-{{- end -}}
-
-{{- define "das.svc.fqdn" -}}
-{{ include "das.svc.name" . }}.{{ .Release.Namespace }}.svc.cluster.local
-{{- end -}}
-
 {{- define "els.svc.port" -}}
 {{- if .Values.els.ingress.enabled -}}
 {{- 80 -}}

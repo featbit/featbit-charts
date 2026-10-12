@@ -49,7 +49,7 @@ ui:
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.4.10
+    tag: 6.0.0
 
   imagePullSecrets: []
 
@@ -137,16 +137,13 @@ api:
   replicaCount: 1
 
   ssoEnabled: false
-  # -- Override OLAP__ServiceHost. Empty = auto-derive from das.svc.name (default).
-  # Set to shared DAS URL when running api-only releases (e.g. "http://featbit-das:8200").
-  olapServiceHost: ""
 
   image:
     registry: docker.io
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.4.10
+    tag: 6.0.0
 
   imagePullSecrets: []
 
@@ -253,7 +250,7 @@ els:
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.4.10
+    tag: 6.0.0
 
   imagePullSecrets: []
 
@@ -348,93 +345,6 @@ els:
   # -- Rate limiting configuration for the evaluation server (v5.3.1+)
   rateLimiting:
     enabled: false
-
-das:
-  # -- Whether to deploy the Data Analytics Server component. Set to false to skip da-server-deployment/service (e.g. for api-only releases).
-  enabled: true
-
-  replicaCount: 1
-
-  image:
-    registry: docker.io
-    repository: featbit/featbit-data-analytics-server
-    pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: 5.4.10
-
-  imagePullSecrets: []
-
-  podAnnotations: {}
-  podLabels: {}
-
-  podSecurityContext: {}
-  # fsGroup: 2000
-
-  securityContext:
-    {}
-    # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-  service:
-    type: ClusterIP
-    port: 8200
-    nodePort:
-    annotations: {}
-    staticIP:
-
-  rollout:
-    # The max surge in pods during a rollout
-    maxSurge: 25%
-    # The max unavailable during a rollout
-    maxUnavailable: 25%
-
-  resources:
-    requests: {}
-    #  cpu: 250m
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
-
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 60
-    targetMemoryUtilizationPercentage: 70
-    behavior:
-      scaleDown:
-        stabilizationWindowSeconds: 300
-        policies:
-          - type: Percent
-            value: 10
-            periodSeconds: 60
-      scaleUp:
-        stabilizationWindowSeconds: 60
-        policies:
-          - type: Percent
-            value: 100
-            periodSeconds: 10
-
-  nodeSelector: {}
-
-  tolerations: []
-
-  affinity: {}
-
-  # -- Additional env variables to inject into the da server deployment.
-  env: []
-
 
 ###
 ###
@@ -639,11 +549,15 @@ kafka:
 
   provisioning:
     enabled: true
+    # All seven are explicitly prepared; broker/client auto-creation is not required.
     topics:
       - name: "featbit-feature-flag-change"
       - name: "featbit-segment-change"
       - name: "featbit-endusers"
       - name: "featbit-insights"
+      - name: "featbit-usage"
+      - name: "featbit-control-plane-web-hooks"
+      - name: "healthchecks-topic"
 
   controller:
     persistence:
@@ -673,7 +587,14 @@ externalKafka:
 
 clickhouse:
   enabled: false
+  # Bundled Professional startup waiting is HTTP-only for local development/test.
+  # Keep clickhouse.tls.enabled=false; use externalClickhouse for HTTPS connections.
   nameOverride: featbit-clickhouse
+  # -- Professional API and fresh bundled initialization database. Existing data is migrated manually.
+  database: "featbit"
+  # The chart merges initdbScripts with its reserved 20_featbit-v6.sh in this managed Secret.
+  # An alternate Secret (or an empty value) opts out of chart-managed FeatBit initialization.
+  initdbScriptsSecret: '{{ include "common.names.fullname" . }}-featbit-initdb'
   shards: 1
   replicaCount: 1
   
@@ -728,6 +649,8 @@ clickhouse:
               <replica>
                   <host>{{ printf "%s-shard%d-%d.%s.%s.svc.%s" (include "common.names.fullname" $ ) $shard $i (include "clickhouse.headlessServiceName" $) (include "common.names.namespace" $) $.Values.clusterDomain }}</host>
                   <port>{{ $.Values.service.ports.tcp }}</port>
+                  <user from_env="CLICKHOUSE_ADMIN_USER"></user>
+                  <password from_env="CLICKHOUSE_ADMIN_PASSWORD"></password>
               </replica>
               {{- end }}
           </shard>
@@ -842,30 +765,23 @@ clickhouse:
       <max_concurrent_queries>1000</max_concurrent_queries>
     </clickhouse>
 externalClickhouse:
-  # -- Host of the external clickhouse. This is required when clickhouse.enabled is false
-  host: ""
-  # -- TCP(security) port of the external clickhouse. This is required when clickhouse.enabled is false
-  tcpPort: 9000
-  # -- HTTP(s) port of the external clickhouse. This is required when clickhouse.enabled is false
-  httpPort: 8123
-  # -- if the external clickhouse has more than one shard, set a list of clickhouse extra shards in host:tcp.
-  altHosts: []
-  # -- Name of the external cluster to run DDL queries on. This is required when clickhouse.enabled is false
-  cluster: ""
-  # -- Database name for the external cluster
+  # -- Required absolute HTTP(S) endpoint for Professional when bundled ClickHouse is disabled.
+  # Use the HTTP interface, e.g. https://clickhouse.example.com:8443 (no credentials/query/fragment).
+  # Migrate legacy host/httpPort/secure settings into this URL; no fallback is generated.
+  httpEndpoint: ""
+  # -- Query database; API settings do not create/migrate ClickHouse objects.
   database: "featbit"
-  # -- User name for the external cluster to connect to the external cluster as
+  # -- ClickHouse HTTP user
   user: "default"
-  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  # -- Inline password, stored in a chart-generated Secret. Ignored if existingSecret is set.
+  # Empty without an existingSecret means passwordless HTTP authentication.
   password: ""
   # -- Name of an existing Kubernetes secret object containing the password
   existingSecret: ""
   # -- Name of the key pointing to the password in your Kubernetes secret
   existingSecretKey: ""
-  # -- Whether to use TLS connection connecting to ClickHouse
-  secure: false
-  # -- Whether to verify TLS connection connecting to ClickHouse
-  verify: false
+  # Removed host/httpPort/secure and DAS-only tcpPort/altHosts/cluster/verify values are ignored.
+  # Use an HTTP endpoint for topology routing; HTTPS uses normal .NET certificate validation.
 
 openTelemetry:
   enabled: false

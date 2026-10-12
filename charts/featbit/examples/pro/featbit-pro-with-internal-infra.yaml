@@ -30,5 +30,8 @@ els:
 
 kafka:
   enabled: true
+  # The existing Kafka provisioning hook creates all seven required topics.
 clickhouse:
   enabled: true
+  # Fresh bundled single-node initialization and API query database; existing data is migrated manually.
+  database: "featbit"

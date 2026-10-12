@@ -31,10 +31,3 @@ els:
       cpu: 250m
   autoscaling:
     enabled: true
-
-das:
-  resources:
-    requests:
-      cpu: 250m
-  autoscaling:
-    enabled: true
