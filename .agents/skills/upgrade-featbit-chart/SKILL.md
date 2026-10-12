@@ -175,8 +175,7 @@ statements; exclude historical guides and upgrade logs from removal-only scans.
 Check Markdown references and `git diff --check`.
 
 Run existing relevant regressions when implementation changes justify them:
-`bash tests/helm/postgresql-password-env.sh` and
-`python tests/helm/clickhouse-api-env.py` (requires PyYAML and a POSIX shell).
+`bash tests/helm/postgresql-password-env.sh`.
 Helm lint can suppress template `required`/`fail` errors; use `helm template` to
 check invalid inputs. The known all-external inline ClickHouse password/helper
 render gap remains a configuration limitation: use an existing Secret for that
