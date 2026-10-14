@@ -3,8 +3,8 @@
 [FeatBit](https://github.com/featbit/featbit) is an open-source feature flags management tool, which supported self-hosted deployment.
 This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) installation on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm](https://helm.sh/) package manager.
 
-Current source: **Chart 0.10.0 / FeatBit 6.0.0**. The default UI/API/ELS image tags
-are all `6.0.0`. Review the [0.10.0 migration guide](migration/RELEASE-v0.10.0.md)
+Current source: **Chart 0.10.1 / FeatBit 6.0.1**. The default UI/API/ELS image tags
+are all `6.0.1`. Review the [0.10.1 upgrade guide](migration/RELEASE-v0.10.1.md)
 before upgrading an existing installation.
 
 ## Prerequisites
@@ -418,6 +418,10 @@ kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space
 ```
 
 ## Migration and Upgrades
+
+**Chart v0.10.1 / FeatBit v6.0.1**: See the [upgrade guide](./migration/RELEASE-v0.10.1.md).
+This patch updates the UI/API/ELS image tags. No new configuration or database
+migration is required when upgrading from Chart 0.10.0 / FeatBit 6.0.0.
 
 **Chart v0.10.0 / FeatBit v6.0.0**: See the [upgrade guide](./migration/RELEASE-v0.10.0.md).
 This release uses three application images, removes `das.*`, `api.olapServiceHost`
