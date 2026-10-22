@@ -95,4 +95,15 @@ assert_line_count 2 "- name: Postgres__ConnectionString"
 assert_line_count 0 "- name: POSTGRES_USER"
 assert_line_count 0 "name: ${release_name}-featbit-postgresql-external"
 
+render_case "external PostgreSQL with extra connection parameters" \
+  "${external_postgresql_values[@]}" \
+  --set-string externalPostgresql.password=test-password \
+  --set-string "externalPostgresql.extraParams=SSL Mode=VerifyFull;Maximum Pool Size=20"
+assert_line_count 2 "value: Host=db.example.com;Port=5432;Username=featbit;Database=featbit;SSL Mode=VerifyFull;Maximum Pool Size=20"
+
+render_case "external PostgreSQL without extra connection parameters" \
+  "${external_postgresql_values[@]}" \
+  --set-string externalPostgresql.password=test-password
+assert_line_count 2 "value: Host=db.example.com;Port=5432;Username=featbit;Database=featbit"
+
 echo "All PostgreSQL password rendering tests passed."

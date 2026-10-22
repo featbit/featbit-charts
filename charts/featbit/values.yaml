@@ -390,6 +390,9 @@ externalPostgresql:
   existingSecret: ""
   # -- Name of the key pointing to the password in your Kubernetes secret
   existingSecretPasswordKey: ""
+  # -- Additional Npgsql connection string parameters appended to the connection string,
+  # e.g. `SSL Mode=VerifyFull;Maximum Pool Size=20`
+  extraParams: ""
 
 
 ###
