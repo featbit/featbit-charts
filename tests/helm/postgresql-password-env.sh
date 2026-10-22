@@ -99,11 +99,26 @@ render_case "external PostgreSQL with extra connection parameters" \
   "${external_postgresql_values[@]}" \
   --set-string externalPostgresql.password=test-password \
   --set-string "externalPostgresql.extraParams=SSL Mode=VerifyFull;Maximum Pool Size=20"
-assert_line_count 2 "value: Host=db.example.com;Port=5432;Username=featbit;Database=featbit;SSL Mode=VerifyFull;Maximum Pool Size=20"
+assert_line_count 2 "value: \"Host=db.example.com;Port=5432;Username=featbit;Database=featbit;SSL Mode=VerifyFull;Maximum Pool Size=20\""
+
+render_case "external PostgreSQL with YAML special characters in extra connection parameters" \
+  "${external_postgresql_values[@]}" \
+  --set-string externalPostgresql.password=test-password \
+  --set-string "externalPostgresql.extraParams=Application Name=FeatBit: prod #1;Maximum Pool Size=20"
+assert_line_count 2 "value: \"Host=db.example.com;Port=5432;Username=featbit;Database=featbit;Application Name=FeatBit: prod #1;Maximum Pool Size=20\""
 
 render_case "external PostgreSQL without extra connection parameters" \
   "${external_postgresql_values[@]}" \
   --set-string externalPostgresql.password=test-password
-assert_line_count 2 "value: Host=db.example.com;Port=5432;Username=featbit;Database=featbit"
+assert_line_count 2 "value: \"Host=db.example.com;Port=5432;Username=featbit;Database=featbit\""
+
+render_case "bundled PostgreSQL without extra connection parameters"
+bundled_rendered="${rendered}"
+render_case "bundled PostgreSQL ignores external extra connection parameters" \
+  --set-string "externalPostgresql.extraParams=Maximum Pool Size=20"
+if [[ "${rendered}" != "${bundled_rendered}" ]]; then
+  echo "Expected externalPostgresql.extraParams to be ignored for bundled PostgreSQL." >&2
+  exit 1
+fi
 
 echo "All PostgreSQL password rendering tests passed."

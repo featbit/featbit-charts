@@ -3,7 +3,7 @@
 - name: DbProvider
   value: Postgres
 - name: Postgres__ConnectionString
-  value: {{ include "featbit.postgresql.config" . }}
+  value: {{ include "featbit.postgresql.config" . | quote }}
 {{- if (include "featbit.postgresql.auth.enabled" .) }}
 - name: Postgres__Password
   valueFrom:
