@@ -37,6 +37,9 @@ jobs:
       - name: Test PostgreSQL password rendering
         run: bash tests/helm/postgresql-password-env.sh
 
+      - name: Test ClickHouse secret name rendering
+        run: bash tests/helm/clickhouse-secret-name.sh
+
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
         env:
