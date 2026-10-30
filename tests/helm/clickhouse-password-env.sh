@@ -57,7 +57,8 @@ assert_line_count() {
 
 # Bundled ClickHouse uses uppercase variables in the API and evaluation server's
 # startup waits. External ClickHouse skips those waits and their environment variables.
-# The API always renders its .NET ClickHouse settings once in professional deployments.
+# The API renders its .NET ClickHouse settings in professional deployments; its password
+# entry depends on whether a credential source is configured.
 assert_user_environment_present() {
   local init_container_count="${1:-0}"
 
@@ -74,7 +75,8 @@ assert_password_environment_present() {
 
 assert_password_environment_absent() {
   assert_line_count 0 "- name: CLICKHOUSE_PASSWORD"
-  assert_line_count 1 "- name: ClickHouse__Password"
+  # Even an explicit empty env entry would override a password supplied through envFrom.
+  assert_line_count 0 "- name: ClickHouse__Password"
 }
 
 assert_password_secret_reference() {
@@ -119,6 +121,17 @@ render_case "external ClickHouse with credentials supplied outside the chart" \
   "${external_clickhouse_values[@]}"
 assert_user_environment_present
 assert_password_environment_absent
+assert_line_count 0 "name: \"${release_name}-featbit-clickhouse-external\""
+
+render_case "external ClickHouse with a password supplied through api.env" \
+  "${external_clickhouse_values[@]}" \
+  --set-string 'api.env[0].name=ClickHouse__Password' \
+  --set-string 'api.env[0].valueFrom.secretKeyRef.name=injected-clickhouse-secret' \
+  --set-string 'api.env[0].valueFrom.secretKeyRef.key=injected-password'
+assert_user_environment_present
+assert_password_environment_present
+assert_line_count 1 "name: injected-clickhouse-secret"
+assert_line_count 1 "key: injected-password"
 assert_line_count 0 "name: \"${release_name}-featbit-clickhouse-external\""
 
 echo "All ClickHouse password rendering tests passed."

@@ -9,14 +9,12 @@
   value: {{ include "featbit.clickhouse.database" . | quote }}
 - name: ClickHouse__User
   value: {{ include "featbit.clickhouse.user" . | quote }}
+{{- if (include "featbit.clickhouse.auth.enabled" .) }}
 - name: ClickHouse__Password
-  {{- if or .Values.clickhouse.enabled .Values.externalClickhouse.existingSecret .Values.externalClickhouse.password }}
   valueFrom:
     secretKeyRef:
       name: {{ include "featbit.clickhouse.secretName" . | quote }}
       key: {{ include "featbit.clickhouse.secretPasswordKey" . | quote }}
-  {{- else }}
-  value: ""
-  {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
