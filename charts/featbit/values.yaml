@@ -589,7 +589,12 @@ clickhouse:
   enabled: false
   # Bundled Professional startup waiting is HTTP-only for local development/test.
   # Keep clickhouse.tls.enabled=false; use externalClickhouse for HTTPS connections.
+  # -- Component name used when constructing ClickHouse resource names.
+  # Also affects generated external password Secret names.
   nameOverride: featbit-clickhouse
+  # -- Override the full ClickHouse base name, taking precedence over nameOverride.
+  # Generated external password Secrets append "-external" to this name.
+  fullnameOverride: ""
   # -- Professional API and fresh bundled initialization database. Existing data is migrated manually.
   database: "featbit"
   # The chart merges initdbScripts with its reserved 20_featbit-v6.sh in this managed Secret.
