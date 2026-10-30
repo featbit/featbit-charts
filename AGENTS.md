@@ -6,15 +6,14 @@ applyTo: "**"
 ## Tech Stack
 - Kubernetes >= 1.23
 - Helm >= 3.7.0
-- App Version: 5.4.7 (Chart: 0.9.15)
+- App Version: 5.4.10 (Chart: 0.9.17)
 
 ## Architecture
 
-**4 Core Services:**
+**3 Core Services:**
 - `ui` (8081) - Frontend
 - `api` (5000) - API server  
 - `els` (5100) - Evaluation server
-- `da-server` - Analytics
 
 **Infrastructure:**
 - DB: PostgreSQL (default) or MongoDB

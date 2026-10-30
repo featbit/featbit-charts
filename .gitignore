@@ -17,6 +17,7 @@ venv/
 *local-values.backup.yaml
 featbit-local-without-das-values.yaml
 *.local.yaml
+*local.backup.*.yaml
 *local.backup.yaml
 
 # TLS certificates and private keys

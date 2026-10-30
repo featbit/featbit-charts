@@ -1,67 +1,15 @@
 {{- define "clickhouse-usr-pass" -}}
 - name: CLICKHOUSE_USER
-  value: {{ include "featbit.clickhouse.user" . }}
+  value: {{ include "featbit.clickhouse.user" . | quote }}
 {{- if (include "featbit.clickhouse.auth.enabled" .) }}
 - name: CLICKHOUSE_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ include "featbit.clickhouse.secretName" . }}
-      key: {{ include "featbit.clickhouse.secretPasswordKey" . }}
+      name: {{ include "featbit.clickhouse.secretName" . | quote }}
+      key: {{ include "featbit.clickhouse.secretPasswordKey" . | quote }}
 {{- end }}
 {{- end -}}
 
-
-{{- define "das-pro-env" -}}
-{{- if (include "featbit.isPro" .) }}
-- name: DB_PROVIDER
-  value: ClickHouse
-- name: KAFKA_HOSTS
-  value: {{ include "featbit.kafka.producer.brokers" . }}
-- name: CLICKHOUSE_KAFKA_HOSTS
-  value: {{ include "featbit.kafka.consumer.brokers" . }}
-- name: CLICKHOUSE_HOST
-  value: {{ include "featbit.clickhouse.host" . }}
-
-{{ include "clickhouse-usr-pass" . }}
-
-- name: CLICKHOUSE_DATABASE
-  value: {{ include "featbit.clickhouse.database" . }}
-- name: CLICKHOUSE_PORT
-  value: {{ (include "featbit.clickhouse.port" .) | quote }}
-- name: CLICKHOUSE_HTTP_PORT
-  value: {{ (include "featbit.clickhouse.httpPort" .) | quote }}
-{{- if (not .Values.clickhouse.enabled) }}
-- name: CLICKHOUSE_SECURE
-  value: {{ .Values.externalClickhouse.secure | quote }}
-- name: CLICKHOUSE_VERIFY
-  value: {{ .Values.externalClickhouse.verify | quote }}
-{{- if .Values.externalClickhouse.cluster }}
-- name: CLICKHOUSE_CLUSTER
-  value: {{ .Values.externalClickhouse.cluster }}
-{{- else }}
-- name: CLICKHOUSE_REPLICATION
-  value: "false"
-{{- end }}
-{{- if (include "featbit.clickhouse.altHosts" .) }}
-- name: CLICKHOUSE_ALT_HOST
-  value: {{ include "featbit.clickhouse.altHosts" . }}
-{{- end }}
-{{- end }}
-{{- if (include "featbit.kafka.producer.auth.enabled" .) }}
-- name: KAFKA_SECURITY_PROTOCOL
-  value: {{ include "featbit.kafka.producer.protocol" . }}
-- name: KAFKA_SASL_MECHANISM
-  value: {{ include "featbit.kafka.producer.mechanism" . }}
-- name: KAFKA_SASL_USER
-  value: {{ include "featbit.kafka.producer.user" . }}
-- name: KAFKA_SASL_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "featbit.kafka.producer.secretName" . }}
-      key: {{ include "featbit.kafka.producer.secretPasswordKey" . }}
-{{- end }}
-{{- end }}
-{{- end -}}
 
 {{- define "kafka-bootstrapservers" -}}
 {{- if (include "featbit.isPro" .) }}

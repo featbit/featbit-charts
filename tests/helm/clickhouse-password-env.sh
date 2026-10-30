@@ -9,7 +9,6 @@ release_name="clickhouse-password-test"
 deployment_templates=(
   --show-only templates/api-deployment.yaml
   --show-only templates/eval-server-deployment.yaml
-  --show-only templates/da-server-deployment.yaml
 )
 
 # ClickHouse is only wired up for the professional tier, which also requires Kafka.
@@ -22,8 +21,7 @@ professional_values=(
 
 external_clickhouse_values=(
   --set clickhouse.enabled=false
-  --set-string externalClickhouse.host=clickhouse.example.com
-  --set-string externalClickhouse.cluster=featbit_ch_cluster
+  --set-string externalClickhouse.httpEndpoint=https://clickhouse.example.com:8443
   --set-string externalClickhouse.user=featbit
 )
 
@@ -57,42 +55,50 @@ assert_line_count() {
   fi
 }
 
-# The API and evaluation server each render the ClickHouse variables once, in the
-# infrastructure wait initContainer. The data analytics server renders them twice:
-# once in that initContainer and once in its application container.
+# Bundled ClickHouse uses uppercase variables in the API and evaluation server's
+# startup waits. External ClickHouse skips those waits and their environment variables.
+# The API always renders its .NET ClickHouse settings once in professional deployments.
 assert_user_environment_present() {
-  assert_line_count 4 "- name: CLICKHOUSE_USER"
+  local init_container_count="${1:-0}"
+
+  assert_line_count "${init_container_count}" "- name: CLICKHOUSE_USER"
+  assert_line_count 1 "- name: ClickHouse__User"
 }
 
 assert_password_environment_present() {
-  assert_line_count 4 "- name: CLICKHOUSE_PASSWORD"
+  local init_container_count="${1:-0}"
+
+  assert_line_count "${init_container_count}" "- name: CLICKHOUSE_PASSWORD"
+  assert_line_count 1 "- name: ClickHouse__Password"
 }
 
 assert_password_environment_absent() {
   assert_line_count 0 "- name: CLICKHOUSE_PASSWORD"
+  assert_line_count 1 "- name: ClickHouse__Password"
 }
 
 assert_password_secret_reference() {
   local secret_name="$1"
   local secret_key="$2"
+  local reference_count="${3:-1}"
 
-  assert_line_count 4 "name: ${secret_name}"
-  assert_line_count 4 "key: ${secret_key}"
+  assert_line_count "${reference_count}" "name: \"${secret_name}\""
+  assert_line_count "${reference_count}" "key: \"${secret_key}\""
 }
 
 render_case "bundled ClickHouse with default authentication" \
   --set clickhouse.enabled=true
-assert_user_environment_present
-assert_password_environment_present
-assert_password_secret_reference "${release_name}-featbit-clickhouse" "admin-password"
+assert_user_environment_present 2
+assert_password_environment_present 2
+assert_password_secret_reference "${release_name}-featbit-clickhouse" "admin-password" 3
 
 render_case "bundled ClickHouse with an existing Secret" \
   --set clickhouse.enabled=true \
   --set-string clickhouse.auth.existingSecret=bundled-clickhouse-secret \
   --set-string clickhouse.auth.existingSecretKey=clickhouse-password
-assert_user_environment_present
-assert_password_environment_present
-assert_password_secret_reference "bundled-clickhouse-secret" "clickhouse-password"
+assert_user_environment_present 2
+assert_password_environment_present 2
+assert_password_secret_reference "bundled-clickhouse-secret" "clickhouse-password" 3
 
 render_case "external ClickHouse with an inline password" \
   "${external_clickhouse_values[@]}" \
@@ -113,6 +119,6 @@ render_case "external ClickHouse with credentials supplied outside the chart" \
   "${external_clickhouse_values[@]}"
 assert_user_environment_present
 assert_password_environment_absent
-assert_line_count 0 "name: ${release_name}-featbit-clickhouse-external"
+assert_line_count 0 "name: \"${release_name}-featbit-clickhouse-external\""
 
 echo "All ClickHouse password rendering tests passed."

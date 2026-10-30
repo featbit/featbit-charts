@@ -140,7 +140,7 @@ Install FeatBit:
 helm install featbit featbit/featbit \
   -f featbit-aks-values.local.yaml \
   --namespace featbit \
-  --version 0.9.15
+  --version 0.10.1
 ```
 
 ### 7. Verify Deployment
@@ -171,7 +171,7 @@ az network traffic-manager profile create \
   --routing-method Performance \
   --protocol HTTPS \
   --port 443 \
-  --path /health/liveness \
+  --path /health \
   --custom-headers Host=app.example.com
 
 # API Profile

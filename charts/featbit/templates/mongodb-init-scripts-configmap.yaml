@@ -913,4 +913,6 @@ data:
     // https://github.com/featbit/featbit/pull/915
     db.EndUsers.createIndex({envId: 1, updatedAt: -1, _id: -1});
     db.EndUsers.createIndex({workspaceId: 1, updatedAt: -1, _id: -1});
+  11_v6.0.0.js: |-
+    {{- .Files.Get "files/featbit-v6/mongodb-v6.0.0.js" | replace "const dbName = \"featbit\";" (printf "const dbName = %s;" ($db | toJson)) | nindent 4 }}
 {{- end -}}

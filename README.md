@@ -3,9 +3,17 @@
 [FeatBit](https://github.com/featbit/featbit) is an open-source feature flags management tool, which supported self-hosted deployment.
 This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) installation on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm](https://helm.sh/) package manager.
 
+Current source: **Chart 0.10.1 / FeatBit 6.0.1**. The default UI/API/ELS image tags
+are all `6.0.1`. Review the [0.10.1 upgrade guide](migration/RELEASE-v0.10.1.md)
+before upgrading an existing installation.
+
 ## Prerequisites
+
 * Kubernetes >=1.23
 * Helm >= 3.7.0
+* A valid JWT signing key; see [Required JWT Configuration](#required-jwt-configuration)
+* External managed infrastructure and explicit `apiExternalUrl` /
+  `evaluationServerExternalUrl` for production
 
 ## Usage 
 
@@ -31,7 +39,7 @@ To simply upgrade your current release to the latest version of featbit chart:
 
 ```
 helm repo update [featbit]
-    
+
 helm upgrade <your-release-name> featbit/featbit [-f <your-values-file>]
 ```
 
@@ -103,7 +111,7 @@ els:
 
 > **Note**: `Cors__AllowCredentials: true` cannot be used with wildcard `*` origin — you must specify explicit origins.
 
-See full CORS options: [evaluation-server README — CORS](https://github.com/featbit/featbit/tree/main/modules/evaluation-server#cors)
+See full CORS options: [evaluation-server README — CORS](https://github.com/featbit/featbit/tree/6.0.0/modules/evaluation-server#cors)
 
 ### Example: Rate Limiting for Evaluation Server
 
@@ -137,12 +145,28 @@ els:
       value: "Redis"
 ```
 
-You can also override limits per endpoint (e.g. `RateLimiting__Endpoints__Sdk__PermitLimit`). See full options: [evaluation-server README — Rate Limiting](https://github.com/featbit/featbit/tree/main/modules/evaluation-server#rate-limiting)
+You can also override limits per endpoint (e.g. `RateLimiting__Endpoints__Sdk__PermitLimit`). See full options: [evaluation-server README — Rate Limiting](https://github.com/featbit/featbit/tree/6.0.0/modules/evaluation-server#rate-limiting)
+
+### Example: Hide Environment Secrets in the UI Header
+
+FeatBit v5.4.9 adds `SHOW_ENV_SECRETS_IN_HEADER`, which defaults to `true`. To hide the
+header's environment secrets popover, configure the UI environment variable:
+
+```yaml
+ui:
+  env:
+    - name: SHOW_ENV_SECRETS_IN_HEADER
+      value: "false"
+```
+
+Use the quoted string `"false"` and retain any other `ui.env` entries in the same list.
+Environment switching and access permissions are unchanged.
 
 ### Full Environment Variable Reference
 
-- **API Server** (`api.env`): [modules/back-end/README.md](https://github.com/featbit/featbit/blob/main/modules/back-end/README.md) — JWT, Logging, OLAP, and more
-- **Evaluation Server** (`els.env`): [modules/evaluation-server/README.md](https://github.com/featbit/featbit/blob/main/modules/evaluation-server/README.md) — Streaming, CORS, Rate Limiting, and more
+- **UI** (`ui.env`): [modules/front-end/README.md](https://github.com/featbit/featbit/blob/6.0.0/modules/front-end/README.md) - UI runtime settings
+- **API Server** (`api.env`): [modules/back-end/README.md](https://github.com/featbit/featbit/blob/6.0.0/modules/back-end/README.md) — JWT, Logging, OLAP, and more
+- **Evaluation Server** (`els.env`): [modules/evaluation-server/README.md](https://github.com/featbit/featbit/blob/6.0.0/modules/evaluation-server/README.md) — Streaming, CORS, Rate Limiting, and more
 
 ## Expose self-hosted deployment
 
@@ -152,9 +176,13 @@ To use FeatBit, three services must be exposed from the internal network of Kube
 * api: FeatBit api server
 * evaluation server(els): FeatBit data synchronization and data evaluation server
 
-If you cannot access the services using localhost and their default ports, `apiExternalUrl` and `evaluationServerExternalUrl` **_SHOULD_** be reset in the [values.yaml or your own values file with -f flag](https://helm.sh/docs/chart_template_guide/values_files/)
+Set `apiExternalUrl` and `evaluationServerExternalUrl` in your values file to the
+addresses reachable by the UI and SDK clients. Explicit external URLs are required
+for production; the localhost defaults are for local access.
 
-**All the examples here are tested on Minikube base on the embedding postgresql and redis If you need to deploy them to a public cloud or your own private cloud in the production, please contact us.**
+The exposure examples configure UI/API/ELS networking. Bundled infrastructure is
+for development/test only. Current offline chart checks do not establish v6 runtime
+or manual migration success. HPA examples require metrics-server.
 
 ### Ingress
 
@@ -182,7 +210,7 @@ minikube addons enable ingress
 Here is a simple [example](./charts/featbit/examples/standard/expose-services-via-ingress.yaml) that show how to use ingress to expose services:
 ```yaml
 
-apiExternalUrl: "http:/{API host name}"
+apiExternalUrl: "http://{API host name}"
 evaluationServerExternalUrl: "http://{Evaluation Server host name}"
 
 ui:
@@ -225,7 +253,7 @@ Note that:
     ```
 #### Example for Ingress with TLS
 
-Here is a simple [example](./charts/featbit/examples/standard/expose-services-via-ingress-tls.yaml) that show how to use ingress to expose services with TLS:
+Here is a simple [example](./charts/featbit/examples/standard/expose-services-via-tls-ingress.yaml) that show how to use ingress to expose services with TLS:
 ```yaml
 apiExternalUrl: "https://{API host name, ex: api.featbit.com}"
 evaluationServerExternalUrl: "https://{Evaluation Server host name, ex: api.featbit.com}"
@@ -266,8 +294,8 @@ kubectl create secret tls featbit-com-tls-secret --key /path/to/tls.key --cert /
 
 ### LoadBalancer
 Exposes the Service externally using an external load balancer. K8s does not directly offer a load balancing component; you must provide one, or you can integrate your Kubernetes cluster with a cloud provider.
-The 3 services must be assigned an IP before deployment. Especially, we **_MUST_** know the IPs of api and evaluation server in advance.
-If the load balancer randomly assigns external IP addresses to services, it can make it difficult to preconfigure parameters. Therefore, we currently **_DO NOT_** recommend to use this approach.
+Use known API/ELS addresses for explicit external URLs. For local development,
+the chart also supports the LoadBalancer IP discovery configuration below.
 
 #### Prerequisites
 
@@ -329,6 +357,8 @@ els:
     type: LoadBalancer
 ```
 Use `kubectl get svc` to obtain the IP addresses.
+Auto-discovery requires LoadBalancer services; it does not apply to ClusterIP,
+NodePort or Ingress. Keep explicit API/ELS external URLs in production.
 
 ### NodePort
 Exposes the Services on each k8s cluster Node's IP at a static port:
@@ -389,9 +419,25 @@ kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space
 
 ## Migration and Upgrades
 
+**Chart v0.10.1 / FeatBit v6.0.1**: See the [upgrade guide](./migration/RELEASE-v0.10.1.md).
+This patch updates the UI/API/ELS image tags. No new configuration or database
+migration is required when upgrading from Chart 0.10.0 / FeatBit 6.0.0.
+
+**Chart v0.10.0 / FeatBit v6.0.0**: See the [upgrade guide](./migration/RELEASE-v0.10.0.md).
+This release uses three application images, removes `das.*`, `api.olapServiceHost`
+and `OLAP__ServiceHost`, and moves Professional ClickHouse queries into the API.
+External ClickHouse requires `externalClickhouse.httpEndpoint`. PostgreSQL/MongoDB
+v6 schema migrations are required for existing databases; Professional also needs
+adapted ClickHouse SQL and seven prepared Kafka topics.
+
 🔄 **Starting from Helm Chart v0.9.0 (FeatBit v5.2.0)**
 
-Each release includes migration scripts in the [`migration/`](./migration/) folder. **Database migrations are NOT executed automatically by Helm** - they must be reviewed and executed manually by your DBA or database team before upgrading.
+Release-specific instructions remain in [`migration/`](./migration/), including
+the historical [0.9.17 guide](migration/RELEASE-v0.9.17.md). **Helm does not execute
+existing-database migrations.** Fresh bundled installations use first-initialization
+scripts; updating their ConfigMaps/Secrets does not upgrade initialized volumes.
+Run the applicable incremental schema migration manually against the configured
+database before using v6. Full bootstrap/seed scripts are for empty databases.
 
 **For external databases**: Always check `migration/RELEASE-v{version}.md` for required database schema changes before running `helm upgrade`.
 
@@ -407,8 +453,8 @@ The bundled PostgreSQL dependency is supported with its default authentication b
 - [`featbit-standard-local-pg.yaml`](./charts/featbit/examples/standard/featbit-standard-local-pg.yaml) - PostgreSQL + Redis configuration for local Docker Desktop Kubernetes
 - [`featbit-standard-local-mongo.yaml`](./charts/featbit/examples/standard/featbit-standard-local-mongo.yaml) - MongoDB + Redis configuration for local Docker Desktop Kubernetes
 
-**For production environments**, we HIGHLY recommend external managed services:
-- **PostgreSQL/MongoDB**: Configure `externalPostgresql` or `externalMongodb` with managed database services (Azure Database for PostgreSQL, AWS RDS, Google Cloud SQL, etc.)
+**Production environments must use external managed services** for the selected tier:
+- **PostgreSQL/MongoDB**: Configure `externalPostgresql` or `externalMongodb` with managed database services (Azure Database for PostgreSQL, AWS RDS, Google Cloud SQL, etc.). Set Npgsql connection settings such as `SSL Mode` or `Maximum Pool Size` in `externalPostgresql.extraParams`.
 - **Redis**: Configure `externalRedis` with managed Redis services (Azure Cache for Redis, AWS ElastiCache, Google Cloud Memorystore, etc.)
 - **Kafka**: Configure `externalKafka` with managed Kafka services (Confluent Cloud, AWS MSK, Azure Event Hubs, etc.)
 - **ClickHouse**: Configure `externalClickhouse` with managed ClickHouse services (ClickHouse Cloud, Altinity.Cloud, etc.)

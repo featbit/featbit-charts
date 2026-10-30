@@ -36,5 +36,8 @@ jobs:
       - name: Test PostgreSQL password rendering
         run: bash tests/helm/postgresql-password-env.sh
 
+      - name: Test ClickHouse secret name rendering
+        run: bash tests/helm/clickhouse-secret-name.sh
+
       - name: Test ClickHouse password rendering
         run: bash tests/helm/clickhouse-password-env.sh
