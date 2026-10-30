@@ -125,5 +125,9 @@ chart-managed password environment variable should be rendered.
 
 
 {{- define "featbit.postgresql.config" -}}
-{{- printf "Host=%s;Port=%s;Username=%s;Database=%s" (include "featbit.postgresql.host" .) (include "featbit.postgresql.port" .) (include "featbit.postgresql.user" .) (include "featbit.postgresql.db" .) -}}
+{{- $config := printf "Host=%s;Port=%s;Username=%s;Database=%s" (include "featbit.postgresql.host" .) (include "featbit.postgresql.port" .) (include "featbit.postgresql.user" .) (include "featbit.postgresql.db" .) -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.extraParams -}}
+    {{- $config = printf "%s;%s" $config .Values.externalPostgresql.extraParams -}}
+{{- end -}}
+{{- $config -}}
 {{- end -}}
