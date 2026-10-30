@@ -1,11 +1,13 @@
 {{- define "clickhouse-usr-pass" -}}
 - name: CLICKHOUSE_USER
   value: {{ include "featbit.clickhouse.user" . | quote }}
+{{- if (include "featbit.clickhouse.auth.enabled" .) }}
 - name: CLICKHOUSE_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "featbit.clickhouse.secretName" . | quote }}
       key: {{ include "featbit.clickhouse.secretPasswordKey" . | quote }}
+{{- end }}
 {{- end -}}
 
 
