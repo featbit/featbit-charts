@@ -1,7 +1,17 @@
 {{/*------ CLICKHOUSE ------*/}}
 {{/*Return clickhouse fullname*/}}
+{{/* Matches the bundled ClickHouse sub-chart's name; the Bitnami common library is unavailable when every sub-chart is disabled */}}
 {{- define "featbit.clickhouse.fullname" -}}
-{{- include "common.names.dependency.fullname" (dict "chartName" "clickhouse" "chartValues" .Values.clickhouse "context" .) -}}
+{{- if .Values.clickhouse.fullnameOverride -}}
+{{- .Values.clickhouse.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default "clickhouse" .Values.clickhouse.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 
 {{/* The sole HTTP(S) connection address for the API and bundled startup wait. */}}
