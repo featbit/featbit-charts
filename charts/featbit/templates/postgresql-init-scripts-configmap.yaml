@@ -1507,4 +1507,6 @@ data:
         ALTER COLUMN keyword TYPE character varying(512);
   12_v6.0.0.sql: |-
     {{- .Files.Get "files/featbit-v6/postgresql-v6.0.0.sql" | replace "\\connect featbit" (printf "\\connect %s" ($db | quote)) | nindent 4 }}
+  13_v6.1.0.sql: |-
+    {{- .Files.Get "files/featbit-v6/postgresql-v6.1.0.sql" | replace "\\connect featbit" (printf "\\connect %s" ($db | quote)) | nindent 4 }}
 {{- end -}}

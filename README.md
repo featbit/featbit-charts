@@ -3,8 +3,8 @@
 [FeatBit](https://github.com/featbit/featbit) is an open-source feature flags management tool, which supported self-hosted deployment.
 This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) installation on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm](https://helm.sh/) package manager.
 
-Current source: **Chart 0.10.1 / FeatBit 6.0.1**. The default UI/API/ELS image tags
-are all `6.0.1`. Review the [0.10.1 upgrade guide](migration/RELEASE-v0.10.1.md)
+Current source: **Chart 0.10.2 / FeatBit 6.1.0**. The default UI/API/ELS image tags
+are all `6.1.0`. Review the [0.10.2 release notes](migration/RELEASE-v0.10.2.md)
 before upgrading an existing installation.
 
 ## Prerequisites
@@ -418,6 +418,12 @@ kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space
 ```
 
 ## Migration and Upgrades
+
+**Chart v0.10.2 / FeatBit v6.1.0**: See the [release notes](./migration/RELEASE-v0.10.2.md).
+Existing PostgreSQL/MongoDB databases require the upstream v6.1.0 migration before
+the application upgrade. Fresh bundled databases run this script after the
+v6.0.0 bootstrap. Use the source chart while preparing
+this release; verify package availability before selecting a repository version.
 
 **Chart v0.10.1 / FeatBit v6.0.1**: See the [upgrade guide](./migration/RELEASE-v0.10.1.md).
 This patch updates the UI/API/ELS image tags. No new configuration or database
