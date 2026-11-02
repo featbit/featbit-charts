@@ -21,7 +21,6 @@ Internet → Traffic Manager → Azure LB → NGINX Ingress (TLS) → FeatBit Se
 - `featbit-aks-values.yaml` - Helm values configuration
 - `keyvault-secret-provider.yaml` - Azure Key Vault integration
 - `cluster-issuer.yaml` - Let's Encrypt certificate issuers
-- `*.local.yaml` - Local configuration files (gitignored, copy from templates and update with your values)
 
 ## Prerequisites
 
@@ -123,11 +122,7 @@ eval.example.com → A → <NGINX-IP>
 
 ### 6. Deploy FeatBit
 
-Copy and update values file:
-```bash
-cp featbit-aks-values.yaml featbit-aks-values.local.yaml
-# Edit and update: domains, PostgreSQL, Redis, Key Vault secret names
-```
+Update `featbit-aks-values.yaml` for your environment: domains, PostgreSQL, Redis, and Key Vault secret names.
 
 Add FeatBit Helm repository:
 ```bash
@@ -135,12 +130,12 @@ helm repo add featbit https://featbit.github.io/featbit-charts/
 helm repo update
 ```
 
-Install FeatBit:
+Install FeatBit after Chart 0.10.2 is published:
 ```bash
 helm install featbit featbit/featbit \
-  -f featbit-aks-values.local.yaml \
+  -f featbit-aks-values.yaml \
   --namespace featbit \
-  --version 0.10.1
+  --version 0.10.2
 ```
 
 ### 7. Verify Deployment
