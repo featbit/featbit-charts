@@ -1,0 +1,30 @@
+{
+  "env": [
+    {
+      "name": "Postgres__ConnectionString",
+      "value": "__POSTGRES_CONNECTION_STRING__"
+    },
+    {
+      "name": "Postgres__Password",
+      "valueFrom": {
+        "secretKeyRef": {
+          "name": "featbit-pg-wu3-secret",
+          "key": "password"
+        }
+      }
+    },
+    {
+      "name": "Redis__ConnectionString",
+      "value": "__REDIS_CONNECTION_STRING__"
+    },
+    {
+      "name": "Redis__Password",
+      "valueFrom": {
+        "secretKeyRef": {
+          "name": "featbit-redis-wu3-secret",
+          "key": "password"
+        }
+      }
+    }
+  ]
+}

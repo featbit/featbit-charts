@@ -1,5 +1,6 @@
-# 测试项目
+# Test projects
 
-这里存放独立运行的诊断/实验项目，与 FeatBit Helm Chart 分开维护。
+Standalone diagnostic and experimental projects, maintained separately from the FeatBit Helm Chart.
 
-- [ELS readiness probe](els-readiness-probe/README.md)：.NET 10 ASP.NET Core 服务，复用 ELS 的 PostgreSQL/Redis readiness 检查方式，统计错误率与耗时。
+- [ELS readiness probe](els-readiness-probe/README.md): A .NET 10 ASP.NET Core service that follows ELS PostgreSQL/Redis readiness checks and records error rates and latency.
+- [Standalone AKS deployment](els-readiness-probe-aks/README.md): Docker, Kubernetes YAML, and PowerShell preparation instructions for the probe, using existing Secrets.

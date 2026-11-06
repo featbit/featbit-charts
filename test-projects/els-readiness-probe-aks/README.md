@@ -1,87 +1,76 @@
 # Standalone AKS deployment for the ELS readiness probe
 
-This directory packages the existing [.NET 10 readiness probe](../els-readiness-probe/README.md)
-as an independent container, Kubernetes Deployment, and ClusterIP Service.
-It is separate from the FeatBit Helm release and does not modify the FeatBit Chart,
-existing values, Secrets, SecretProviderClasses, or Deployments.
+Docker and Kubernetes files for the [.NET 10 readiness probe](../els-readiness-probe/README.md).
+This is an independent Deployment and ClusterIP Service in the existing `featbit`
+namespace. It does not use the FeatBit Helm release to deploy the probe.
 
-`prepare.ps1` and `prepare.py` **only read and write local files**. They do not run
-`az`, `docker`, `kubectl`, or `helm`. Azure and AKS commands below are instructions
-for a future, explicitly chosen deployment; they have not been executed as part
-of this implementation.
+Local preparation requires **PowerShell 7+**. Building and testing the application
+locally requires the .NET 10 SDK. The preparation script uses built-in PowerShell
+commands and only reads and writes local files.
 
-## Files
+## Prepare locally
 
-- `Dockerfile`: multi-stage .NET 10 Linux build, using the runtime image's non-root user.
-- `.dockerignore`: additional protection for the isolated build context.
-- `deployment.template.yaml`: one replica, dedicated labels, port 5080, resource limits, and probes.
-- `service.yaml`: a dedicated ClusterIP Service, without Ingress or public exposure.
-- `prepare.ps1` / `prepare.py`: generate a runtime manifest and a separate minimal build context.
-- `tests/`: local preparation tests and a smoke test for a locally published application.
-
-Do not deploy the template directly. Generate and review `deployment.local.yaml` first.
-
-## 1. Prepare files locally
-
-Run from this directory with Python 3.10+ and pip installed:
+From this directory, make a separate, Git-ignored runtime configuration:
 
 ```powershell
-python -m pip install -r requirements.txt
+Copy-Item runtime-config.example.json runtime-config.local.json
+```
 
+Edit `runtime-config.local.json` to match the ELS connection settings in
+`charts/featbit/examples/aks/featbit-aks-values.local.yaml` and the Chart defaults.
+**Leave the existing FeatBit values and Secrets unchanged.** For runtime connection
+settings, the script reads only the new JSON file; it does not parse or automatically synchronize Helm values.
+Review the configuration again if ELS connection settings change.
+
+| Runtime environment entry | What to copy from the existing ELS configuration |
+| --- | --- |
+| `Postgres__ConnectionString` | The effective connection string, including host, port, username, database, and all extra connection parameters |
+| `Postgres__Password` | The existing PostgreSQL Secret name and password key, as a `valueFrom.secretKeyRef` |
+| `Redis__ConnectionString` | The effective connection string, preserving endpoints, database, TLS, user, and cluster/sentinel settings |
+| `Redis__Password` | The existing Redis Secret name and password key, as a `valueFrom.secretKeyRef` |
+
+For external PostgreSQL, the Chart builds
+`Host=<hosts>;Port=<ports>;Username=<username>;Database=<database>` and appends
+`externalPostgresql.extraParams` when present. For standalone external Redis,
+it builds `<host>:<port>,defaultDatabase=<db>,abortConnect=false,ssl=<true|false>`
+and appends `,user=<user>` when configured. Cluster/sentinel connections follow
+the rules in `_redis-config.tpl`; preserve their complete connection strings.
+Also check `els.env` for connection overrides and explicit
+`Redis__ConnectTimeoutMs` / `Redis__SyncTimeoutMs`; those two optional entries can
+be added to the JSON `env` array as string values.
+
+The example references `featbit-pg-wu3-secret/password` and
+`featbit-redis-wu3-secret/password`, matching the previously inspected local values.
+Confirm these references against your current file. The example connection strings
+are placeholders and preparation rejects them until replaced.
+
+Passwords remain in existing Secrets; do not copy their contents into this file.
+Entire connection strings may also use `valueFrom.secretKeyRef` if ELS already
+uses that arrangement. Literal passwords, embedded connection-string passwords,
+environment-variable expansion, duplicate entries, and unrelated ELS environment
+variables are rejected. Only the four required entries and the two optional Redis
+timeouts are accepted.
+
+Generate the manifest and isolated build context:
+
+```powershell
 $RegistryLoginServer = '<actual loginServer of an existing ACR>'
 $Tag = git rev-parse --short HEAD
 $ImageName = "els-readiness-probe:$Tag"
 $Image = "$RegistryLoginServer/$ImageName"
 
-$prepared = .\prepare.ps1 -Image $Image | ConvertFrom-Json
+$prepared = ./prepare.ps1 -Image $Image | ConvertFrom-Json
 $prepared
 ```
 
-Outputs default to the Git-ignored `.generated/<UTC timestamp>/` directory.
-Each run creates a new directory instead of overwriting previous outputs.
-Use `-OutputDirectory <new-directory>` to choose a different fresh directory.
-The default namespace is `featbit`; override it explicitly with `-Namespace`.
-
-The helper reads and merges these files without changing them or invoking Helm:
-
-1. `charts/featbit/values.yaml` supplies defaults.
-2. `charts/featbit/examples/aks/featbit-aks-values.local.yaml` supplies the existing
-   ELS connection configuration. Use `-ValuesFile` to select another local file.
-
-Only external PostgreSQL and Redis are supported. The helper reproduces the
-Chart's external connection-string rules, preserving PostgreSQL extra parameters,
-Redis TLS/database/user settings, and supported ELS environment overrides.
-Unsupported configuration stops preparation rather than guessing passwords or
-creating Secrets. Recheck the helper's output if those Chart rules change.
-
-The currently inspected local values reference:
-
-| Environment variable | Existing Kubernetes Secret / key |
-| --- | --- |
-| `Postgres__Password` | `featbit-pg-wu3-secret` / `password` |
-| `Redis__Password` | `featbit-redis-wu3-secret` / `password` |
-
-Generated references follow the input values' `existingSecret` and
-`existingSecretPasswordKey`; explicit `secretKeyRef` overrides in `els.env`
-take precedence. An entire connection string can also reference an existing
-Secret. Literal password overrides and connection strings with embedded
-credentials or environment-variable expansion are rejected.
-
-Only the two connection strings, two password references, and explicitly supplied
-Redis connect/sync timeouts are copied. Other ELS environment settings, Pod labels,
-CSI mounts, and unrelated FeatBit configuration are not copied.
-
-The Secrets must already exist in the target namespace. The new Pod only consumes
-them: it does not redefine them or read/print their data during preparation.
-The existing ELS Key Vault CSI configuration remains responsible for its current
-Secret synchronization and lifecycle. Passwords injected as environment variables
-are read at process startup; rotation does not automatically refresh a running process.
-
-Preparation produces separate runtime and build artifacts:
+Use `-ConfigFile` for another local JSON file or `-Namespace` for another existing
+namespace. Each run creates a fresh, Git-ignored `.generated/<UTC timestamp>/`
+directory; an existing output directory is never overwritten. `-OutputDirectory`
+can select a fresh directory beneath `.generated`.
 
 ```text
 .generated/<timestamp>/
-|-- deployment.local.yaml    # Runtime connection settings and Secret references
+|-- deployment.local.yaml    # Deployment + Service, runtime settings and Secret references
 `-- build-context/          # Upload ONLY this directory to ACR
     |-- Dockerfile
     |-- .dockerignore
@@ -90,155 +79,148 @@ Preparation produces separate runtime and build artifacts:
     `-- src/Els.ReadinessProbe/...
 ```
 
-Runtime connection information is outside the build context. The helper copies
-an allowlist of source files, the csproj, empty public application defaults, and
-public build configuration. It excludes `appsettings.Local*`, `.env`, tests,
-bin/obj, and the rest of the repository. Preparation rejects dependency credentials
-in the source `appsettings.json` and private/authenticated NuGet configuration.
-The staged NuGet configuration is normalized to the public nuget.org feed.
+The script copies an allowlist of application source and public build files.
+Runtime configuration, `appsettings.Local*`, `.env`, tests, bin/obj, and the rest
+of the repository stay outside the build context. Source `appsettings.json` must
+retain empty credentials, and NuGet configuration must use only public nuget.org.
 
-Do not upload the repository root or the parent `.generated/<timestamp>/`
-directory as the ACR build context.
+The shared Secrets must already exist in the target namespace. Preparation does
+not fetch or print Secret data, create Secrets, or copy the ELS CSI configuration.
+Existing ELS Key Vault synchronization remains responsible for its current Secret
+lifecycle. Environment-based credentials are read at process startup; rotation
+does not automatically refresh a running process.
 
-## 2. Build and push later, manually
+## Build and push later
 
-**This step operates on ACR and pushes an image. It is not local preparation or validation.**
-Use an existing registry and verify the subscription and actual registry login server:
+The following commands are future operator instructions. They have not been run
+as part of this implementation. `az acr build` uploads the context and pushes an
+image to the selected existing registry:
 
 ```powershell
 $Subscription = '<target subscription ID>'
 $AcrName = '<existing ACR name>'
 
-# Verify in Azure that the registry/loginServer matches $Image before building.
+# Verify that the registry's actual loginServer matches $Image.
 az acr build --subscription $Subscription --registry $AcrName `
   --image $ImageName --file Dockerfile --platform linux/amd64 $prepared.buildContext
 ```
 
-ACR Tasks uploads the specified context, builds the image, and pushes it; see the
-[official guide](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-quick-task).
-ARM64 nodes require the corresponding build platform and separate validation.
-AKS image-pull permissions must also be checked separately. This directory does
-not change kubelet identities, ACR roles, or existing imagePullSecrets.
+See the [ACR quick-task guide](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-quick-task).
+ARM64 nodes require the corresponding platform and separate validation. Image-pull
+permissions must already be configured; this project does not change identities,
+ACR roles, or existing imagePullSecrets.
 
-Optional build command for a Docker engine running on your own machine:
+With a local Docker engine, an optional local build is:
 
 ```powershell
 docker build --tag els-readiness-probe:local --file (Join-Path $prepared.buildContext 'Dockerfile') $prepared.buildContext
 ```
 
-## 3. Deploy later, manually, into the existing namespace
+Upload only `build-context`, never the repository root or its parent generated directory.
 
-**The following commands access or modify the selected AKS cluster. They are
-future operator instructions and were not executed during implementation.**
+## Deploy later
 
-Review the generated manifest first. Verify the actual context, namespace,
-Secret names, and image-pull permissions. Local values are not a live cluster
-snapshot; their agreement with the deployed ELS configuration remains unverified.
+These commands contact or modify the selected cluster. They are documented for a
+future deployment and were not executed during implementation or local tests.
+Review `deployment.local.yaml` first. Local configuration does not prove that the
+live ELS workload has the same settings.
 
 ```powershell
 $Context = '<explicit AKS context>'
 $Namespace = $prepared.namespace
 
-# Inspect metadata only; do not print Secret data.
-kubectl --context $Context --namespace $Namespace get namespace $Namespace
+# Check metadata only. Adjust Secret names to match your configuration.
+kubectl --context $Context get namespace $Namespace
 kubectl --context $Context --namespace $Namespace get secret featbit-pg-wu3-secret featbit-redis-wu3-secret
 kubectl --context $Context --namespace $Namespace get deployment/els-readiness-probe service/els-readiness-probe
 
-# Confirm the two test resources do not exist before first creation.
-# create fails on a name collision instead of updating that existing resource.
+# Confirm neither test resource exists. create fails on an existing name.
 kubectl --context $Context --namespace $Namespace create -f $prepared.manifest
 kubectl --context $Context --namespace $Namespace rollout status deployment/els-readiness-probe
 ```
 
-Adjust the metadata checks if your input values use different Secret names.
-Do not create or overwrite shared Secrets. No FeatBit Helm operation or ELS
-configuration/restart is required. The namespace must already exist.
+Both resource selectors use the dedicated name and instance `els-readiness-probe`.
+The new Pod does not match FeatBit Service selectors. No FeatBit Chart, values,
+Secret, Deployment, or restart is involved. Sharing a namespace does not guarantee
+identical network permissions; check applicable policies separately.
 
-Both `app.kubernetes.io/name` and `app.kubernetes.io/instance` are dedicated to
-`els-readiness-probe`, so the new Pod does not match the FeatBit Service selectors.
-Sharing a namespace does not guarantee identical network permissions. Review
-NetworkPolicy or similar restrictions separately; do not copy ELS traffic-selector
-labels to bypass them.
+Start with **one replica**, requests of **100m CPU / 128Mi**, and limits of
+**500m CPU / 512Mi**. These are initial settings to validate under actual load.
+The probe has its own PostgreSQL pool and Redis multiplexer and adds dependency
+traffic. `Recreate` prevents overlapping replicas during an update. Restarts reset
+the in-process statistics.
 
-Initial requests are `100m CPU / 128Mi`, with limits of `500m CPU / 512Mi`.
-These are starting values, not a capacity guarantee. Start with one replica;
-the application has its own PostgreSQL pool and Redis multiplexer and adds a
-small amount of dependency traffic. The `Recreate` update strategy avoids two
-samplers running concurrently during an update. Updates and restarts reset the
-in-process statistics.
+## Sampling and Kubernetes probes
 
-## 4. Sampling and Kubernetes probes
+AKS calls a health endpoint only when a probe is explicitly configured. This
+Deployment supplies startup, liveness, and readiness probes.
 
-The default **background mode** sets `Probe__Enabled=true` and waits 30 seconds
-after each completed dependency check before the next sample. All Kubernetes
-startup/liveness/readiness probes call `/health/liveness`: Pod readiness here means
-the diagnostic service can serve statistics. Dependency health is measured by the
-background sampler instead of causing liveness restarts or blocking statistics.
-Manually calling `/health/readiness` still adds an HTTP-source sample.
+The default **background** mode enables the application's sampler, waiting 30
+seconds after each completed dependency check. All Kubernetes probes call
+`/health/liveness`, so dependency failures do not restart the service or prevent
+access to statistics. An HTTP call to `/health/readiness` adds another sample.
 
-To test kubelet HTTP readiness behavior, prepare a separate **kubelet mode** manifest:
+To test kubelet HTTP readiness behavior instead:
 
 ```powershell
-$prepared = .\prepare.ps1 -Image $Image -SamplingMode kubelet -IntervalSeconds 30 | ConvertFrom-Json
+$prepared = ./prepare.ps1 -Image $Image -SamplingMode kubelet -IntervalSeconds 30 | ConvertFrom-Json
 ```
 
-This disables background sampling. Only `readinessProbe` calls `/health/readiness`;
-startup/liveness continue checking the process itself. The initial HTTP timeout is
-60 seconds: verify it against the actual PostgreSQL connection/command timeouts
-before deployment. It is not a driver timeout. Canceled requests without complete
-reports are excluded from the current counters, and kubelet retry scheduling is
-not a strict fixed sampling interval. Do not enable both sampling methods.
+This disables background sampling and makes only `readinessProbe` call
+`/health/readiness`; startup and liveness still check the process. The readiness
+HTTP timeout starts at 60 seconds. Check it against the actual PostgreSQL
+connection/command timeouts before deployment; it does not set driver timeouts.
+Canceled requests without a complete report are excluded from counters. Kubelet
+scheduling is not a strict fixed sampling interval. Use one sampling mode.
 See the [Kubernetes probe documentation](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/).
 
-Inspect only the test service's logs and statistics:
+Inspect this test workload later with:
 
 ```powershell
 kubectl --context $Context --namespace $Namespace logs deployment/els-readiness-probe --follow
-# Run in another terminal. Target the Deployment's Pod even if it is NotReady.
+# In another terminal; this also works when the Pod is NotReady.
 kubectl --context $Context --namespace $Namespace port-forward deployment/els-readiness-probe 5080:5080
 Invoke-RestMethod http://localhost:5080/diagnostics/stats | ConvertTo-Json -Depth 10
 ```
 
-The endpoints do not have authentication. Keep the ClusterIP/local port-forward
-access pattern rather than adding public exposure. Statistics are not persisted
-across Pods or restarts; retain the observation logs when needed.
+Endpoints have no authentication. Keep access through ClusterIP/local port-forward.
+Statistics are not persisted or aggregated across Pods; retain logs if needed.
 
-## 5. Remove the test resources later, manually
+## Remove the test workload later
 
-After confirming these are the two resources created for this test, delete only them:
+After confirming these are the resources created for this test:
 
 ```powershell
 kubectl --context $Context --namespace $Namespace delete deployment/els-readiness-probe service/els-readiness-probe
 ```
 
-Do not delete the namespace, shared Secrets, SecretProviderClasses, other
-Deployments, or the FeatBit Helm release.
+Leave the namespace, shared Secrets, SecretProviderClasses, and FeatBit release intact.
 
 ## Local validation
 
 ```powershell
-python -m unittest discover -s tests -v
+./tests/prepare.tests.ps1
 
-# Existing application regression tests; real-driver failure tests use loopback ports only.
 Push-Location ../els-readiness-probe
 dotnet test Els.ReadinessProbe.slnx --configuration Release
 Pop-Location
 ```
 
-Checks cover resource/selector isolation, both probe modes, configuration
-inheritance, Secret references, excluded sensitive files, separate runtime/build
-artifacts, and unchanged input files. Local validation does not call kubectl,
-including client-side dry runs that might perform API discovery.
+Preparation tests use synthetic local JSON configuration. They check quoting,
+Secret references, sampling modes, input preservation, excluded runtime files,
+and refusal to overwrite outputs. Application tests use simulated checks and
+closed loopback ports, never the configured remote databases.
 
-If a Docker engine is unavailable, the generated context can still be checked
-with `dotnet restore`, `dotnet publish`, and a loopback smoke test:
+The prepared source can also be published locally:
 
 ```powershell
-# Point to an already published DLL. This starts and stops only a local child process.
-python tests/smoke_published.py --dll '<local-publish-directory>/Els.ReadinessProbe.dll'
+dotnet restore (Join-Path $prepared.buildContext 'src/Els.ReadinessProbe/Els.ReadinessProbe.csproj') `
+  --configfile (Join-Path $prepared.buildContext 'NuGet.Config')
+dotnet publish (Join-Path $prepared.buildContext 'src/Els.ReadinessProbe/Els.ReadinessProbe.csproj') `
+  --configuration Release --no-restore --output (Join-Path $prepared.outputDirectory 'publish')
 ```
 
-That validates the packaged source and application behavior, not a built/running
-Linux Docker image. Linux non-root/read-only filesystem behavior, ACR pull
-permissions, live Secret availability, network/TLS reachability, and real
-PostgreSQL/Redis error rates require later validation in an explicitly selected environment.
+Local publication does not validate a running Linux image. Linux non-root/read-only
+filesystem behavior, ACR pull permissions, live Secret availability, network/TLS
+reachability, and real PostgreSQL/Redis error rates remain for later validation
+in an explicitly selected environment.

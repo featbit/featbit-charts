@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: els-readiness-probe
-  namespace: featbit
+  namespace: __NAMESPACE__
   labels:
     app.kubernetes.io/name: els-readiness-probe
     app.kubernetes.io/instance: els-readiness-probe
@@ -49,26 +49,7 @@ spec:
               cpu: 500m
               memory: 512Mi
           env:
-            - name: Postgres__ConnectionString
-              value: __POSTGRES_CONNECTION_STRING__
-            - name: Postgres__Password
-              valueFrom:
-                secretKeyRef:
-                  name: featbit-pg-wu3-secret
-                  key: password
-            - name: Redis__ConnectionString
-              value: __REDIS_CONNECTION_STRING__
-            - name: Redis__Password
-              valueFrom:
-                secretKeyRef:
-                  name: featbit-redis-wu3-secret
-                  key: password
-            - name: Probe__Enabled
-              value: "true"
-            - name: Probe__IntervalSeconds
-              value: "30"
-            - name: Probe__RecentFailureLimit
-              value: "100"
+__ENVIRONMENT__
           startupProbe:
             httpGet:
               path: /health/liveness
@@ -83,14 +64,13 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 2
             failureThreshold: 3
-          # Readiness here means "can serve statistics", not "PG/Redis healthy".
-          # The default background sampler measures dependency health separately.
+          # Background mode checks the process; kubelet mode checks dependencies.
           readinessProbe:
             httpGet:
-              path: /health/liveness
+              path: __READINESS_PATH__
               port: http
-            periodSeconds: 10
-            timeoutSeconds: 2
+            periodSeconds: __READINESS_PERIOD__
+            timeoutSeconds: __READINESS_TIMEOUT__
             failureThreshold: 3
           volumeMounts:
             - name: temporary-files

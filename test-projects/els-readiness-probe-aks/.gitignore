@@ -1,4 +1,4 @@
 .generated/
-__pycache__/
+runtime-config.local.json
 *.local.yaml
 *.log
