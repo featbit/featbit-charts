@@ -141,6 +141,61 @@ Endpoints have no authentication; keep access through ClusterIP/local port-forwa
 See the [application README](../els-readiness-probe/README.md) for counter semantics
 and the limits of reproducing production failures with readiness checks.
 
+## View logs in Azure Monitor
+
+Like ELS, this service only writes container logs; forwarding uses your existing
+AKS log collection. The service has no Azure exporter or ingestion client.
+To view its JSON stdout in Azure Monitor, the existing Container Insights/Azure
+Monitor Agent configuration must collect
+stdout for namespace `featbit` into the linked **Log Analytics workspace**. Check
+namespace, Pod, and level filters if events are missing. No monitoring configuration
+is changed by these files. See the [ContainerLogV2 schema and collection settings](https://learn.microsoft.com/en-us/azure/azure-monitor/containers/container-insights-logs-schema).
+
+In that workspace's **Logs** view, find recent completed samples and their trace IDs:
+
+```kusto
+ContainerLogV2
+| where TimeGenerated > ago(1h)
+| where PodNamespace == "featbit" and PodName startswith "els-readiness-probe-"
+| extend L = parse_json(tostring(LogMessage))
+| where toint(L.EventId) == 1001
+| project TimeGenerated, PodName,
+    TraceId = tostring(L.State.TraceId), SampleId = tolong(L.State.SampleId),
+    Source = tostring(L.State.Source), Status = tostring(L.State.Status),
+    DurationMs = todouble(L.State.DurationMs)
+| order by TimeGenerated desc
+```
+
+Copy a trace ID from these results or the HTTP `X-Trace-Id` response header, then
+retrieve all matching application and scoped driver events:
+
+```kusto
+let TargetTraceId = "<trace ID to inspect>";
+ContainerLogV2
+| where TimeGenerated > ago(1h)
+| where PodNamespace == "featbit" and PodName startswith "els-readiness-probe-"
+| extend L = parse_json(tostring(LogMessage))
+| where tostring(L.State.TraceId) == TargetTraceId
+    or tostring(L.Scopes) contains TargetTraceId
+| project TimeGenerated, PodName, EventId = toint(L.EventId),
+    Level = tostring(L.LogLevel), Source = tostring(L.State.Source),
+    SampleId = tolong(L.State.SampleId), Check = tostring(L.State.Check),
+    Message = tostring(L.Message), Details = L.State
+| order by TimeGenerated asc
+```
+
+Read severity from the JSON `LogLevel` field in these queries. HTTP events are
+1000 (start), 1003 (complete), 1005 (canceled), and 1006 (unexpected failure).
+Events 1001 (sample), 1002 (dependency), and 1004 (exception details) cover both
+HTTP and background samples; 1100/1105 mark background start/cancellation.
+The [table reference](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/containerlogv2)
+describes the Pod and message columns.
+
+These IDs correlate logs; they do not create Application Insights request/dependency
+transactions or a distributed-trace view. An Application Insights connection string
+alone does not ingest stdout. No Azure SDK, Collector, or monitoring deployment is
+added. Azure ingestion and these KQL queries have not been tested against a live workspace.
+
 ## Remove the test workload later
 
 Delete only the resources created for this test:

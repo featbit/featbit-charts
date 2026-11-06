@@ -3,8 +3,12 @@
 ### No dependency requests
 GET {{baseUrl}}/health/liveness
 
-### Execute both ELS-style readiness checks; 200 Healthy / 503 Unhealthy
+### Check response X-Trace-Id / X-Probe-Sample-Id, then correlate JSON readiness logs
 GET {{baseUrl}}/health/readiness
+
+### Optional upstream W3C trace context; the response keeps this trace ID
+GET {{baseUrl}}/health/readiness
+traceparent: 00-0123456789abcdef0123456789abcdef-0123456789abcdef-01
 
 ### Read counters and recent failures without issuing dependency requests
 GET {{baseUrl}}/diagnostics/stats

@@ -12,7 +12,10 @@ builder.Logging.AddJsonConsole(options =>
 {
     options.UseUtcTimestamp = true;
     options.TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
+    options.IncludeScopes = true;
 });
+builder.Logging.Configure(options => options.ActivityTrackingOptions =
+    ActivityTrackingOptions.TraceId | ActivityTrackingOptions.SpanId | ActivityTrackingOptions.ParentId);
 
 builder.Services.AddOptions<ProbeOptions>()
     .BindConfiguration("Probe")
@@ -26,13 +29,16 @@ builder.Services.AddHostedService<ProbeSampler>();
 
 var app = builder.Build();
 
+app.UseMiddleware<ReadinessRequestLogging>();
 app.MapHealthChecks("/health/liveness", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/health/readiness", new HealthCheckOptions
 {
     Predicate = Readiness.IsReadiness,
     ResponseWriter = async (context, report) =>
     {
-        context.RequestServices.GetRequiredService<ProbeRecorder>().Record(report, "http");
+        var sample = context.RequestServices.GetRequiredService<ProbeRecorder>()
+            .Record(report, "http", context.TraceIdentifier);
+        context.Response.Headers["X-Probe-Sample-Id"] = sample.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
         context.Response.ContentType = "text/plain; charset=utf-8";
         await context.Response.WriteAsync(report.Status.ToString(), context.RequestAborted);
     }

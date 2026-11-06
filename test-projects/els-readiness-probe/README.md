@@ -98,12 +98,48 @@ Counters are thread-safe, process-local, and reset on restart. Multiple instance
 are not aggregated. Canceled checks without a complete report do not enter these
 denominators; these rates are not production HTTP 499/500 rates.
 
-JSON console logs include sample ID, UTC timestamp, source, status, duration,
-exception type chains, and SQLSTATE/SocketError when available. Statistics and
-sampling logs omit connection strings, passwords, raw exception messages, and
-stack traces. Framework health-check error logging is suppressed by default to
-avoid repeating raw exceptions. Additional driver diagnostics need a separate,
-deliberate logging configuration.
+## Readiness logs and trace correlation
+
+Every `/health/readiness` request logs its start and completion, including HTTP
+status and elapsed milliseconds. Every complete sample logs the overall result
+and separate PostgreSQL/Redis results, including healthy checks and their durations.
+Requests canceled before completion get a cancellation event instead of a claimed
+HTTP 499 response. Liveness and statistics requests do not generate readiness logs.
+
+Readiness events are single-line JSON on stdout with structured fields under
+`State`: `TraceId`, `SpanId`, `Source`, and, when available, `RequestId`, `SampleId`,
+`Check`, `Status`, and `DurationMs`. UTC timestamps and log severity are also present.
+An incoming W3C `traceparent` is preserved; otherwise the request gets a new trace.
+Each background sample has its own trace and `Source=background`.
+
+Responses include `X-Trace-Id` and, for complete reports, `X-Probe-Sample-Id`:
+
+```powershell
+$response = Invoke-WebRequest http://localhost:5080/health/readiness -SkipHttpErrorCheck
+$response.Headers['X-Trace-Id']
+$response.Headers['X-Probe-Sample-Id']
+```
+
+Recent failures in `/diagnostics/stats` also include `traceId`, `spanId`, and
+`requestId`. `SampleId` is process-local; use `TraceId` and Pod identity when
+correlating observations across restarts or replicas.
+
+Failures log each captured nested exception separately: exception type, HResult,
+transient flag, SQLSTATE, socket/native error codes, and stack frames when available.
+At most 16 exceptions are traversed; each stack is capped at 2,048 characters with
+`StackTraceTruncated=true` when shortened. The application does not log raw exception
+messages, health-check descriptions, connection strings, passwords, request headers,
+or query strings. Full exception text is not passed to the logger.
+
+Framework health-check error logging remains suppressed to avoid repeating raw
+exceptions. Additional Npgsql connection diagnostics can be enabled temporarily
+using `Logging__LogLevel__Npgsql.Connection=Trace` in this test application's `env`.
+This uses Microsoft logging levels, not the ELS Serilog `Verbose` setting. Validate
+the additional driver output separately. Earlier exceptions swallowed inside the
+driver are still not guaranteed to appear in a completed health report.
+
+See the [Azure Monitor queries](../els-readiness-probe-aks/README.md#view-logs-in-azure-monitor)
+for finding these events after an explicitly chosen deployment.
 
 ## Optional background sampling
 
