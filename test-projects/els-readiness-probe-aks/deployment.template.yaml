@@ -1,0 +1,101 @@
+# Prepare this template locally. Apply only the generated manifest after review.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: els-readiness-probe
+  namespace: featbit
+  labels:
+    app.kubernetes.io/name: els-readiness-probe
+    app.kubernetes.io/instance: els-readiness-probe
+spec:
+  replicas: 1
+  # Avoid two simultaneous sampler instances during a manual image update.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: els-readiness-probe
+      app.kubernetes.io/instance: els-readiness-probe
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: els-readiness-probe
+        app.kubernetes.io/instance: els-readiness-probe
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: probe
+          image: __IMAGE__
+          imagePullPolicy: IfNotPresent
+          args: ["--urls", "http://0.0.0.0:5080"]
+          ports:
+            - name: http
+              containerPort: 5080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          env:
+            - name: Postgres__ConnectionString
+              value: __POSTGRES_CONNECTION_STRING__
+            - name: Postgres__Password
+              valueFrom:
+                secretKeyRef:
+                  name: featbit-pg-wu3-secret
+                  key: password
+            - name: Redis__ConnectionString
+              value: __REDIS_CONNECTION_STRING__
+            - name: Redis__Password
+              valueFrom:
+                secretKeyRef:
+                  name: featbit-redis-wu3-secret
+                  key: password
+            - name: Probe__Enabled
+              value: "true"
+            - name: Probe__IntervalSeconds
+              value: "30"
+            - name: Probe__RecentFailureLimit
+              value: "100"
+          startupProbe:
+            httpGet:
+              path: /health/liveness
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          # Readiness here means "can serve statistics", not "PG/Redis healthy".
+          # The default background sampler measures dependency health separately.
+          readinessProbe:
+            httpGet:
+              path: /health/liveness
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          volumeMounts:
+            - name: temporary-files
+              mountPath: /tmp
+      volumes:
+        - name: temporary-files
+          emptyDir:
+            sizeLimit: 64Mi
