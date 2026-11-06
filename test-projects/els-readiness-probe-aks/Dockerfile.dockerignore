@@ -1,0 +1,10 @@
+# Paths are relative to the els-readiness-probe application build context.
+**/bin/**
+**/obj/**
+**/appsettings.Local*
+**/.env*
+**/TestResults/**
+tests/
+.vs/
+*.log
+*.jsonl

@@ -1,4 +1,2 @@
-.generated/
-runtime-config.local.json
 *.local.yaml
 *.log

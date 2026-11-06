@@ -1,9 +1,9 @@
-# Prepare this template locally. Apply only the generated manifest after review.
+# Copy to deployment.local.yaml, then edit the image and connection strings.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: els-readiness-probe
-  namespace: __NAMESPACE__
+  namespace: featbit
   labels:
     app.kubernetes.io/name: els-readiness-probe
     app.kubernetes.io/instance: els-readiness-probe
@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: probe
-          image: __IMAGE__
+          image: example.azurecr.io/els-readiness-probe:replace-me
           imagePullPolicy: IfNotPresent
           args: ["--urls", "http://0.0.0.0:5080"]
           ports:
@@ -49,7 +49,26 @@ spec:
               cpu: 500m
               memory: 512Mi
           env:
-__ENVIRONMENT__
+            - name: Postgres__ConnectionString
+              value: "REPLACE_WITH_ELS_POSTGRES_CONNECTION_STRING"
+            - name: Postgres__Password
+              valueFrom:
+                secretKeyRef:
+                  name: featbit-pg-wu3-secret
+                  key: password
+            - name: Redis__ConnectionString
+              value: "REPLACE_WITH_ELS_REDIS_CONNECTION_STRING"
+            - name: Redis__Password
+              valueFrom:
+                secretKeyRef:
+                  name: featbit-redis-wu3-secret
+                  key: password
+            - name: Probe__Enabled
+              value: "true"
+            - name: Probe__IntervalSeconds
+              value: "30"
+            - name: Probe__RecentFailureLimit
+              value: "100"
           startupProbe:
             httpGet:
               path: /health/liveness
@@ -64,13 +83,13 @@ __ENVIRONMENT__
             periodSeconds: 10
             timeoutSeconds: 2
             failureThreshold: 3
-          # Background mode checks the process; kubelet mode checks dependencies.
+          # The background sampler checks PG/Redis. Pod readiness keeps stats accessible.
           readinessProbe:
             httpGet:
-              path: __READINESS_PATH__
+              path: /health/liveness
               port: http
-            periodSeconds: __READINESS_PERIOD__
-            timeoutSeconds: __READINESS_TIMEOUT__
+            periodSeconds: 10
+            timeoutSeconds: 2
             failureThreshold: 3
           volumeMounts:
             - name: temporary-files
