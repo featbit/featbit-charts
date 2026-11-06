@@ -138,9 +138,6 @@ This uses Microsoft logging levels, not the ELS Serilog `Verbose` setting. Valid
 the additional driver output separately. Earlier exceptions swallowed inside the
 driver are still not guaranteed to appear in a completed health report.
 
-See the [Azure Monitor queries](../els-readiness-probe-aks/README.md#view-logs-in-azure-monitor)
-for finding these events after an explicitly chosen deployment.
-
 ## Optional background sampling
 
 Background sampling is disabled by default. With it disabled, only a readiness
