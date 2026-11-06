@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:5080
+
+### No dependency requests
+GET {{baseUrl}}/health/liveness
+
+### Execute both ELS-style readiness checks; 200 Healthy / 503 Unhealthy
+GET {{baseUrl}}/health/readiness
+
+### Read counters and recent failures without issuing dependency requests
+GET {{baseUrl}}/diagnostics/stats
