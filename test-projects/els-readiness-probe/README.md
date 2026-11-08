@@ -5,8 +5,8 @@ PostgreSQL/Redis readiness-check behavior and records failure rates and latency.
 It executes dependency checks directly rather than calling a running ELS over HTTP.
 
 The application does not require the full FeatBit source tree, Azure SDK,
-OpenTelemetry, or a Collector. Independent Docker and Kubernetes files are in
-[els-readiness-probe-aks](../els-readiness-probe-aks/README.md).
+OpenTelemetry, or a Collector. See the [ACA deployment guide](../els-readiness-probe-aca/README.md)
+for packaging the application into ACR and deploying it with Azure CLI.
 
 ## Relationship to ELS
 
@@ -167,8 +167,9 @@ failure reports. It does not connect to existing databases or prove successful
 requests against real PostgreSQL/Redis services.
 
 No production credentials have been used, production failure rates have not been
-measured, and nothing has been deployed to AKS. Windows local tests do not reproduce
-Linux/AKS network conditions.
+measured, and nothing has been deployed to Azure. Windows local tests do not reproduce
+Linux/cloud network conditions. ACA also has a different network path from AKS;
+results collected there describe the ACA environment.
 
 Low-load readiness checks differ from `/evaluate` traffic. PostgreSQL may reuse
 pooled physical connections, and Redis reuses its multiplexer; successful checks
