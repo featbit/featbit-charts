@@ -33,6 +33,8 @@ demoExternalUrl: ""
 uiBaseHref: ""
 uiDisplayApiUrl: ""
 uiDisplayEvaluationUrl: ""
+# Empty uses the ELS application default (false since FeatBit 6.1.1).
+# Set to "true" to resolve client hostnames for detailed logging.
 elsStreamingTrackClientHostName: ""
 elsStreamingTokenExpirySeconds: ""
 # only considered in exposing LoadBalancer service
@@ -48,8 +50,8 @@ ui:
     registry: docker.io
     repository: featbit/featbit-ui
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: 6.1.0
+    # Explicit application image tag; appVersion does not select the image.
+    tag: "6.1.1"
 
   imagePullSecrets: []
 
@@ -142,8 +144,8 @@ api:
     registry: docker.io
     repository: featbit/featbit-api-server
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: 6.1.0
+    # Explicit application image tag; appVersion does not select the image.
+    tag: "6.1.1"
 
   imagePullSecrets: []
 
@@ -249,8 +251,8 @@ els:
     registry: docker.io
     repository: featbit/featbit-evaluation-server
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: 6.1.0
+    # Explicit application image tag; appVersion does not select the image.
+    tag: "6.1.1"
 
   imagePullSecrets: []
 
