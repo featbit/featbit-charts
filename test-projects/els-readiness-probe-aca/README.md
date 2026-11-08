@@ -1,19 +1,22 @@
 # Deploy the ELS readiness probe to Azure Container Apps
 
 This guide builds the local [.NET 10 project](../els-readiness-probe/README.md),
-pushes its image to **Azure Container Registry (ACR)**, and runs it on
-**Azure Container Apps (ACA)**. All commands are for you to run; none have been
+pushes its image to your **existing Azure Container Registry (ACR)**, and deploys
+a new Container App inside your **existing Azure Container Apps (ACA) environment**.
+All commands are for you to run; none have been
 executed during this change. FeatBit configuration and AKS resources are unchanged.
 
 Use **PowerShell 7.1+**, the **.NET 10 SDK**, and **Azure CLI**. Run the following
 steps in the same terminal, starting from the **repository root**.
 
-You need an existing ACR and an existing ACA environment in your chosen resource
-group. The environment must reach your PG/Redis endpoints, including private DNS
-and VNet routing when applicable. Your account needs permission to run ACR builds,
-create the app and managed identity, and assign the image-pull role.
+**Before starting, the resource group, ACR, and ACA environment must already exist.**
+The steps below reuse those resources; provisioning them is outside this guide.
+The ACA environment must already reach your PG/Redis endpoints, including private
+DNS and VNet routing when applicable. Your account needs permission to run ACR
+builds and create the test Container App. Creating a new pull identity in step 3
+also requires identity creation and role-assignment permissions.
 
-## 1. Select your Azure resources
+## 1. Select your existing ACR and ACA environment
 
 Replace the placeholders with your existing resources:
 
@@ -30,10 +33,16 @@ $Tag = Get-Date -Format 'yyyyMMdd-HHmmss'
 $ImageName = "${AppName}:$Tag"
 
 $Registry = az acr show --name $AcrName --query loginServer --output tsv
+if ($LASTEXITCODE -ne 0) { throw 'Select an existing ACR before continuing.' }
 $AcrId = az acr show --name $AcrName --query id --output tsv
+$EnvironmentId = az containerapp env show --resource-group $ResourceGroup --name $EnvironmentName --query id --output tsv
+if ($LASTEXITCODE -ne 0) { throw 'Select an existing ACA environment before continuing.' }
 $Location = az containerapp env show --resource-group $ResourceGroup --name $EnvironmentName --query location --output tsv
 $Image = "$Registry/$ImageName"
 ```
+
+The `show` commands only look up existing resources. The resulting environment
+ID is used explicitly when creating the test app in step 4.
 
 ## 2. Publish locally, then build and push in ACR
 
@@ -73,8 +82,11 @@ Only the temporary publish directory is uploaded, not the repository or FeatBit 
 
 ## 3. Allow ACA to pull the private image
 
-Create a dedicated identity for this test app. This avoids enabling ACR admin
-credentials. See [managed-identity image pulls](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull).
+If you already have an approved user-assigned identity with image-pull access to
+this ACR, set `$IdentityId` to its resource ID and skip the commands in this step.
+Otherwise, create a dedicated identity for this test app below. This uses managed
+identity authentication without changing the ACR admin-user setting. See
+[managed-identity image pulls](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull).
 
 ```powershell
 $IdentityName = "$AppName-pull"
@@ -106,7 +118,7 @@ $PgPassword = Read-Host 'PostgreSQL password' -MaskInput
 $RedisPassword = Read-Host 'Redis password' -MaskInput
 
 az containerapp create --name $AppName --resource-group $ResourceGroup `
-  --environment $EnvironmentName --image $Image `
+  --environment $EnvironmentId --image $Image `
   --user-assigned $IdentityId --registry-server $Registry --registry-identity $IdentityId `
   --cpu 0.25 --memory 0.5Gi --min-replicas 1 --max-replicas 1 --revisions-mode single `
   --secrets "pg-password=$PgPassword" "redis-password=$RedisPassword" `
@@ -146,5 +158,5 @@ When finished, remove only the test Container App:
 az containerapp delete --name $AppName --resource-group $ResourceGroup --yes
 ```
 
-The image and dedicated pull identity remain available for reuse; the existing
+The image and selected pull identity remain available for reuse; the existing
 ACR, ACA environment, databases, and FeatBit services are left in place.
