@@ -11,6 +11,16 @@ venv/
 
 .copilot-commit-message-instructions.md
 
+# Local ELS readiness probe outputs and private settings.
+/test-projects/els-readiness-probe/**/bin/
+/test-projects/els-readiness-probe/**/obj/
+/test-projects/els-readiness-probe/**/TestResults/
+/test-projects/els-readiness-probe/**/appsettings.Local.json
+/test-projects/els-readiness-probe/**/.env
+/test-projects/els-readiness-probe/**/*.log
+/test-projects/els-readiness-probe/**/*.jsonl
+/test-projects/els-readiness-probe/**/.vs/
+
 # Deployment configuration files with sensitive data
 **/*-secrets.yaml
 *local-values.yaml
@@ -18,6 +28,7 @@ venv/
 featbit-local-without-das-values.yaml
 *.local.yaml
 *local.backup.*.yaml
+*.local.backup*.yaml
 *local.backup.yaml
 
 # TLS certificates and private keys
