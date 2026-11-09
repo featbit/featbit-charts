@@ -1,56 +1,136 @@
-# Deploy the ELS readiness probe to Azure Container Apps
+# Deploy the ELS readiness probe to your existing ACA environment
 
-This guide builds the local [.NET 10 project](../els-readiness-probe/README.md),
-pushes its image to your **existing Azure Container Registry (ACR)**, and deploys
-a new Container App inside your **existing Azure Container Apps (ACA) environment**.
-All commands are for you to run; none have been
-executed during this change. FeatBit configuration and AKS resources are unchanged.
+Run these steps yourself, in order, from the **repository root**, using the same
+**PowerShell 7.1+** terminal. Install the **.NET 10 SDK** and a recent **Azure CLI** first.
+The commands have not been executed during this documentation change.
 
-Use **PowerShell 7.1+**, the **.NET 10 SDK**, and **Azure CLI**. Run the following
-steps in the same terminal, starting from the **repository root**.
+The resource names below come from your screenshots:
 
-**Before starting, the resource group, ACR, and ACA environment must already exist.**
-The steps below reuse those resources; provisioning them is outside this guide.
-The ACA environment must already reach your PG/Redis endpoints, including private
-DNS and VNet routing when applicable. Your account needs permission to run ACR
-builds and create the test Container App. Creating a new pull identity in step 3
-also requires identity creation and role-assignment permissions.
+| Resource | Name |
+| --- | --- |
+| Existing resource group | `featbit-saas-wu3` |
+| Region | West US 3 (`westus3`) |
+| Existing ACA environment | `featbit-aca-wu3` |
+| Existing ACR | `featbitrdawu3` |
+| Existing Key Vault | `featbit-kv-wu3` |
+| New Container App | `els-readiness-probe` |
 
-## 1. Select your existing ACR and ACA environment
+This deploys a new **Container App**, independently of the existing Container App
+Job and FeatBit services. It reuses your environment, registry, and Key Vault.
+No resource group, registry, environment, database, or secret value is created or replaced.
 
-Replace the placeholders with your existing resources:
+The ACA environment must already have network access to Key Vault, PostgreSQL,
+and Redis, including private DNS/VNet routing where required. **The same resource
+group and region do not establish connectivity or grant permissions.** These steps
+do not change networking or any AKS configuration.
+
+## 1. Sign in and confirm the existing resources
+
+Replace only the subscription ID if the resource names above are correct:
 
 ```powershell
+$SubscriptionId = '<your FeatBit subscription ID>'
+$ResourceGroup = 'featbit-saas-wu3'
+$Location = 'westus3'
+$EnvironmentName = 'featbit-aca-wu3'
+$AcrName = 'featbitrdawu3'
+$KeyVaultName = 'featbit-kv-wu3'
+$AppName = 'els-readiness-probe'
+$IdentityName = 'els-readiness-probe-mi'
+$PgSecretName = 'featbit-pg-wu3-secret'
+$RedisSecretName = 'featbit-redis-wu3-secret'
+
 az login
-az account set --subscription '<subscription ID>'
+az account set --subscription $SubscriptionId
+if ($LASTEXITCODE -ne 0) { throw 'Select the intended subscription before continuing.' }
 az extension add --name containerapp --upgrade
 
-$ResourceGroup = '<resource group containing your ACA environment>'
-$EnvironmentName = '<existing ACA environment name>'
-$AcrName = '<existing ACR name>'
-$AppName = 'els-readiness-probe'
-$Tag = Get-Date -Format 'yyyyMMdd-HHmmss'
-$ImageName = "${AppName}:$Tag"
+$Environment = az containerapp env show --resource-group $ResourceGroup --name $EnvironmentName --output json | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or -not $Environment.id) { throw 'The existing ACA environment was not found.' }
+$Acr = az acr show --resource-group $ResourceGroup --name $AcrName --output json | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or -not $Acr.id) { throw 'The existing ACR was not found.' }
+$Vault = az keyvault show --resource-group $ResourceGroup --name $KeyVaultName --output json | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or -not $Vault.id) { throw 'The existing Key Vault was not found.' }
 
-$Registry = az acr show --name $AcrName --query loginServer --output tsv
-if ($LASTEXITCODE -ne 0) { throw 'Select an existing ACR before continuing.' }
-$AcrId = az acr show --name $AcrName --query id --output tsv
-$EnvironmentId = az containerapp env show --resource-group $ResourceGroup --name $EnvironmentName --query id --output tsv
-if ($LASTEXITCODE -ne 0) { throw 'Select an existing ACA environment before continuing.' }
-$Location = az containerapp env show --resource-group $ResourceGroup --name $EnvironmentName --query location --output tsv
-$Image = "$Registry/$ImageName"
+$EnvironmentId = $Environment.id
+$Registry = $Acr.loginServer
+$VaultUri = $Vault.properties.vaultUri.TrimEnd('/')
+$PgSecretUri = "$VaultUri/secrets/$PgSecretName"
+$RedisSecretUri = "$VaultUri/secrets/$RedisSecretName"
 ```
 
-The `show` commands only look up existing resources. The resulting environment
-ID is used explicitly when creating the test app in step 4.
+The `show` commands read resource metadata, not password values. The existing
+Key Vault secrets are used as **passwords**, matching your AKS CSI configuration:
 
-## 2. Publish locally, then build and push in ACR
+| Probe setting | Existing Key Vault secret |
+| --- | --- |
+| `Postgres__Password` | `featbit-pg-wu3-secret` |
+| `Redis__Password` | `featbit-redis-wu3-secret` |
 
-This publishes runtime files into a fresh temporary directory. The small runtime
-Dockerfile is generated there, outside the repository. Docker Desktop is not
-required: [ACR builds and pushes the image](https://learn.microsoft.com/en-us/cli/azure/acr#az-acr-build).
+## 2. Give the probe identity image-pull and secret-read access
+
+Create a dedicated identity for this probe. If reusing an approved ACA identity,
+substitute its name and resource group in the identity commands and skip `create`.
+Use an ACA identity's **resource ID**, not the AKS kubelet client ID from the CSI file.
 
 ```powershell
+az identity create --resource-group $ResourceGroup --name $IdentityName --location $Location --output none
+if ($LASTEXITCODE -ne 0) { throw 'Identity creation failed.' }
+$Identity = az identity show --resource-group $ResourceGroup --name $IdentityName --output json | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or -not $Identity.id) { throw 'Identity lookup failed.' }
+$IdentityId = $Identity.id
+$PrincipalId = $Identity.principalId
+
+$PullRole = switch ($Acr.roleAssignmentMode) {
+    'AbacRepositoryPermissions' { 'Container Registry Repository Reader' }
+    'LegacyRegistryPermissions' { 'AcrPull' }
+    default { throw 'Check the ACR permission mode with your administrator before assigning a pull role.' }
+}
+az role assignment create --assignee-object-id $PrincipalId --assignee-principal-type ServicePrincipal `
+  --role $PullRole --scope $Acr.id --output none
+if ($LASTEXITCODE -ne 0) { throw 'ACR image-pull permission assignment failed.' }
+```
+
+Next, grant access according to the vault's **existing** permission model. The
+RBAC branch limits access to the two named secrets. **The legacy access-policy
+branch grants `get` for all secrets in this vault; run it only if the vault owner
+approves that scope for the probe.** Keep the vault's permission model unchanged.
+
+```powershell
+if ($Vault.properties.enableRbacAuthorization) {
+    foreach ($SecretName in @($PgSecretName, $RedisSecretName)) {
+        az role assignment create --assignee-object-id $PrincipalId --assignee-principal-type ServicePrincipal `
+          --role 'Key Vault Secrets User' --scope "$($Vault.id)/secrets/$SecretName" --output none
+        if ($LASTEXITCODE -ne 0) { throw 'Key Vault secret-read role assignment failed.' }
+    }
+}
+else {
+    az keyvault set-policy --resource-group $ResourceGroup --name $KeyVaultName `
+      --object-id $PrincipalId --secret-permissions get --output none
+    if ($LASTEXITCODE -ne 0) { throw 'Key Vault access policy assignment failed.' }
+}
+```
+
+The access-policy command targets only the probe identity; it does not modify
+other identities' policies. If you lack permission to assign roles or policies,
+have the registry/vault administrator perform this step.
+
+Allow permission changes to propagate before deploying. These are separate grants:
+ACR pull permission does not grant Key Vault access. References:
+[ACR roles](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview),
+[Key Vault RBAC](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide),
+[legacy access policies](https://learn.microsoft.com/en-us/azure/key-vault/general/assign-access-policy).
+
+## 3. Publish locally, then build and push the image in ACR
+
+This publishes the [.NET project](../els-readiness-probe/README.md) into a fresh
+temporary directory and generates a runtime Dockerfile there. No Dockerfile or
+helper script needs to be added to the repository, and Docker Desktop is not required.
+
+```powershell
+$Tag = Get-Date -Format 'yyyyMMdd-HHmmss'
+$ImageName = "${AppName}:$Tag"
+$Image = "$Registry/$ImageName"
 $BuildDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ('els-probe-' + [Guid]::NewGuid().ToString('N'))
 
 dotnet publish test-projects/els-readiness-probe/src/Els.ReadinessProbe/Els.ReadinessProbe.csproj `
@@ -58,7 +138,6 @@ dotnet publish test-projects/els-readiness-probe/src/Els.ReadinessProbe/Els.Read
   -p:UseAppHost=false --output $BuildDirectory
 if ($LASTEXITCODE -ne 0) { throw 'Publish failed. Stop here.' }
 
-# Remove optional local settings before uploading the published files.
 Get-ChildItem -LiteralPath $BuildDirectory -Recurse -File -Filter 'appsettings.Local*.json' |
   ForEach-Object { Remove-Item -LiteralPath $_.FullName }
 
@@ -72,91 +151,94 @@ EXPOSE 5080
 ENTRYPOINT ["dotnet", "Els.ReadinessProbe.dll"]
 '@ | Set-Content -LiteralPath (Join-Path $BuildDirectory 'Dockerfile') -Encoding utf8
 
-az acr build --registry $AcrName --image $ImageName --platform linux/amd64 `
-  --file Dockerfile $BuildDirectory
-if ($LASTEXITCODE -ne 0) { throw 'Image build failed. Stop here.' }
+az acr build --resource-group $ResourceGroup --registry $AcrName --image $ImageName `
+  --platform linux/amd64 --file Dockerfile $BuildDirectory
+if ($LASTEXITCODE -ne 0) { throw 'ACR build failed. Stop here.' }
 ```
 
-Keep credentials out of tracked `appsettings.json` and other published files.
-Only the temporary publish directory is uploaded, not the repository or FeatBit values.
+[ACR builds and pushes the image in Azure](https://learn.microsoft.com/en-us/cli/azure/acr#az-acr-build).
+Your account needs permission to run ACR builds. Only the temporary runtime files
+are uploaded, not the repository or FeatBit values. Keep tracked `appsettings.json`
+and all other published files free of credentials; optional local settings are
+removed from the temporary directory before upload.
 
-## 3. Allow ACA to pull the private image
+## 4. Enter password-free connection strings and deploy
 
-If you already have an approved user-assigned identity with image-pull access to
-this ACR, set `$IdentityId` to its resource ID and skip the commands in this step.
-Otherwise, create a dedicated identity for this test app below. This uses managed
-identity authentication without changing the ACR admin-user setting. See
-[managed-identity image pulls](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull).
+Copy ELS's effective connection strings from your local deployment configuration,
+including any `els.env` overrides. For PostgreSQL, preserve host, port, username,
+database, and `externalPostgresql.extraParams`. For Redis, preserve the exact
+endpoint port, TLS, database, user, and cluster/sentinel options. Do not infer the
+Redis endpoint or port from its Azure resource name.
 
-```powershell
-$IdentityName = "$AppName-pull"
-az identity create --resource-group $ResourceGroup --name $IdentityName --location $Location --output none
-$IdentityId = az identity show --resource-group $ResourceGroup --name $IdentityName --query id --output tsv
-$PrincipalId = az identity show --resource-group $ResourceGroup --name $IdentityName --query principalId --output tsv
-
-$PullRole = 'AcrPull'
-# For an ABAC-enabled ACR, use 'Container Registry Repository Reader' instead.
-az role assignment create --assignee-object-id $PrincipalId --assignee-principal-type ServicePrincipal `
-  --role $PullRole --scope $AcrId --output none
-```
-
-Choose the role that matches your registry's [permission mode](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-rbac-built-in-roles-overview).
-Allow time for a new role assignment to propagate before deployment.
-
-## 4. Supply PG/Redis settings and create the app
-
-Use the same connection parameters and passwords as ELS, preserving TLS, database,
-user, pooling, and timeout settings. **ACA cannot reference Kubernetes Secrets.**
-The command below creates separate secrets on this new Container App using the
-same underlying passwords. Obtain them from your approved secret store; no AKS
-access or changes to existing FeatBit configuration are needed.
+Enter **no passwords** here. ACA resolves the two existing Key Vault passwords
+using the managed identity and injects them at runtime; your terminal, image,
+deployment arguments, and repository do not need the password values.
 
 ```powershell
-$PgConnection = Read-Host 'PostgreSQL connection string, without password'
-$RedisConnection = Read-Host 'Redis connection string, without password'
-$PgPassword = Read-Host 'PostgreSQL password' -MaskInput
-$RedisPassword = Read-Host 'Redis password' -MaskInput
+$PgConnection = Read-Host 'Paste the ELS PostgreSQL connection string WITHOUT a password'
+$RedisConnection = Read-Host 'Paste the ELS Redis connection string WITHOUT a password'
 
 az containerapp create --name $AppName --resource-group $ResourceGroup `
   --environment $EnvironmentId --image $Image `
   --user-assigned $IdentityId --registry-server $Registry --registry-identity $IdentityId `
   --cpu 0.25 --memory 0.5Gi --min-replicas 1 --max-replicas 1 --revisions-mode single `
-  --secrets "pg-password=$PgPassword" "redis-password=$RedisPassword" `
+  --secrets "pg-password=keyvaultref:$PgSecretUri,identityref:$IdentityId" `
+    "redis-password=keyvaultref:$RedisSecretUri,identityref:$IdentityId" `
   --env-vars "Postgres__ConnectionString=$PgConnection" "Postgres__Password=secretref:pg-password" `
     "Redis__ConnectionString=$RedisConnection" "Redis__Password=secretref:redis-password" `
     "Probe__Enabled=true" "Probe__IntervalSeconds=30" --output none
 if ($LASTEXITCODE -ne 0) { throw 'Deployment failed. Check the error before continuing.' }
-
-$PgPassword = $null
-$RedisPassword = $null
 ```
 
-This starts one continuously running replica, sampling PG/Redis health every
-30 seconds after the previous check completes. Ingress is disabled, so the app
-has no public HTTP endpoint. `--min-replicas 1` keeps background sampling running
-without incoming requests; see [ACA scaling](https://learn.microsoft.com/en-us/azure/container-apps/scale-app#default-scale-rule).
-The background sampler executes the same checks used by `/health/readiness`.
+See [ACA Key Vault references](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets#reference-secret-from-key-vault).
+These are Azure CLI commands run from PowerShell, not Azure PowerShell `Az.*` cmdlets.
+If ELS explicitly sets `Redis__ConnectTimeoutMs` or `Redis__SyncTimeoutMs`, add the
+same values to `--env-vars` before deployment.
 
-See the [create command reference](https://learn.microsoft.com/en-us/cli/azure/containerapp#az-containerapp-create)
-for secrets, environment variables, and deployment options. If ELS overrides
-`Redis__ConnectTimeoutMs` or `Redis__SyncTimeoutMs`, add matching entries to
-`--env-vars` before deployment.
+This creates one continuously running background sampler. It runs the same PG/Redis
+checks as `/health/readiness`, waiting 30 seconds after each completed sample.
+Ingress is disabled, so there is no public HTTP endpoint and no HTTP polling is
+needed. `--min-replicas 1` keeps the sampler running without incoming traffic.
+The probe does not change the existing ELS deployment or its Secrets.
 
-## 5. Observe or remove the test app
+## 5. Confirm the app and view its container logs
 
 ```powershell
+az containerapp show --name $AppName --resource-group $ResourceGroup `
+  --query '{state:properties.provisioningState,revision:properties.latestReadyRevisionName}' --output table
+
 az containerapp logs show --name $AppName --resource-group $ResourceGroup --type console --follow
 ```
 
-The app writes JSON container logs with `TraceId`, per-dependency status, duration,
-and failure details. Use your ACA environment's existing log collection for Azure
-Monitor. Counters reset on process restart; ACA's network path differs from AKS.
+Look for JSON readiness samples with `Source=background`, a `TraceId`, and separate
+`npgsql` / `redis` results and durations. Shared resource placement alone does not
+prove connectivity: image-pull errors need ACR identity/access checks; Key Vault
+reference errors need secret-read permission and vault network access; dependency
+failures need the correct PG/Redis connection settings and network path.
 
-When finished, remove only the test Container App:
+Use the ACA environment's existing container-log collection for Azure Monitor.
+Counters reset on process restart. Versionless Key Vault references can refresh
+after secret rotation and restart replicas. ACA also has a different network path
+from AKS, so these observations describe the ACA environment.
+
+## 6. Deploy a newer image or remove only the test app
+
+After changing the local application, rerun step 3 for a new image tag, then update
+only this Container App. Its existing secret references and settings are retained:
+
+```powershell
+az containerapp update --name $AppName --resource-group $ResourceGroup --image $Image --output none
+```
+
+When the test is finished:
 
 ```powershell
 az containerapp delete --name $AppName --resource-group $ResourceGroup --yes
 ```
 
-The image and selected pull identity remain available for reuse; the existing
-ACR, ACA environment, databases, and FeatBit services are left in place.
+The registry, environment, Key Vault secrets, databases, FeatBit services, and AKS
+resources remain in place. The image and probe identity also remain for reuse.
+
+Validation of this guide is limited to local syntax/link checks and public CLI
+documentation. No Azure build, permission change, deployment, or secret retrieval
+has been executed as part of writing it.
