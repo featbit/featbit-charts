@@ -151,12 +151,16 @@ EXPOSE 5080
 ENTRYPOINT ["dotnet", "Els.ReadinessProbe.dll"]
 '@ | Set-Content -LiteralPath (Join-Path $BuildDirectory 'Dockerfile') -Encoding utf8
 
+# Omit --file: Azure CLI then uses Dockerfile inside the supplied build directory.
 az acr build --resource-group $ResourceGroup --registry $AcrName --image $ImageName `
-  --platform linux/amd64 --file Dockerfile $BuildDirectory
+  --platform linux/amd64 $BuildDirectory
 if ($LASTEXITCODE -ne 0) { throw 'ACR build failed. Stop here.' }
 ```
 
 [ACR builds and pushes the image in Azure](https://learn.microsoft.com/en-us/cli/azure/acr#az-acr-build).
+For a local build context, an explicit relative `--file Dockerfile` is resolved
+against the terminal's current directory. Omitting it selects the generated
+Dockerfile in `$BuildDirectory`, regardless of where the terminal is located.
 Your account needs permission to run ACR builds. Only the temporary runtime files
 are uploaded, not the repository or FeatBit values. Keep tracked `appsettings.json`
 and all other published files free of credentials; optional local settings are
