@@ -1,0 +1,201 @@
+# Azure Marketplace overlay for the FeatBit chart.
+#
+# Based on the settings we use for our own AKS deployment (examples/aks), adapted for
+# customer clusters: self-hosted mode, images from Azure Container Registry, no SaaS
+# billing or OAuth settings. The staging step merges this file into
+# charts/featbit/values.yaml before running the Marketplace packaging tool.
+#
+# Values in <angle brackets> are placeholders. The customer's hostnames, URLs and
+# PostgreSQL/Redis endpoints come from the Azure portal form through the ARM template's
+# configurationSettings, which override the defaults here. See README.md in this folder.
+
+global:
+  # Images in the publisher's Azure Container Registry. Replace <acr-name> with the
+  # Marketplace ACR; Marketplace retags these into its own registry when building the bundle.
+  azure:
+    images:
+      ui:
+        registry: <acr-name>.azurecr.io
+        image: featbit/featbit-ui
+        tag: "6.1.2"
+      api:
+        registry: <acr-name>.azurecr.io
+        image: featbit/featbit-api-server
+        tag: "6.1.2"
+      els:
+        registry: <acr-name>.azurecr.io
+        image: featbit/featbit-evaluation-server
+        tag: "6.1.2"
+  # The customer's existing IngressClass. The ingress annotations below use NGINX conventions.
+  ingressClassName: nginx
+
+architecture:
+  # standard = PostgreSQL + Redis; standalone = PostgreSQL only.
+  tier: standard
+  database: postgres
+
+# Public URLs that SDKs and the UI use to reach the API and Evaluation Server.
+apiExternalUrl: https://<api-host>
+evaluationServerExternalUrl: https://<els-host>
+elsStreamingTrackClientHostName: "false"
+elsStreamingTokenExpirySeconds: 300
+
+# Only the UI, API and Evaluation Server images may appear in the bundle.
+busybox:
+  enabled: false
+autoDiscovery: false
+
+ui:
+  enabled: true
+  replicaCount: 1
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  # Ingress always targets service port 80.
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  autoscaling:
+    enabled: false
+  env:
+    - name: HOSTING_MODE
+      value: self-hosted
+  ingress:
+    enabled: true
+    host: <ui-host>
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    tls:
+      enabled: true
+      secretName: featbit-ui-tls
+
+api:
+  enabled: true
+  replicaCount: 3
+  ssoEnabled: false
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1500m
+      memory: 3Gi
+  # HPA needs metrics-server (enabled by default on AKS).
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  env:
+    - name: HostingMode
+      value: self-hosted
+    - name: Jwt__Algorithm
+      value: HS256
+    # The API refuses to start with the chart's placeholder key, so the key must come
+    # from a Secret in the install namespace.
+    - name: Jwt__Key
+      valueFrom:
+        secretKeyRef:
+          name: featbit-jwt-key-secret
+          key: jwt-key
+  ingress:
+    enabled: true
+    host: <api-host>
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: 10m
+    tls:
+      enabled: true
+      secretName: featbit-api-tls
+  # Optional: sync the Secrets from Azure Key Vault with the Secrets Store CSI driver.
+  # Requires the SecretProviderClass from keyvault-secret-provider.yaml in this folder.
+  # volumeMounts:
+  #   - name: secrets-store
+  #     mountPath: /mnt/secrets-store
+  #     readOnly: true
+  # volumes:
+  #   - name: secrets-store
+  #     csi:
+  #       driver: secrets-store.csi.k8s.io
+  #       readOnly: true
+  #       volumeAttributes:
+  #         secretProviderClass: featbit-keyvault-secrets
+
+els:
+  enabled: true
+  replicaCount: 3
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  ingress:
+    enabled: true
+    host: <els-host>
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      # Long-lived WebSocket connections.
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    tls:
+      enabled: true
+      secretName: featbit-els-tls
+  # Optional Key Vault sync: same volumeMounts/volumes block as api above.
+
+# No bundled infrastructure. Secrets must exist in the install namespace, either created
+# directly or synced from Azure Key Vault.
+postgresql:
+  enabled: false
+externalPostgresql:
+  hosts:
+    - <postgres-host>:5432
+  database: featbit
+  username: featbit
+  existingSecret: featbit-postgres-secret
+  existingSecretPasswordKey: password
+
+redis:
+  enabled: false
+# Used by the standard tier. Use the actual port (10000 for Azure Managed Redis).
+externalRedis:
+  hosts:
+    - <redis-host>:10000
+  existingSecret: featbit-redis-secret
+  existingSecretPasswordKey: password
+  ssl: true
+  db: 0
+
+mongodb:
+  enabled: false
+kafka:
+  enabled: false
+clickhouse:
+  enabled: false

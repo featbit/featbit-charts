@@ -89,15 +89,15 @@ Return the proper Docker Image Registry Secret Names
 {{- end -}}
 
 {{- define "featbit.ui.image" -}}
-{{- include "featbit.images.image" (dict "imageRoot" .Values.ui.image "global" .Values.global) -}}
+{{- include "featbit.images.image" (dict "name" "ui" "imageRoot" .Values.ui.image "global" .Values.global) -}}
 {{- end -}}
 
 {{- define "featbit.api.image" -}}
-{{- include "featbit.images.image" (dict "imageRoot" .Values.api.image "global" .Values.global) -}}
+{{- include "featbit.images.image" (dict "name" "api" "imageRoot" .Values.api.image "global" .Values.global) -}}
 {{- end -}}
 
 {{- define "featbit.els.image" -}}
-{{- include "featbit.images.image" (dict "imageRoot" .Values.els.image "global" .Values.global) -}}
+{{- include "featbit.images.image" (dict "name" "els" "imageRoot" .Values.els.image "global" .Values.global) -}}
 {{- end -}}
 
 {{- define "featbit.init-container.kubectl.image" -}}
