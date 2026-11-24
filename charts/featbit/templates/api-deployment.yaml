@@ -45,7 +45,9 @@ spec:
       securityContext:
         {{- toYaml .Values.api.podSecurityContext | nindent 8 }}
       initContainers:
+        {{- if .Values.busybox.enabled }}
         {{- include "initContainers-wait-for-infrastructure-dependencies" (dict "context" . "component" "api") | indent 8 }}
+        {{- end }}
         {{- if .Values.api.extraInitContainers }}
         {{- with .Values.api.extraInitContainers }}
         {{- tpl . $ | nindent 8 }}

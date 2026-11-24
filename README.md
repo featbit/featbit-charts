@@ -3,9 +3,9 @@
 [FeatBit](https://github.com/featbit/featbit) is an open-source feature flags management tool, which supported self-hosted deployment.
 This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) installation on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm](https://helm.sh/) package manager.
 
-Current source: **Chart 0.10.4 / FeatBit 6.1.2**. The default UI/API/ELS image tags
-are all `6.1.2`. Review the [0.10.4 release notes](migration/RELEASE-v0.10.4.md)
-before upgrading an existing installation.
+Current source: **Chart 0.10.5 / FeatBit 6.1.2**. The default UI/API/ELS image tags
+are all `6.1.2`. Review the [migration notes](#migration-and-upgrades) before upgrading
+an existing installation.
 
 ## Prerequisites
 
@@ -418,6 +418,12 @@ kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space
 ```
 
 ## Migration and Upgrades
+
+**Chart v0.10.5 / FeatBit v6.1.2**: Adds `busybox.enabled` (default `true`) to switch off
+the built-in BusyBox startup waits, and optional `global.azure.images` image settings for
+Azure Marketplace packaging (see [examples/marketplace](charts/featbit/examples/marketplace/README.md)).
+Without these settings the chart behaves as before. Upgrading from Chart 0.10.4 requires no
+database migration.
 
 **Chart v0.10.4 / FeatBit v6.1.2**: See the [release notes](./migration/RELEASE-v0.10.4.md).
 No additional database migration is required when upgrading from FeatBit 6.1.0 or 6.1.1.

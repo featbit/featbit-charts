@@ -507,6 +507,8 @@ externalMongodb:
   existingSecretKey: ""
 
 busybox:
+  # -- Run built-in dependency waits before starting FeatBit containers.
+  enabled: true
   image:
     registry: docker.io
     repository: busybox

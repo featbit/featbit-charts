@@ -1,5 +1,6 @@
 {{/*
-Return the proper image name
+Return the proper image name.
+Optional "name" (ui/api/els) prefers global.azure.images.<name> (Azure Marketplace) when set.
 */}}
 {{- define "featbit.images.image" -}}
 {{- $registryName := .imageRoot.registry -}}
@@ -9,6 +10,11 @@ Return the proper image name
     {{- if .global.imageRegistry }}
      {{- $registryName = .global.imageRegistry -}}
     {{- end -}}
+{{- end -}}
+{{- with dig "azure" "images" (.name | default "") dict (.global | default dict) -}}
+  {{- $registryName = .registry -}}
+  {{- $repositoryName = .image -}}
+  {{- $tag = .tag | toString -}}
 {{- end -}}
 {{- if $registryName }}
 {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
