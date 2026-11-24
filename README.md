@@ -423,7 +423,7 @@ kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space
 the built-in BusyBox startup waits, and optional `global.azure.images` image settings for
 Azure Marketplace packaging (see [examples/marketplace](charts/featbit/examples/marketplace/README.md)).
 Without these settings the chart behaves as before. Upgrading from Chart 0.10.4 requires no
-database migration.
+database migration. See the [release notes](./migration/RELEASE-v0.10.5.md).
 
 **Chart v0.10.4 / FeatBit v6.1.2**: See the [release notes](./migration/RELEASE-v0.10.4.md).
 No additional database migration is required when upgrading from FeatBit 6.1.0 or 6.1.1.
