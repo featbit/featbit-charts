@@ -46,7 +46,7 @@ spec:
       securityContext:
         {{- toYaml .Values.ui.podSecurityContext | nindent 8 }}
       initContainers:
-        {{- if .Values.busybox.enabled }}
+        {{- if or (not (hasKey .Values.busybox "enabled")) .Values.busybox.enabled }}
         {{- include "initContainers-wait-for-other-components" (dict "context" . "component" "ui") | indent 8 }}
         {{- end }}
         {{- if and .Values.autoDiscovery (or (eq .Values.api.service.type "LoadBalancer") (eq .Values.els.service.type "LoadBalancer")) }}

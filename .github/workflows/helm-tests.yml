@@ -41,3 +41,6 @@ jobs:
 
       - name: Test ClickHouse password rendering
         run: bash tests/helm/clickhouse-password-env.sh
+
+      - name: Test Marketplace image and BusyBox rendering
+        run: bash tests/helm/marketplace-images.sh
