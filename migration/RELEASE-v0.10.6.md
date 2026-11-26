@@ -44,6 +44,9 @@ for the API setting.
   or initialization script changes.
 - Explicit UI/API/ELS image overrides (including `global.azure.images.<ui|api|els>.tag`) must also
   select `6.1.3`; `appVersion` alone does not select the images.
+- Do not upgrade with `--reuse-values` alone: it keeps chart 0.10.5's default image tags, so the
+  UI/API/ELS pods stay on `6.1.2`. Pass your values file instead, or add
+  `--set ui.image.tag=6.1.3 --set api.image.tag=6.1.3 --set els.image.tag=6.1.3`.
 - **Flag trigger management now requires `ToggleFlag`.** In 6.1.2, any user or access token with
   access to a flag's environment could create, enable/disable, reset the token of and delete its
   triggers. In 6.1.3 these actions also require `ToggleFlag` on the flag, and return `403` without
