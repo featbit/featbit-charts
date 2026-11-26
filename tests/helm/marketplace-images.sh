@@ -74,9 +74,9 @@ assert_line_count() {
 }
 
 render_case "default images"
-assert_line_count 1 "image: docker.io/featbit/featbit-ui:6.1.2"
-assert_line_count 1 "image: docker.io/featbit/featbit-api-server:6.1.2"
-assert_line_count 1 "image: docker.io/featbit/featbit-evaluation-server:6.1.2"
+assert_line_count 1 "image: docker.io/featbit/featbit-ui:6.1.3"
+assert_line_count 1 "image: docker.io/featbit/featbit-api-server:6.1.3"
+assert_line_count 1 "image: docker.io/featbit/featbit-evaluation-server:6.1.3"
 assert_line_count 3 "image: docker.io/busybox:1.34"
 
 render_case "Marketplace images for all components" "${marketplace_values[@]}"
@@ -88,9 +88,9 @@ render_case "Marketplace image for the API only" \
   --set-string global.azure.images.api.registry=marketplace.azurecr.io \
   --set-string global.azure.images.api.image=featbit/featbit-api-server \
   --set-string global.azure.images.api.tag=1.0.0
-assert_line_count 1 "image: docker.io/featbit/featbit-ui:6.1.2"
+assert_line_count 1 "image: docker.io/featbit/featbit-ui:6.1.3"
 assert_line_count 1 "image: marketplace.azurecr.io/featbit/featbit-api-server:1.0.0"
-assert_line_count 1 "image: docker.io/featbit/featbit-evaluation-server:6.1.2"
+assert_line_count 1 "image: docker.io/featbit/featbit-evaluation-server:6.1.3"
 
 render_case "Marketplace images take precedence over global.imageRegistry" \
   "${marketplace_values[@]}" \

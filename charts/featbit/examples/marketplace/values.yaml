@@ -17,15 +17,15 @@ global:
       ui:
         registry: <acr-name>.azurecr.io
         image: featbit/featbit-ui
-        tag: "6.1.2"
+        tag: "6.1.3"
       api:
         registry: <acr-name>.azurecr.io
         image: featbit/featbit-api-server
-        tag: "6.1.2"
+        tag: "6.1.3"
       els:
         registry: <acr-name>.azurecr.io
         image: featbit/featbit-evaluation-server
-        tag: "6.1.2"
+        tag: "6.1.3"
   # The customer's existing IngressClass. The ingress annotations below use NGINX conventions.
   ingressClassName: nginx
 

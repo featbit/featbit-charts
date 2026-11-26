@@ -130,12 +130,12 @@ helm repo add featbit https://featbit.github.io/featbit-charts/
 helm repo update
 ```
 
-Install FeatBit after Chart 0.10.4 is published:
+Install FeatBit after Chart 0.10.6 is published:
 ```bash
 helm install featbit featbit/featbit \
   -f featbit-aks-values.yaml \
   --namespace featbit \
-  --version 0.10.4
+  --version 0.10.6
 ```
 
 ### 7. Verify Deployment
