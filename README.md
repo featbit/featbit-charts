@@ -3,8 +3,8 @@
 [FeatBit](https://github.com/featbit/featbit) is an open-source feature flags management tool, which supported self-hosted deployment.
 This Helm chart bootstraps a [FeatBit](https://github.com/featbit/featbit) installation on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm](https://helm.sh/) package manager.
 
-Current source: **Chart 0.10.5 / FeatBit 6.1.2**. The default UI/API/ELS image tags
-are all `6.1.2`. Review the [migration notes](#migration-and-upgrades) before upgrading
+Current source: **Chart 0.10.6 / FeatBit 6.1.3**. The default UI/API/ELS image tags
+are all `6.1.3`. Review the [migration notes](#migration-and-upgrades) before upgrading
 an existing installation.
 
 ## Prerequisites
@@ -111,7 +111,7 @@ els:
 
 > **Note**: `Cors__AllowCredentials: true` cannot be used with wildcard `*` origin — you must specify explicit origins.
 
-See full CORS options: [evaluation-server README — CORS](https://github.com/featbit/featbit/tree/6.1.2/modules/evaluation-server#cors)
+See full CORS options: [evaluation-server README — CORS](https://github.com/featbit/featbit/tree/6.1.3/modules/evaluation-server#cors)
 
 ### Example: Rate Limiting for Evaluation Server
 
@@ -145,7 +145,7 @@ els:
       value: "Redis"
 ```
 
-You can also override limits per endpoint (e.g. `RateLimiting__Endpoints__Sdk__PermitLimit`). See full options: [evaluation-server README — Rate Limiting](https://github.com/featbit/featbit/tree/6.1.2/modules/evaluation-server#rate-limiting)
+You can also override limits per endpoint (e.g. `RateLimiting__Endpoints__Sdk__PermitLimit`). See full options: [evaluation-server README — Rate Limiting](https://github.com/featbit/featbit/tree/6.1.3/modules/evaluation-server#rate-limiting)
 
 ### Example: Hide Environment Secrets in the UI Header
 
@@ -164,9 +164,9 @@ Environment switching and access permissions are unchanged.
 
 ### Full Environment Variable Reference
 
-- **UI** (`ui.env`): [modules/front-end/README.md](https://github.com/featbit/featbit/blob/6.1.2/modules/front-end/README.md) - UI runtime settings
-- **API Server** (`api.env`): [modules/back-end/README.md](https://github.com/featbit/featbit/blob/6.1.2/modules/back-end/README.md) — JWT, Logging, OLAP, and more
-- **Evaluation Server** (`els.env`): [modules/evaluation-server/README.md](https://github.com/featbit/featbit/blob/6.1.2/modules/evaluation-server/README.md) — Streaming, CORS, Rate Limiting, and more
+- **UI** (`ui.env`): [modules/front-end/README.md](https://github.com/featbit/featbit/blob/6.1.3/modules/front-end/README.md) - UI runtime settings
+- **API Server** (`api.env`): [modules/back-end/README.md](https://github.com/featbit/featbit/blob/6.1.3/modules/back-end/README.md) — JWT, Logging, OLAP, and more
+- **Evaluation Server** (`els.env`): [modules/evaluation-server/README.md](https://github.com/featbit/featbit/blob/6.1.3/modules/evaluation-server/README.md) — Streaming, CORS, Rate Limiting, and more
 
 ## Expose self-hosted deployment
 
@@ -418,6 +418,12 @@ kubectl port-forward service/featbit-els 5100:5100 [--namespace <your-name-space
 ```
 
 ## Migration and Upgrades
+
+**Chart v0.10.6 / FeatBit v6.1.3**: See the [release notes](./migration/RELEASE-v0.10.6.md).
+No configuration change or database migration is required when upgrading from Chart 0.10.5.
+Managing flag triggers now requires the `ToggleFlag` permission; existing trigger URLs keep working.
+If a reverse proxy serves the API under a stripped URL prefix, set
+`Authentication__RefreshTokenCookiePath` in `api.env`.
 
 **Chart v0.10.5 / FeatBit v6.1.2**: Adds `busybox.enabled` (default `true`) to switch off
 the built-in BusyBox startup waits, and optional `global.azure.images` image settings for
